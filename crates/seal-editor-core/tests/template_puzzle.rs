@@ -49,13 +49,20 @@ fn puzzle_music_follows_the_slider_and_the_menu_quits() {
     create_puzzle_project(&dir);
     let mut world = load_world(&dir);
     assert_eq!(world.music, "audio/music.wav");
-    let music = seal_audio::Sound::from_wav(&std::fs::read(dir.join("audio/music.wav")).unwrap()).unwrap();
+    let music =
+        seal_audio::Sound::from_wav(&std::fs::read(dir.join("audio/music.wav")).unwrap()).unwrap();
     assert!(music.frames() > 22050 * 3, "a loop of several seconds");
     boot(&mut world);
     let volumes = |w: &World| -> Vec<f32> {
-        w.play_music.iter().filter_map(|c| if let MusicCue::Volume { volume } = c { Some(*volume) } else { None }).collect()
+        w.play_music
+            .iter()
+            .filter_map(|c| if let MusicCue::Volume { volume } = c { Some(*volume) } else { None })
+            .collect()
     };
-    assert!(world.play_music.iter().any(|c| matches!(c, MusicCue::Play { file, .. } if file == "audio/music.wav")));
+    assert!(world
+        .play_music
+        .iter()
+        .any(|c| matches!(c, MusicCue::Play { file, .. } if file == "audio/music.wav")));
     assert_eq!(volumes(&world).last().copied(), Some(0.8), "{:?}", world.play_music);
     click(&mut world, "Options");
     let slider = center(&world, "MusicVol");
@@ -87,7 +94,10 @@ fn playthrough(tag: &str) -> Vec<String> {
     assert_eq!(ui(&world, "Level2"), "Level 2 Locked");
     assert_eq!(ui(&world, "Level3"), "Level 3 Locked");
     click(&mut world, "Level2");
-    assert!(shown(&world).contains(&"level_select".to_string()), "locked level stays on the select screen");
+    assert!(
+        shown(&world).contains(&"level_select".to_string()),
+        "locked level stays on the select screen"
+    );
     assert!(!shown(&world).iter().any(|s| s == "level_play"));
     click(&mut world, "Back");
 
@@ -198,11 +208,8 @@ fn playthrough(tag: &str) -> Vec<String> {
 }
 
 fn note(trace: &mut Vec<String>, world: &World, step: &str) {
-    let board = if world.game_screens.text_of("Cell1").is_some() {
-        board(world)
-    } else {
-        "hidden".into()
-    };
+    let board =
+        if world.game_screens.text_of("Cell1").is_some() { board(world) } else { "hidden".into() };
     let moves = world.game_screens.text_of("MovesLabel").unwrap_or_default();
     trace.push(format!(
         "{step} board={board} moves={moves} unlocked={} next={} shown={}",
@@ -242,8 +249,8 @@ fn assert_clean_open(dir: &Path) {
 }
 
 fn assert_save(dir: &Path, unlocked_value: &str) {
-    let text = std::fs::read_to_string(dir.join("saved/games/progress.sealsave"))
-        .expect("progress save");
+    let text =
+        std::fs::read_to_string(dir.join("saved/games/progress.sealsave")).expect("progress save");
     let needle = format!("unlocked = \"{unlocked_value}\"");
     assert!(text.contains(&needle), "save missing {needle}:\n{text}");
 }
@@ -325,7 +332,11 @@ fn best_dir<'a>(
     let to = center(world, name);
     let (dx, dy) = (to[0] - from[0], to[1] - from[1]);
     if dy.abs() >= dx.abs() {
-        if dy >= 0.0 { down } else { up }
+        if dy >= 0.0 {
+            down
+        } else {
+            up
+        }
     } else if dx >= 0.0 {
         right
     } else {
@@ -366,13 +377,8 @@ fn board(world: &World) -> String {
         }
     }
     let listed = var(world, "board");
-    let expect = format!(
-        "[{}]",
-        out.chars()
-            .map(|ch| ch.to_string())
-            .collect::<Vec<_>>()
-            .join(", ")
-    );
+    let expect =
+        format!("[{}]", out.chars().map(|ch| ch.to_string()).collect::<Vec<_>>().join(", "));
     assert_eq!(listed, expect, "list variable and cell labels diverged");
     out
 }
@@ -385,10 +391,7 @@ fn ui(world: &World, name: &str) -> String {
 }
 
 fn unlocked(world: &World) -> String {
-    world
-        .play_game()
-        .and_then(|game| game.values.get("unlocked").cloned())
-        .unwrap_or_default()
+    world.play_game().and_then(|game| game.values.get("unlocked").cloned()).unwrap_or_default()
 }
 
 fn var(world: &World, name: &str) -> String {

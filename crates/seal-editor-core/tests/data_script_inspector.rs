@@ -1,6 +1,6 @@
 //! Data assets in the Inspector and graph script inspector layouts.
 
-use seal_editor_core::{create_project, script_inspector, EditorSession, Layout, CommandArgs};
+use seal_editor_core::{create_project, script_inspector, CommandArgs, EditorSession, Layout};
 use std::fs;
 
 #[test]
@@ -57,7 +57,7 @@ field mode choice options=on|off default=on
 
 #[test]
 fn custom_layout_order_hide_and_range() {
-    use seal_graph::inspector_layout::{InspectorFieldRule, InspectorLayout, plan_rows};
+    use seal_graph::inspector_layout::{plan_rows, InspectorFieldRule, InspectorLayout};
     let mut layout = InspectorLayout::default();
     layout.fields.push(InspectorFieldRule {
         field: "walk_speed".into(),
@@ -79,10 +79,7 @@ fn custom_layout_order_hide_and_range() {
     });
     let plan = plan_rows(script_inspector::SAMPLE_FIELDS, Some(&layout));
     assert!(plan.iter().any(|r| r.field == "bounce" && r.hidden));
-    assert_eq!(
-        plan.iter().find(|r| r.field == "walk_speed").unwrap().min,
-        Some(0.0)
-    );
+    assert_eq!(plan.iter().find(|r| r.field == "walk_speed").unwrap().min, Some(0.0));
     let baseline = script_inspector::plan_sample(None);
     assert_eq!(baseline.len(), script_inspector::SAMPLE_FIELDS.len());
 }

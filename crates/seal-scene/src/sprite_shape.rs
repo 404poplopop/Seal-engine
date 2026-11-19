@@ -6,7 +6,7 @@
 //! object's own units. A smooth point's incoming tangent is the opposite of
 //! that, so the curve is continuous. A corner has no tangents.
 
-use seal_ecs::{SealField, SealValue, SaveCtx, LoadCtx};
+use seal_ecs::{LoadCtx, SaveCtx, SealField, SealValue};
 
 /// One control point of a sprite shape spline.
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -74,16 +74,12 @@ fn parse_one(part: &str) -> Result<SplinePoint, String> {
     let damaged = || "sprite shape point list is damaged".to_string();
     let num = |token: &str| token.parse::<f32>().ok().filter(|n| n.is_finite()).ok_or_else(damaged);
     match tokens.as_slice() {
-        [x, y, "corner"] => Ok(SplinePoint {
-            pos: [num(x)?, num(y)?],
-            smooth: false,
-            out: [0.0, 0.0],
-        }),
-        [x, y, "smooth", ox, oy] => Ok(SplinePoint {
-            pos: [num(x)?, num(y)?],
-            smooth: true,
-            out: [num(ox)?, num(oy)?],
-        }),
+        [x, y, "corner"] => {
+            Ok(SplinePoint { pos: [num(x)?, num(y)?], smooth: false, out: [0.0, 0.0] })
+        }
+        [x, y, "smooth", ox, oy] => {
+            Ok(SplinePoint { pos: [num(x)?, num(y)?], smooth: true, out: [num(ox)?, num(oy)?] })
+        }
         _ => Err(damaged()),
     }
 }

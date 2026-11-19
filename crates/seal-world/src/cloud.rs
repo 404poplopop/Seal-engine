@@ -33,15 +33,9 @@ pub enum Cmd {
     Reply { slot: String, saved_at: u64, body: String },
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Default)]
 pub struct Queue {
     pub jobs: Vec<Job>,
-}
-
-impl Default for Queue {
-    fn default() -> Self {
-        Self { jobs: Vec::new() }
-    }
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -227,9 +221,7 @@ pub fn reply(
         } else {
             Note::Uploaded { slot: job.slot }
         }
-    } else if body.is_empty() {
-        Note::Conflict { slot: job.slot, kept: "local".into() }
-    } else if local_at.is_some_and(|t| t >= remote_at) {
+    } else if body.is_empty() || local_at.is_some_and(|t| t >= remote_at) {
         Note::Conflict { slot: job.slot, kept: "local".into() }
     } else {
         Note::Downloaded { slot: job.slot, body: body.to_string() }
@@ -405,15 +397,16 @@ fn http(url: &str, method: &str, path: &str, body: &str) -> Result<String, Fail>
     }
 }
 
-
 /// Send one request and read the whole reply, over TLS for `https`.
 fn exchange(tls: bool, host: &str, port: u16, request: &[u8]) -> Result<Vec<u8>, Fail> {
     let host = host.to_string();
-    let unreachable = |e: std::io::Error| Fail::Offline(format!("the cloud endpoint is unreachable ({e})"));
+    let unreachable =
+        |e: std::io::Error| Fail::Offline(format!("the cloud endpoint is unreachable ({e})"));
     // Host names resolve through the system resolver; the first address that answers is used.
-    let addrs: Vec<std::net::SocketAddr> = std::net::ToSocketAddrs::to_socket_addrs(&(host.as_str(), port))
-        .map_err(unreachable)?
-        .collect();
+    let addrs: Vec<std::net::SocketAddr> =
+        std::net::ToSocketAddrs::to_socket_addrs(&(host.as_str(), port))
+            .map_err(unreachable)?
+            .collect();
     let mut last = None;
     let mut stream = None;
     for addr in addrs {
@@ -427,7 +420,9 @@ fn exchange(tls: bool, host: &str, port: u16, request: &[u8]) -> Result<Vec<u8>,
     }
     let mut stream = match stream {
         Some(s) => s,
-        None => return Err(unreachable(last.unwrap_or_else(|| std::io::Error::other("no address")))),
+        None => {
+            return Err(unreachable(last.unwrap_or_else(|| std::io::Error::other("no address"))))
+        }
     };
     stream.set_read_timeout(Some(Duration::from_secs(5))).ok();
     stream.set_write_timeout(Some(Duration::from_secs(5))).ok();
@@ -473,7 +468,8 @@ pub fn https_get(url: &str, limit: usize) -> Result<Vec<u8>, String> {
         let raw = exchange(tls, &host, port, request.as_bytes()).map_err(|f| match f {
             Fail::Offline(m) | Fail::Bad(m) => m,
         })?;
-        let split = raw.windows(4).position(|w| w == b"\r\n\r\n").ok_or("the reply had no header")?;
+        let split =
+            raw.windows(4).position(|w| w == b"\r\n\r\n").ok_or("the reply had no header")?;
         let head = String::from_utf8_lossy(&raw[..split]).to_string();
         let body = &raw[split + 4..];
         let status: u16 = head
@@ -490,13 +486,18 @@ pub fn https_get(url: &str, limit: usize) -> Result<Vec<u8>, String> {
         };
         if (300..400).contains(&status) {
             let to = header("location").ok_or("a redirect had no location")?;
-            url = if to.starts_with("http") { to } else { format!("{}://{host}:{port}{to}", if tls { "https" } else { "http" }) };
+            url = if to.starts_with("http") {
+                to
+            } else {
+                format!("{}://{host}:{port}{to}", if tls { "https" } else { "http" })
+            };
             continue;
         }
         if status != 200 {
             return Err(format!("the server replied {status}"));
         }
-        let data = if header("transfer-encoding").is_some_and(|v| v.eq_ignore_ascii_case("chunked")) {
+        let data = if header("transfer-encoding").is_some_and(|v| v.eq_ignore_ascii_case("chunked"))
+        {
             dechunk(body)?
         } else {
             body.to_vec()
@@ -707,7 +708,10 @@ mod endpoint_tests {
             split_url("https://saves.example.com/api/").unwrap(),
             (true, "saves.example.com".into(), 443, "/api".into())
         );
-        assert_eq!(split_url("http://127.0.0.1:8080").unwrap(), (false, "127.0.0.1".into(), 8080, String::new()));
+        assert_eq!(
+            split_url("http://127.0.0.1:8080").unwrap(),
+            (false, "127.0.0.1".into(), 8080, String::new())
+        );
         assert!(split_url("ftp://x").is_err());
         assert!(split_url("https://").is_err());
     }

@@ -91,17 +91,11 @@ impl TextureDesc {
     }
 
     pub fn volume_rgba8(width: u32, height: u32, depth: u32) -> Self {
-        Self {
-            shape: TextureShape::D3 { depth: depth.max(1) },
-            ..Self::rgba8(width, height)
-        }
+        Self { shape: TextureShape::D3 { depth: depth.max(1) }, ..Self::rgba8(width, height) }
     }
 
     pub fn cubemap_rgba8(side: u32) -> Self {
-        Self {
-            shape: TextureShape::Cube,
-            ..Self::rgba8(side, side)
-        }
+        Self { shape: TextureShape::Cube, ..Self::rgba8(side, side) }
     }
 
     /// Depth or array layer count for wgpu `Extent3d::depth_or_array_layers`.

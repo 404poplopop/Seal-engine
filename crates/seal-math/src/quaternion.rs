@@ -19,21 +19,13 @@ impl Quat {
             return Self::IDENTITY;
         }
         let inv = 1.0 / len;
-        Self {
-            x: self.x * inv,
-            y: self.y * inv,
-            z: self.z * inv,
-            w: self.w * inv,
-        }
+        Self { x: self.x * inv, y: self.y * inv, z: self.z * inv, w: self.w * inv }
     }
 
     /// Euler angles in degrees: pitch (x), yaw (y), roll (z).
     pub fn from_euler_deg(pitch: f32, yaw: f32, roll: f32) -> Self {
-        let (px, py, pz) = (
-            pitch.to_radians() * 0.5,
-            yaw.to_radians() * 0.5,
-            roll.to_radians() * 0.5,
-        );
+        let (px, py, pz) =
+            (pitch.to_radians() * 0.5, yaw.to_radians() * 0.5, roll.to_radians() * 0.5);
         let (sp, cp) = (sin(px), cos(px));
         let (sy, cy) = (sin(py), cos(py));
         let (sr, cr) = (sin(pz), cos(pz));
@@ -54,15 +46,10 @@ impl Quat {
         let half = angle_deg.to_radians() * 0.5;
         let (s, c) = (sin(half), cos(half));
         let inv = s / len;
-        Self::normalize(Self {
-            x: axis[0] * inv,
-            y: axis[1] * inv,
-            z: axis[2] * inv,
-            w: c,
-        })
+        Self::normalize(Self { x: axis[0] * inv, y: axis[1] * inv, z: axis[2] * inv, w: c })
     }
 
-    pub fn mul(self, other: Self) -> Self {
+    fn mul_normalized(self, other: Self) -> Self {
         Self::normalize(Self {
             x: self.w * other.x + self.x * other.w + self.y * other.z - self.z * other.y,
             y: self.w * other.y - self.x * other.z + self.y * other.w + self.z * other.x,
@@ -115,6 +102,15 @@ impl Quat {
     }
 }
 
+impl std::ops::Mul for Quat {
+    type Output = Self;
+
+    /// Rotation `other` followed by `self`, normalized.
+    fn mul(self, other: Self) -> Self {
+        self.mul_normalized(other)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -147,7 +143,7 @@ mod tests {
     fn mul_composes_rotations() {
         let a = Quat::from_axis_angle([0.0, 1.0, 0.0], 90.0);
         let b = Quat::from_axis_angle([1.0, 0.0, 0.0], 90.0);
-        let c = a.mul(b);
+        let c = a * b;
         let v = c.rotate_vec([0.0, 0.0, 1.0]);
         assert!(v[1].abs() > 0.5);
     }

@@ -147,7 +147,12 @@ fn island_slice_pivot_border_and_outlines_round_trip() {
     let (project, mut s) = project();
     s.dispatch(
         "asset.frames_new",
-        &CommandArgs::new(&[("path", "anims/sheet"), ("image", "sprites/sheet.png"), ("cols", "1"), ("rows", "1")]),
+        &CommandArgs::new(&[
+            ("path", "anims/sheet"),
+            ("image", "sprites/sheet.png"),
+            ("cols", "1"),
+            ("rows", "1"),
+        ]),
     )
     .unwrap();
     assert_eq!(s.draft(ASSET_DRAFT).as_deref(), Some("anims/sheet.frames"));
@@ -162,11 +167,18 @@ fn island_slice_pivot_border_and_outlines_round_trip() {
         ]),
     )
     .unwrap();
-    let lib = SpriteFrames::parse(&fs::read_to_string(project.join("anims/sheet.frames")).unwrap()).unwrap();
+    let lib = SpriteFrames::parse(&fs::read_to_string(project.join("anims/sheet.frames")).unwrap())
+        .unwrap();
     assert_eq!(lib.clips[0].frames.len(), 2, "the single speck is dropped");
     s.dispatch(
         "asset.frames_frame",
-        &CommandArgs::new(&[("clip", "idle"), ("index", "0"), ("action", "set"), ("pivot", "0.2,0.8"), ("border", "1,2,3,4")]),
+        &CommandArgs::new(&[
+            ("clip", "idle"),
+            ("index", "0"),
+            ("action", "set"),
+            ("pivot", "0.2,0.8"),
+            ("border", "1,2,3,4"),
+        ]),
     )
     .unwrap();
     s.dispatch(
@@ -179,7 +191,8 @@ fn island_slice_pivot_border_and_outlines_round_trip() {
         &CommandArgs::new(&[("clip", "idle"), ("index", "0"), ("action", "physics")]),
     )
     .unwrap();
-    let lib = SpriteFrames::parse(&fs::read_to_string(project.join("anims/sheet.frames")).unwrap()).unwrap();
+    let lib = SpriteFrames::parse(&fs::read_to_string(project.join("anims/sheet.frames")).unwrap())
+        .unwrap();
     let frame = &lib.clips[0].frames[0];
     assert_eq!(frame.pivot, [0.2, 0.8]);
     assert_eq!(frame.border, [1.0, 2.0, 3.0, 4.0]);

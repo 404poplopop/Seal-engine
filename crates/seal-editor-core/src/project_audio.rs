@@ -61,7 +61,7 @@ pub fn is_mix_setting(id: &str) -> bool {
     if matches!(id, MASTER_VOLUME | MUSIC_VOLUME | EFFECTS_VOLUME) {
         return true;
     }
-  if id == OUTPUT_SAMPLE_RATE || id == OUTPUT_BUFFER || id == OUTPUT_BACKEND {
+    if id == OUTPUT_SAMPLE_RATE || id == OUTPUT_BUFFER || id == OUTPUT_BACKEND {
         return true;
     }
     for platform in PLATFORMS {

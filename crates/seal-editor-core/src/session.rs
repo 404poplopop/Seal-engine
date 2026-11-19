@@ -2208,9 +2208,9 @@ impl EditorSession {
                 }
             }
         }
-        self.world = match std::fs::read_to_string(&scene).map(|text| {
-            seal_world::object_files::expand(&scene, &text).unwrap_or(text)
-        }) {
+        self.world = match std::fs::read_to_string(&scene)
+            .map(|text| seal_world::object_files::expand(&scene, &text).unwrap_or(text))
+        {
             Ok(text) => match World::from_text(&text) {
                 Ok(world) => world,
                 Err(err) => {
@@ -3197,7 +3197,10 @@ mod tests {
         let folder = crate::wizard::wizard_folder(&session);
         assert_eq!(folder.parent(), Some(crate::wizard::default_projects_dir().as_path()));
         assert!(!folder.exists());
-        assert_eq!(crate::wizard::wizard_name(&session), folder.file_name().unwrap().to_str().unwrap());
+        assert_eq!(
+            crate::wizard::wizard_name(&session),
+            folder.file_name().unwrap().to_str().unwrap()
+        );
     }
 
     #[test]
@@ -3700,7 +3703,7 @@ mod delete_survives_tests {
         for kind in ["cube", "cube", "sphere"] {
             session.dispatch("scene.add", &CommandArgs::new(&[("kind", kind)])).unwrap();
         }
-        let added = session.world.entities.iter().rev().next().unwrap().id.clone();
+        let added = session.world.entities.iter().next_back().unwrap().id.clone();
         assert_eq!(session.foundation.selection, vec![added], "a new object is selected alone");
         session.dispatch("edit.select_all", &CommandArgs::default()).unwrap();
         assert_eq!(session.foundation.selection.len(), 3);

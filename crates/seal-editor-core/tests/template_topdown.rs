@@ -37,7 +37,8 @@ const ASSETS: &[&str] = &[
 ];
 
 fn scratch(tag: &str) -> PathBuf {
-    let dir = std::env::temp_dir().join(format!("seal-template-topdown-{tag}-{}", std::process::id()));
+    let dir =
+        std::env::temp_dir().join(format!("seal-template-topdown-{tag}-{}", std::process::id()));
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).unwrap();
     dir
@@ -68,10 +69,7 @@ fn play_digest(w: &World) -> u64 {
             if e.hidden {
                 continue;
             }
-            text.push_str(&format!(
-                "{}@{:.2},{:.2};",
-                e.name, e.translation[0], e.translation[1]
-            ));
+            text.push_str(&format!("{}@{:.2},{:.2};", e.name, e.translation[0], e.translation[1]));
         }
     }
     fnv(text.as_bytes())
@@ -172,17 +170,15 @@ fn template_writes_every_file_and_opens_cleanly() {
     }
     let scene = fs::read_to_string(dir.join("scene.seal")).unwrap();
     World::from_text(&scene).expect("village scene loads");
-    World::from_text(&fs::read_to_string(dir.join("scenes/cave.seal")).unwrap()).expect("cave loads");
+    World::from_text(&fs::read_to_string(dir.join("scenes/cave.seal")).unwrap())
+        .expect("cave loads");
     let mut session = EditorSession::new(Layout::default());
     let path = dir.to_string_lossy();
     session
         .dispatch("file.open-project", &CommandArgs::new(&[("path", path.as_ref())]))
         .expect("open project");
     let console: Vec<_> = collect_log_lines(session.foundation.console_clear_before);
-    let bad: Vec<_> = console
-        .iter()
-        .filter(|l| l.level == "error" || l.level == "warn")
-        .collect();
+    let bad: Vec<_> = console.iter().filter(|l| l.level == "error" || l.level == "warn").collect();
     assert!(bad.is_empty(), "console: {bad:?}");
     let _ = fs::remove_dir_all(&dir);
 }
@@ -215,7 +211,7 @@ fn the_village_door_opens_the_cave_scene() {
     let mut w = World::from_text(&fs::read_to_string(dir.join("scene.seal")).unwrap()).unwrap();
     w.project_dir = Some(dir.clone());
     w.play();
-  // Nudge the hero into the cave door on the east path.
+    // Nudge the hero into the cave door on the east path.
     if let Some(hero) = w.entities.iter().find(|e| e.tag == "player").map(|e| e.id.clone()) {
         w.entity_mut(&hero).unwrap().translation = [5.2, 0.0, 0.0];
     }
@@ -223,11 +219,9 @@ fn the_village_door_opens_the_cave_scene() {
         w.step(1.0 / 60.0);
     }
     assert_eq!(
-        w.scenes.open,
-        "scenes/cave.seal",
+        w.scenes.open, "scenes/cave.seal",
         "door opened the cave: open={} log={:?}",
-        w.scenes.open,
-        w.play_log
+        w.scenes.open, w.play_log
     );
     let names: BTreeSet<_> = w.entities.iter().map(|e| e.name.as_str()).collect();
     assert!(names.contains("Exit"), "cave scene objects: {names:?}");
@@ -378,17 +372,35 @@ fn hearts_follow_damage_and_zero_restarts_without_a_save() {
 #[test]
 fn the_start_is_fair_and_every_actor_stands_on_the_tiles() {
     let (dir, mut w) = project("fair");
-    let folder = w.entities.iter().find(|e| e.name == "Tiles" && e.tag == "folder").expect("Tiles folder").id.clone();
+    let folder = w
+        .entities
+        .iter()
+        .find(|e| e.name == "Tiles" && e.tag == "folder")
+        .expect("Tiles folder")
+        .id
+        .clone();
     let tiles: Vec<_> = w.entities.iter().filter(|e| e.tag == "floor").collect();
     assert_eq!(tiles.len(), 13 * 7);
-    assert!(tiles.iter().all(|e| e.parent.as_deref() == Some(folder.as_str())), "every tile sits in the Tiles folder");
+    assert!(
+        tiles.iter().all(|e| e.parent.as_deref() == Some(folder.as_str())),
+        "every tile sits in the Tiles folder"
+    );
     let (lo, hi) = tiles.iter().fold(([f32::MAX; 2], [f32::MIN; 2]), |(lo, hi), e| {
         let t = e.translation;
-        ([lo[0].min(t[0] - 0.5), lo[1].min(t[1] - 0.5)], [hi[0].max(t[0] + 0.5), hi[1].max(t[1] + 0.5)])
+        (
+            [lo[0].min(t[0] - 0.5), lo[1].min(t[1] - 0.5)],
+            [hi[0].max(t[0] + 0.5), hi[1].max(t[1] + 0.5)],
+        )
     });
-    for e in w.entities.iter().filter(|e| matches!(e.tag.as_str(), "player" | "enemy" | "pickup" | "npc" | "door" | "save")) {
+    for e in w.entities.iter().filter(|e| {
+        matches!(e.tag.as_str(), "player" | "enemy" | "pickup" | "npc" | "door" | "save")
+    }) {
         let t = e.translation;
-        assert!(t[0] > lo[0] && t[0] < hi[0] && t[1] > lo[1] && t[1] < hi[1], "{} at {t:?} is off the tiles {lo:?}..{hi:?}", e.name);
+        assert!(
+            t[0] > lo[0] && t[0] < hi[0] && t[1] > lo[1] && t[1] < hi[1],
+            "{} at {t:?} is off the tiles {lo:?}..{hi:?}",
+            e.name
+        );
     }
     w.play();
     pump(&mut w, &[], 240);
@@ -400,7 +412,11 @@ fn the_start_is_fair_and_every_actor_stands_on_the_tiles() {
 #[test]
 fn a_soundset_plays_one_of_its_files_during_play() {
     let (dir, mut w) = project("soundset");
-    fs::write(dir.join("audio/pickup.soundset"), "# Seal sound container\nmode random\nseed 7\nvolume 1\nentry pickup.wav\nentry save.wav\n").unwrap();
+    fs::write(
+        dir.join("audio/pickup.soundset"),
+        "# Seal sound container\nmode random\nseed 7\nvolume 1\nentry pickup.wav\nentry save.wav\n",
+    )
+    .unwrap();
     let graph = dir.join("logic/pickup.graph");
     let text = fs::read_to_string(&graph).unwrap();
     assert!(text.contains("audio/pickup.wav"));
@@ -528,7 +544,10 @@ fn a_save_restores_place_hearts_gems_and_scene() {
     assert_eq!(score(&w, "gems"), 0, "collected gems were not in the save");
     assert!(w.entities.iter().any(|e| e.name == "Gem 1"));
     let at = hero(&w).translation;
-    assert!((at[0] - -5.5).abs() < 0.6 && (at[1] - -2.0).abs() < 0.6, "back at the shrine, at={at:?}");
+    assert!(
+        (at[0] - -5.5).abs() < 0.6 && (at[1] - -2.0).abs() < 0.6,
+        "back at the shrine, at={at:?}"
+    );
     script_ok(&w);
     w.stop();
     let _ = fs::remove_dir_all(&dir);

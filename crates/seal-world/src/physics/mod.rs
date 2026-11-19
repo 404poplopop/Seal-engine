@@ -329,9 +329,7 @@ impl PhysicsSceneSave {
             }
         }
         if !self.colliders.iter().any(|c| c.entity == entity) {
-            let mut rec = ColliderRec::default();
-            rec.entity = entity.to_string();
-            self.colliders.push(rec);
+            self.colliders.push(ColliderRec { entity: entity.to_string(), ..Default::default() });
         }
         let rec = self.colliders.iter_mut().find(|c| c.entity == entity).unwrap();
         match field {

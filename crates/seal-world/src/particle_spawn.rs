@@ -7,8 +7,8 @@ use super::particle_types::{Burst, EmitShape, ParticleExtras, SphereVolume};
 
 const TAU: f32 = std::f32::consts::TAU;
 
-pub fn sample_emit_offset(shape: &EmitShape, mut rand: impl FnMut() -> f32) -> [f32; 3] {
-    sample_emit_offset_project(shape, None, || rand())
+pub fn sample_emit_offset(shape: &EmitShape, rand: impl FnMut() -> f32) -> [f32; 3] {
+    sample_emit_offset_project(shape, None, rand)
 }
 
 pub fn sample_emit_offset_project(
@@ -63,7 +63,7 @@ pub fn sample_emit_offset_project(
         }
         EmitShape::Mesh { path, mode } => {
             let data = load_emit_mesh(path, project);
-            sample_on_mesh(&data, *mode, || rand())
+            sample_on_mesh(&data, *mode, rand)
         }
     }
 }
@@ -152,6 +152,6 @@ pub fn bursts_due(extras: &ParticleExtras, last_time: f32, now: f32) -> Vec<(f32
     out
 }
 
-pub fn sort_bursts(bursts: &mut Vec<Burst>) {
+pub fn sort_bursts(bursts: &mut [Burst]) {
     bursts.sort_by(|a, b| a.time.total_cmp(&b.time));
 }

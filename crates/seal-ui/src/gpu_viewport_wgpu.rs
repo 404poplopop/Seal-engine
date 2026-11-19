@@ -3,8 +3,8 @@
 //! Used when the frame is drawn by that device. The ordinary path is unchanged
 //! and still draws when this one is off.
 
-use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Arc;
 
 use egui::Rect;
 
@@ -24,7 +24,6 @@ pub const DEPTH_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Depth24Plus;
 
 pub const MESH_WGSL: &str = include_str!("mesh_viewport.wgsl");
 pub const COMPOSITE_WGSL: &str = include_str!("frame_composite.wgsl");
-
 
 static ACTIVE: AtomicBool = AtomicBool::new(false);
 static HDR: AtomicBool = AtomicBool::new(false);
@@ -46,7 +45,6 @@ pub fn set_hdr(on: bool) {
 pub fn hdr() -> bool {
     HDR.load(Ordering::Relaxed)
 }
-
 
 /// Draw `tris` with a depth test, albedo textures and the shadow map.
 pub fn paint_callback(
@@ -71,7 +69,6 @@ pub fn preview_callback(
 ) -> egui::PaintCallback {
     crate::gpu_mesh_pass::preview_callback(rect, rgba, width, height, format)
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -151,7 +148,12 @@ mod tests {
             render_scale: 100,
         };
         set_active(false);
-        assert!(callback_is_glow(&crate::gpu_viewport::paint_callback(rect, &[tri], None, frame.clone())));
+        assert!(callback_is_glow(&crate::gpu_viewport::paint_callback(
+            rect,
+            &[tri],
+            None,
+            frame.clone()
+        )));
         assert!(callback_is_glow(&crate::gpu_viewport::sky_callback(rect, frame.clone())));
         assert!(callback_is_glow(&crate::gpu_sprite_blend::paint_callback(rect, Vec::new())));
         assert!(callback_is_glow(&crate::gpu_textures::preview_callback(
@@ -163,7 +165,12 @@ mod tests {
         )));
         let (rect, tri) = one_triangle();
         set_active(true);
-        assert!(callback_is_device(&crate::gpu_viewport::paint_callback(rect, &[tri], None, frame.clone())));
+        assert!(callback_is_device(&crate::gpu_viewport::paint_callback(
+            rect,
+            &[tri],
+            None,
+            frame.clone()
+        )));
         assert!(callback_is_device(&crate::gpu_viewport::sky_callback(rect, frame)));
         assert!(callback_is_device(&crate::gpu_sprite_blend::paint_callback(rect, Vec::new())));
         assert!(callback_is_device(&crate::gpu_textures::preview_callback(
@@ -200,28 +207,38 @@ mod tests {
     fn the_frame_selects_the_paint_callback() {
         let (rect, tri) = one_triangle();
         set_active(false);
-        let standard = crate::gpu_viewport::paint_callback(rect, &[tri], None, crate::gpu_viewport::GpuFrame {
-            anisotropy: 1,
-            sky: String::new(),
-            project: None,
-            yaw_deg: 0.0,
-            pitch_deg: 0.0,
-            look_through: false,
-            render_scale: 100,
-        });
+        let standard = crate::gpu_viewport::paint_callback(
+            rect,
+            &[tri],
+            None,
+            crate::gpu_viewport::GpuFrame {
+                anisotropy: 1,
+                sky: String::new(),
+                project: None,
+                yaw_deg: 0.0,
+                pitch_deg: 0.0,
+                look_through: false,
+                render_scale: 100,
+            },
+        );
         assert!(standard.callback.downcast_ref::<eframe::egui_glow::CallbackFn>().is_some());
         let (rect, tri) = one_triangle();
         set_active(true);
         set_hdr(true);
-        let device = crate::gpu_viewport::paint_callback(rect, &[tri], None, crate::gpu_viewport::GpuFrame {
-            anisotropy: 1,
-            sky: String::new(),
-            project: None,
-            yaw_deg: 0.0,
-            pitch_deg: 0.0,
-            look_through: false,
-            render_scale: 100,
-        });
+        let device = crate::gpu_viewport::paint_callback(
+            rect,
+            &[tri],
+            None,
+            crate::gpu_viewport::GpuFrame {
+                anisotropy: 1,
+                sky: String::new(),
+                project: None,
+                yaw_deg: 0.0,
+                pitch_deg: 0.0,
+                look_through: false,
+                render_scale: 100,
+            },
+        );
         assert!(device.callback.downcast_ref::<egui_wgpu::Callback>().is_some());
         set_active(false);
         set_hdr(false);

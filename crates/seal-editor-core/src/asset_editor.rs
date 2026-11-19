@@ -695,7 +695,12 @@ pub(crate) fn cmd_frames_frame(
 /// A frame event name. Spaces stay. A `#` would be read as a comment, so it
 /// is dropped, and an empty name clears the event.
 fn clean_event(name: &str) -> String {
-    name.trim().chars().filter(|c| *c != '#' && !c.is_control()).collect::<String>().trim().to_string()
+    name.trim()
+        .chars()
+        .filter(|c| *c != '#' && !c.is_control())
+        .collect::<String>()
+        .trim()
+        .to_string()
 }
 
 fn socket_word(name: &str) -> Result<String, CoreError> {

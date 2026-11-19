@@ -21,10 +21,7 @@ fn registry() -> &'static Mutex<Registry> {
     static CELL: OnceLock<Mutex<Registry>> = OnceLock::new();
     CELL.get_or_init(|| {
         let mut by_ext = HashMap::new();
-        by_ext.insert(
-            "demo".into(),
-            Box::new(DemoStripesProvider) as Box<dyn PreviewProvider>,
-        );
+        by_ext.insert("demo".into(), Box::new(DemoStripesProvider) as Box<dyn PreviewProvider>);
         Mutex::new(Registry { by_ext })
     })
 }
@@ -40,19 +37,16 @@ pub fn register(exts: &[&str], provider: Box<dyn PreviewProvider>) {
     }
 }
 
+/// RGBA pixels, width and height.
+pub type Rendered = (Vec<u8>, u32, u32);
+
 /// Render with a registered provider, or `None` when no provider owns the extension.
-pub fn render_with_provider(source: &Path) -> Option<Result<(Vec<u8>, u32, u32), CoreError>> {
-    let ext = source
-        .extension()
-        .map(|e| e.to_string_lossy().to_ascii_lowercase())
-        .unwrap_or_default();
+pub fn render_with_provider(source: &Path) -> Option<Result<Rendered, CoreError>> {
+    let ext =
+        source.extension().map(|e| e.to_string_lossy().to_ascii_lowercase()).unwrap_or_default();
     let guard = registry().lock().ok()?;
     let provider = guard.by_ext.get(&ext)?;
-    Some(
-        provider
-            .render(source)
-            .map(|rgba| (rgba, PREVIEW_SIZE, PREVIEW_SIZE)),
-    )
+    Some(provider.render(source).map(|rgba| (rgba, PREVIEW_SIZE, PREVIEW_SIZE)))
 }
 
 struct DemoStripesProvider;
@@ -84,9 +78,7 @@ mod tests {
 
     impl PreviewProvider for FixedProvider {
         fn render(&self, _: &Path) -> Result<Vec<u8>, CoreError> {
-            Ok((0..PREVIEW_SIZE * PREVIEW_SIZE)
-                .flat_map(|_| [255u8, 0, 0, 255])
-                .collect())
+            Ok((0..PREVIEW_SIZE * PREVIEW_SIZE).flat_map(|_| [255u8, 0, 0, 255]).collect())
         }
     }
 
@@ -99,6 +91,6 @@ mod tests {
         register(&["demotest"], Box::new(FixedProvider));
         let out = render_with_provider(&file).unwrap().unwrap();
         assert_eq!(out.2, PREVIEW_SIZE);
-        assert!(out.0.iter().any(|&b| b == 255));
+        assert!(out.0.contains(&255));
     }
 }

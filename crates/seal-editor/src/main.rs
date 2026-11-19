@@ -162,7 +162,9 @@ fn main() -> ExitCode {
     }
     install(logger);
     seal_editor_core::install_panic_hook(user_data.join("logs"));
-    seal_editor_shell::set_sound_sink(Box::new(|project, world, cues| sound::play(project, world, cues)));
+    seal_editor_shell::set_sound_sink(Box::new(|project, world, cues| {
+        sound::play(project, world, cues)
+    }));
     seal_editor_shell::set_music_sink(Box::new(sound::music));
     seal_editor_shell::set_preview_sink(Box::new(sound::preview));
     seal_editor_shell::set_mix_sink(Box::new(sound::apply_project_audio));

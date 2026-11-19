@@ -56,10 +56,7 @@ fn parse_bounds_line(text: &str) -> Option<(f32, f32, f32)> {
     for line in text.lines() {
         let line = line.trim();
         if let Some(rest) = line.strip_prefix("bounds ") {
-            let parts: Vec<f32> = rest
-                .split_whitespace()
-                .filter_map(|p| p.parse().ok())
-                .collect();
+            let parts: Vec<f32> = rest.split_whitespace().filter_map(|p| p.parse().ok()).collect();
             if parts.len() >= 3 {
                 return Some((parts[0].max(0.1), parts[1].max(0.1), parts[2].max(0.1)));
             }
@@ -141,20 +138,17 @@ fn render_box_mesh(color: [u8; 3], sx: f32, sy: f32, sz: f32) -> Result<Vec<u8>,
     ];
     let light = normalize([0.3, 0.8, 0.5]);
     let mut painted = vec![false; (size * size) as usize];
-    let mut tris: Vec<(f32, [f32; 2], [f32; 2], [f32; 2], [f32; 3])> = Vec::new();
+    type Tri = (f32, [f32; 2], [f32; 2], [f32; 2], [f32; 3]);
+    let mut tris: Vec<Tri> = Vec::new();
     for (idx, normal) in faces {
         let depth = normal[2];
-        let pts: Vec<[f32; 2]> = idx
-            .iter()
-            .map(|&vi| project(verts[vi], sx, sy, sz))
-            .collect();
+        let pts: Vec<[f32; 2]> = idx.iter().map(|&vi| project(verts[vi], sx, sy, sz)).collect();
         tris.push((depth, pts[0], pts[1], pts[2], normal));
         tris.push((depth, pts[0], pts[2], pts[3], normal));
     }
     tris.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap_or(std::cmp::Ordering::Equal));
     for (_, a, b, c, normal) in tris {
-        let ndotl =
-            (normal[0] * light[0] + normal[1] * light[1] + normal[2] * light[2]).max(0.2);
+        let ndotl = (normal[0] * light[0] + normal[1] * light[1] + normal[2] * light[2]).max(0.2);
         fill_tri(&mut rgba, &mut painted, size, a, b, c, color, ndotl);
     }
     Ok(rgba)
@@ -172,10 +166,7 @@ fn project(v: [f32; 3], sx: f32, sy: f32, sz: f32) -> [f32; 2] {
     let rz = -x * syaw + z * cyaw;
     let ry = y * cpitch - rz * spitch;
     let scale = PREVIEW_SIZE as f32 * 0.22;
-    [
-        PREVIEW_SIZE as f32 * 0.5 + rx * scale,
-        PREVIEW_SIZE as f32 * 0.55 - ry * scale,
-    ]
+    [PREVIEW_SIZE as f32 * 0.5 + rx * scale, PREVIEW_SIZE as f32 * 0.55 - ry * scale]
 }
 
 fn fill_tri(

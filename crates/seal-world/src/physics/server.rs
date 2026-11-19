@@ -19,14 +19,9 @@ struct Slot {
     backend: Box<dyn PhysicsBackend>,
 }
 
+#[derive(Default)]
 pub struct PhysicsServer {
     worlds: BTreeMap<String, Slot>,
-}
-
-impl Default for PhysicsServer {
-    fn default() -> Self {
-        Self { worlds: BTreeMap::new() }
-    }
 }
 
 impl PhysicsServer {

@@ -1636,10 +1636,10 @@ impl<'a> PanelFrame<'a> {
                         let is_selected = selected == Some(index);
                         if response.double_clicked() {
                             hit = Some(FileHit::Open(index));
-                        } else if response.clicked() || response.secondary_clicked() {
-                            if !is_selected {
-                                hit = Some(FileHit::Select(index));
-                            }
+                        } else if (response.clicked() || response.secondary_clicked())
+                            && !is_selected
+                        {
+                            hit = Some(FileHit::Select(index));
                         }
                         let response = response.on_hover_text(name.as_str());
                         response.context_menu(|ui| {
@@ -3562,9 +3562,7 @@ impl<'a> PanelFrame<'a> {
             None
         };
         let buffer_shade = seal_editor_core::viewport_buffer::is_buffer_mode(opts.shade);
-        let use_lit_mesh = opts.perspective
-            && (opts.shade == "lit" || buffer_shade)
-            && !draw_wire;
+        let use_lit_mesh = opts.perspective && (opts.shade == "lit" || buffer_shade) && !draw_wire;
         if use_lit_mesh {
             let gpu = crate::gpu_viewport::enabled();
             let mut scene = crate::viewport_mesh::collect_lit_scene_gi(
@@ -3640,11 +3638,7 @@ impl<'a> PanelFrame<'a> {
             crate::sprite_blend::SpriteBlendPass::new(rect, crate::gpu_viewport::enabled());
         for &index in &sprite_order {
             let mark = &marks[index];
-            let shape_blend = mark
-                .material
-                .as_ref()
-                .map(|m| m.blend.as_str())
-                .unwrap_or("alpha");
+            let shape_blend = mark.material.as_ref().map(|m| m.blend.as_str()).unwrap_or("alpha");
             if crate::sprite_blend::is_alpha_blend(shape_blend) {
                 blend_pass.flush_alpha_barrier(&painter);
             }
@@ -3740,9 +3734,11 @@ impl<'a> PanelFrame<'a> {
                 .as_deref()
                 .and_then(|path| crate::sprites::sprite_texture(painter.ctx(), path));
             let Some((mut texture, mut place, mut picture)) = loaded else {
-                if mark.material.as_ref().is_some_and(|m| {
-                    crate::sprite_blend::is_special_blend(m.blend.as_str())
-                }) {
+                if mark
+                    .material
+                    .as_ref()
+                    .is_some_and(|m| crate::sprite_blend::is_special_blend(m.blend.as_str()))
+                {
                     let blend = mark.material.as_ref().map(|m| m.blend.as_str()).unwrap_or("alpha");
                     let corners = sprite_quad(mark);
                     let color = Color32::from_rgba_unmultiplied(
@@ -3866,7 +3862,7 @@ impl<'a> PanelFrame<'a> {
                         uv,
                         [r, g, b, a],
                         mark.sprite.as_deref(),
-                        &plane_at,
+                        plane_at,
                         opts.masks2d,
                         mark.layer,
                         mark.order,
@@ -3892,7 +3888,7 @@ impl<'a> PanelFrame<'a> {
                     uv,
                     [r, g, b, a],
                     mark.sprite.as_deref(),
-                    &plane_at,
+                    plane_at,
                     opts.masks2d,
                     mark.layer,
                     mark.order,
@@ -3940,7 +3936,13 @@ impl<'a> PanelFrame<'a> {
                 } else {
                     crate::sprites::build_nine_mesh(texture, corners, uv, color, nine)
                 };
-                crate::sprite_blend::paint_blended_mesh(&mut blend_pass, &painter, blend, &mesh, angled);
+                crate::sprite_blend::paint_blended_mesh(
+                    &mut blend_pass,
+                    &painter,
+                    blend,
+                    &mesh,
+                    angled,
+                );
             } else if !opts.lights2d.is_empty() && !angled && !unlit {
                 let normals = mark.normal_map.as_deref().and_then(crate::sprites::normal_pixels);
                 let (cx, cy) = card_pos(mark);
@@ -4010,47 +4012,44 @@ impl<'a> PanelFrame<'a> {
                         color
                     };
                     let light_at = |s: f32, t: f32| {
-                                let normal = normals.as_ref().map(|px| {
-                                    let n = crate::sprites::sample_normal(
-                                        px,
-                                        [
-                                            tex_uv[0] + (tex_uv[2] - tex_uv[0]) * s,
-                                            tex_uv[1] + (tex_uv[3] - tex_uv[1]) * t,
-                                        ],
-                                    );
-                                    [
-                                        if tex_uv[2] < tex_uv[0] { -n[0] } else { n[0] },
-                                        if tex_uv[3] < tex_uv[1] { -n[1] } else { n[1] },
-                                        n[2],
-                                    ]
-                                });
-                                let at = [x0 + w * s, y0 - h * t];
-                                if custom_light {
-                                    if let Some(program) = program.as_ref() {
-                                        let albedo =
-                                            [r as f32 / 255.0, g as f32 / 255.0, b as f32 / 255.0];
-                                        return seal_editor_core::light2d::light_respond(
-                                            at,
-                                            normal,
-                                            opts.lights2d,
-                                            opts.blockers2d,
-                                            opts.ambient2d,
-                                            albedo,
-                                            &|surface, color, amount, n, dot| {
-                                                program.light_at_surface(
-                                                    surface, color, amount, n, dot,
-                                                )
-                                            },
-                                        );
-                                    }
-                                }
-                                seal_editor_core::light2d::light_at(
+                        let normal = normals.as_ref().map(|px| {
+                            let n = crate::sprites::sample_normal(
+                                px,
+                                [
+                                    tex_uv[0] + (tex_uv[2] - tex_uv[0]) * s,
+                                    tex_uv[1] + (tex_uv[3] - tex_uv[1]) * t,
+                                ],
+                            );
+                            [
+                                if tex_uv[2] < tex_uv[0] { -n[0] } else { n[0] },
+                                if tex_uv[3] < tex_uv[1] { -n[1] } else { n[1] },
+                                n[2],
+                            ]
+                        });
+                        let at = [x0 + w * s, y0 - h * t];
+                        if custom_light {
+                            if let Some(program) = program.as_ref() {
+                                let albedo = [r as f32 / 255.0, g as f32 / 255.0, b as f32 / 255.0];
+                                return seal_editor_core::light2d::light_respond(
                                     at,
                                     normal,
                                     opts.lights2d,
                                     opts.blockers2d,
                                     opts.ambient2d,
-                                )
+                                    albedo,
+                                    &|surface, color, amount, n, dot| {
+                                        program.light_at_surface(surface, color, amount, n, dot)
+                                    },
+                                );
+                            }
+                        }
+                        seal_editor_core::light2d::light_at(
+                            at,
+                            normal,
+                            opts.lights2d,
+                            opts.blockers2d,
+                            opts.ambient2d,
+                        )
                     };
                     if let Some(uvs) = corner_uvs {
                         let mesh = crate::sprites::build_lit_quad_mesh(
@@ -4115,7 +4114,8 @@ impl<'a> PanelFrame<'a> {
                     angled,
                 );
             } else if let Some(path) = mark.sprite.as_deref() {
-                if let Some(mesh) = crate::sprites::build_tight_mesh(path, texture, corners, uv, color)
+                if let Some(mesh) =
+                    crate::sprites::build_tight_mesh(path, texture, corners, uv, color)
                 {
                     crate::sprite_blend::paint_blended_mesh(
                         &mut blend_pass,
@@ -4911,15 +4911,15 @@ impl<'a> PanelFrame<'a> {
         }
         if let Some(mut poly) = self.ui.data(|data| data.get_temp::<Vec<[f32; 2]>>(lasso_id)) {
             if let Some(at) = pointer {
-                if response.dragged_by(egui::PointerButton::Primary) {
-                    if poly.last().is_none_or(|last| {
+                if response.dragged_by(egui::PointerButton::Primary)
+                    && poly.last().is_none_or(|last| {
                         let dx = last[0] - at.x;
                         let dy = last[1] - at.y;
                         (dx * dx + dy * dy) > 16.0
-                    }) {
-                        poly.push([at.x, at.y]);
-                        self.ui.data_mut(|data| data.insert_temp(lasso_id, poly.clone()));
-                    }
+                    })
+                {
+                    poly.push([at.x, at.y]);
+                    self.ui.data_mut(|data| data.insert_temp(lasso_id, poly.clone()));
                 }
                 if poly.len() >= 2 {
                     let pts: Vec<egui::Pos2> =
@@ -6353,9 +6353,15 @@ fn paint_view_axis_gizmo(
     let axis_len = 22.0;
     // The same projection the scene uses, so the corner axes always match the view.
     let dir = |p: [f32; 3]| {
-        crate::viewport_mesh::project_point_angled(p, yaw_deg, pitch_deg, egui::Pos2::ZERO, axis_len)
-            .0
-            .to_vec2()
+        crate::viewport_mesh::project_point_angled(
+            p,
+            yaw_deg,
+            pitch_deg,
+            egui::Pos2::ZERO,
+            axis_len,
+        )
+        .0
+        .to_vec2()
     };
     let axes = [
         (crate::AXIS_X, dir([1.0, 0.0, 0.0]), "X"),
@@ -6397,94 +6403,6 @@ fn paint_menu_plate(ui: &egui::Ui, rect: egui::Rect, response: &egui::Response) 
     let state =
         if open { crate::crisp::Raised::Pressed } else { crate::crisp::state_of(response, false) };
     crate::crisp::raised(&mut ui.painter(), rect, ui.visuals(), state);
-}
-
-#[cfg(test)]
-mod tests {
-    use super::PanelFrame;
-
-    fn screen_of(
-        p: [f32; 3],
-        cam: &super::ViewportCamera,
-        rect: egui::Rect,
-        persp: bool,
-    ) -> egui::Pos2 {
-        let cell = super::camera_cell(cam, persp);
-        let (r, u) = super::camera_plane(p, cam, persp);
-        rect.center() + egui::vec2(cam.pan_x, cam.pan_y) + egui::vec2(r * cell, -u * cell)
-    }
-
-    #[test]
-    fn turning_after_a_pan_orbits_the_view_centre_not_the_world_origin() {
-        let rect = egui::Rect::from_min_size(egui::Pos2::ZERO, egui::vec2(800.0, 600.0));
-        for persp in [true, false] {
-            let before = super::ViewportCamera {
-                pan_x: -260.0,
-                pan_y: 90.0,
-                zoom: 1.0,
-                yaw_deg: 20.0,
-                pitch_deg: -15.0,
-                distance: super::DEFAULT_ORBIT_DISTANCE,
-            };
-            // The scene point under the middle of the screen before the turn.
-            let mut cam = before;
-            cam.yaw_deg += 50.0;
-            cam.pitch_deg -= 25.0;
-            super::keep_point_on_screen(&mut cam, &before, rect, persp, None);
-            // A point on the centre ray must come back to the centre.
-            let cell = super::camera_cell(&before, persp);
-            let origin = rect.center() + egui::vec2(before.pan_x, before.pan_y);
-            let (r, u) = ((rect.center().x - origin.x) / cell, (origin.y - rect.center().y) / cell);
-            let p = if persp {
-                let (sy, cy) = before.yaw_deg.to_radians().sin_cos();
-                let (sp, cp) = before.pitch_deg.to_radians().sin_cos();
-                [r * cy - u * sy * sp, u * cp, -r * sy - u * cy * sp]
-            } else {
-                let (s, c) = before.yaw_deg.to_radians().sin_cos();
-                [r * c + u * s, -r * s + u * c, 0.0]
-            };
-            assert!(screen_of(p, &before, rect, persp).distance(rect.center()) < 0.01);
-            assert!(
-                screen_of(p, &cam, rect, persp).distance(rect.center()) < 0.05,
-                "persp={persp}"
-            );
-            // The world origin, by contrast, moved: the turn is not around 0 0 0.
-            assert!(
-                screen_of([0.0; 3], &cam, rect, persp)
-                    .distance(screen_of([0.0; 3], &before, rect, persp))
-                    > 5.0
-            );
-        }
-    }
-
-    #[test]
-    fn alt_orbit_keeps_the_selection_in_place() {
-        let rect = egui::Rect::from_min_size(egui::Pos2::ZERO, egui::vec2(800.0, 600.0));
-        let before = super::ViewportCamera {
-            pan_x: 120.0,
-            pan_y: -40.0,
-            zoom: 1.3,
-            yaw_deg: 0.0,
-            pitch_deg: -20.0,
-            distance: super::DEFAULT_ORBIT_DISTANCE,
-        };
-        let pivot = [6.0, 2.0, 0.0];
-        let mut cam = before;
-        cam.yaw_deg = 70.0;
-        super::keep_point_on_screen(&mut cam, &before, rect, true, Some(pivot));
-        let a = screen_of(pivot, &before, rect, true);
-        let b = screen_of(pivot, &cam, rect, true);
-        assert!(a.distance(b) < 0.05);
-    }
-
-    #[test]
-    fn a_color_swatch_paints_without_a_click() {
-        let mut clicked = true;
-        crate::run_frame(crate::default_input(Vec::new()), |ui| {
-            clicked = PanelFrame::new(ui).swatch("Accent", [12, 34, 56]);
-        });
-        assert!(!clicked);
-    }
 }
 
 /// Play state on the viewport: a thin LED-coloured frame and a raised badge at the top
@@ -6923,4 +6841,92 @@ pub fn content_drag_kind(name: &str) -> Option<String> {
         _ => return None,
     };
     Some(format!("{kind}:{name}"))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::PanelFrame;
+
+    fn screen_of(
+        p: [f32; 3],
+        cam: &super::ViewportCamera,
+        rect: egui::Rect,
+        persp: bool,
+    ) -> egui::Pos2 {
+        let cell = super::camera_cell(cam, persp);
+        let (r, u) = super::camera_plane(p, cam, persp);
+        rect.center() + egui::vec2(cam.pan_x, cam.pan_y) + egui::vec2(r * cell, -u * cell)
+    }
+
+    #[test]
+    fn turning_after_a_pan_orbits_the_view_centre_not_the_world_origin() {
+        let rect = egui::Rect::from_min_size(egui::Pos2::ZERO, egui::vec2(800.0, 600.0));
+        for persp in [true, false] {
+            let before = super::ViewportCamera {
+                pan_x: -260.0,
+                pan_y: 90.0,
+                zoom: 1.0,
+                yaw_deg: 20.0,
+                pitch_deg: -15.0,
+                distance: super::DEFAULT_ORBIT_DISTANCE,
+            };
+            // The scene point under the middle of the screen before the turn.
+            let mut cam = before;
+            cam.yaw_deg += 50.0;
+            cam.pitch_deg -= 25.0;
+            super::keep_point_on_screen(&mut cam, &before, rect, persp, None);
+            // A point on the centre ray must come back to the centre.
+            let cell = super::camera_cell(&before, persp);
+            let origin = rect.center() + egui::vec2(before.pan_x, before.pan_y);
+            let (r, u) = ((rect.center().x - origin.x) / cell, (origin.y - rect.center().y) / cell);
+            let p = if persp {
+                let (sy, cy) = before.yaw_deg.to_radians().sin_cos();
+                let (sp, cp) = before.pitch_deg.to_radians().sin_cos();
+                [r * cy - u * sy * sp, u * cp, -r * sy - u * cy * sp]
+            } else {
+                let (s, c) = before.yaw_deg.to_radians().sin_cos();
+                [r * c + u * s, -r * s + u * c, 0.0]
+            };
+            assert!(screen_of(p, &before, rect, persp).distance(rect.center()) < 0.01);
+            assert!(
+                screen_of(p, &cam, rect, persp).distance(rect.center()) < 0.05,
+                "persp={persp}"
+            );
+            // The world origin, by contrast, moved: the turn is not around 0 0 0.
+            assert!(
+                screen_of([0.0; 3], &cam, rect, persp)
+                    .distance(screen_of([0.0; 3], &before, rect, persp))
+                    > 5.0
+            );
+        }
+    }
+
+    #[test]
+    fn alt_orbit_keeps_the_selection_in_place() {
+        let rect = egui::Rect::from_min_size(egui::Pos2::ZERO, egui::vec2(800.0, 600.0));
+        let before = super::ViewportCamera {
+            pan_x: 120.0,
+            pan_y: -40.0,
+            zoom: 1.3,
+            yaw_deg: 0.0,
+            pitch_deg: -20.0,
+            distance: super::DEFAULT_ORBIT_DISTANCE,
+        };
+        let pivot = [6.0, 2.0, 0.0];
+        let mut cam = before;
+        cam.yaw_deg = 70.0;
+        super::keep_point_on_screen(&mut cam, &before, rect, true, Some(pivot));
+        let a = screen_of(pivot, &before, rect, true);
+        let b = screen_of(pivot, &cam, rect, true);
+        assert!(a.distance(b) < 0.05);
+    }
+
+    #[test]
+    fn a_color_swatch_paints_without_a_click() {
+        let mut clicked = true;
+        crate::run_frame(crate::default_input(Vec::new()), |ui| {
+            clicked = PanelFrame::new(ui).swatch("Accent", [12, 34, 56]);
+        });
+        assert!(!clicked);
+    }
 }

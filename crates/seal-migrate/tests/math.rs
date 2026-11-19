@@ -104,8 +104,14 @@ fn sign_tan_and_bool_int_conversions() {
     let go = |vm: &mut Interp, h: &mut MapHost, n: i64, x: f64, b: bool| {
         fire(vm, h, "Misc", &[Value::Int(n), Value::Float(x), Value::Bool(b)])
     };
-    assert_eq!(go(&mut vm, &mut h, 7, 0.785398163397448, true), ["1", "1", "1", "1", "true"]);
-    assert_eq!(go(&mut vm, &mut h, -3, -0.785398163397448, false), ["-1", "-1", "-1", "0", "true"]);
+    assert_eq!(
+        go(&mut vm, &mut h, 7, std::f64::consts::FRAC_PI_4, true),
+        ["1", "1", "1", "1", "true"]
+    );
+    assert_eq!(
+        go(&mut vm, &mut h, -3, -std::f64::consts::FRAC_PI_4, false),
+        ["-1", "-1", "-1", "0", "true"]
+    );
     assert_eq!(go(&mut vm, &mut h, 0, 0.0, false), ["0", "0", "0", "0", "false"]);
 }
 

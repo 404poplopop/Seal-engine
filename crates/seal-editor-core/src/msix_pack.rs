@@ -98,8 +98,11 @@ pub fn try_build_msix(layout_dir: &Path, msix_path: &Path) -> Result<(), String>
             String::from_utf8_lossy(&output.stdout),
             String::from_utf8_lossy(&output.stderr)
         );
-        let reason: Vec<&str> =
-            text.lines().map(str::trim).filter(|l| l.contains("error") || l.contains("Error")).collect();
+        let reason: Vec<&str> = text
+            .lines()
+            .map(str::trim)
+            .filter(|l| l.contains("error") || l.contains("Error"))
+            .collect();
         let reason = if reason.is_empty() { text.trim().to_string() } else { reason.join(" ") };
         Err(format!("MakeAppx failed: {reason}"))
     }
@@ -122,7 +125,8 @@ pub fn which_makeappx() -> Result<String, String> {
             }
         }
     }
-    Err("MakeAppx was not found. Use Download MakeAppx in Export Game, or install the Windows SDK.".into())
+    Err("MakeAppx was not found. Use Download MakeAppx in Export Game, or install the Windows SDK."
+        .into())
 }
 
 /// Where Seal keeps tools it downloads for packaging (per user, outside any project).
@@ -130,7 +134,9 @@ pub fn tools_dir() -> std::path::PathBuf {
     let base = std::env::var_os("LOCALAPPDATA")
         .or_else(|| std::env::var_os("XDG_DATA_HOME"))
         .map(std::path::PathBuf::from)
-        .or_else(|| std::env::var_os("HOME").map(|h| std::path::PathBuf::from(h).join(".local/share")))
+        .or_else(|| {
+            std::env::var_os("HOME").map(|h| std::path::PathBuf::from(h).join(".local/share"))
+        })
         .unwrap_or_else(std::env::temp_dir);
     base.join("Seal").join("tools").join("windows-sdk-build-tools")
 }
@@ -138,13 +144,15 @@ pub fn tools_dir() -> std::path::PathBuf {
 /// `bin/<version>/x64/makeappx.exe` inside an unpacked Windows SDK Build Tools package
 /// (the newest version wins).
 pub fn find_in_build_tools(root: &Path) -> Option<std::path::PathBuf> {
-    let mut versions: Vec<_> = std::fs::read_dir(root.join("bin")).ok()?.flatten().map(|e| e.path()).collect();
+    let mut versions: Vec<_> =
+        std::fs::read_dir(root.join("bin")).ok()?.flatten().map(|e| e.path()).collect();
     versions.sort();
     versions.into_iter().rev().map(|v| v.join("x64").join("makeappx.exe")).find(|p| p.is_file())
 }
 
 /// The Windows SDK Build Tools package (it holds MakeAppx; no installer or admin rights).
-pub const BUILD_TOOLS_URL: &str = "https://www.nuget.org/api/v2/package/Microsoft.Windows.SDK.BuildTools";
+pub const BUILD_TOOLS_URL: &str =
+    "https://www.nuget.org/api/v2/package/Microsoft.Windows.SDK.BuildTools";
 
 /// Download and unpack the build tools into [`tools_dir`]; returns the MakeAppx path.
 pub fn download_makeappx() -> Result<std::path::PathBuf, String> {
@@ -241,7 +249,10 @@ mod tests {
             std::fs::write(x64.join("makeappx.exe"), b"exe").unwrap();
         }
         let found = find_in_build_tools(&root).unwrap();
-        assert!(found.ends_with("bin/10.0.28000.0/x64/makeappx.exe") || found.to_string_lossy().contains("10.0.28000.0"));
+        assert!(
+            found.ends_with("bin/10.0.28000.0/x64/makeappx.exe")
+                || found.to_string_lossy().contains("10.0.28000.0")
+        );
         assert!(find_in_build_tools(&root.join("missing")).is_none());
         let _ = std::fs::remove_dir_all(&root);
     }

@@ -70,10 +70,7 @@ impl InspectorLayout {
                 let mut pairs = vec![
                     ("field".into(), SealValue::String(f.field.clone())),
                     ("order".into(), SealValue::Number(f.order.to_string())),
-                    (
-                        "hidden".into(),
-                        SealValue::Bool(f.hidden),
-                    ),
+                    ("hidden".into(), SealValue::Bool(f.hidden)),
                 ];
                 if let Some(section) = &f.section {
                     pairs.push(("section".into(), SealValue::String(section.clone())));
@@ -188,7 +185,10 @@ pub struct InspectorRowPlan {
 }
 
 /// Merge default field names with layout rules: order, hiding, ranges, help.
-pub fn plan_rows(default_fields: &[&str], layout: Option<&InspectorLayout>) -> Vec<InspectorRowPlan> {
+pub fn plan_rows(
+    default_fields: &[&str],
+    layout: Option<&InspectorLayout>,
+) -> Vec<InspectorRowPlan> {
     let Some(layout) = layout else {
         return default_fields
             .iter()
@@ -213,7 +213,9 @@ pub fn plan_rows(default_fields: &[&str], layout: Option<&InspectorLayout>) -> V
             InspectorRowPlan {
                 field: (*field).to_string(),
                 hidden: rule.is_some_and(|r| r.hidden),
-                order: rule.map(|r| r.order).unwrap_or_else(|| i32::try_from(i).unwrap_or(i32::MAX)),
+                order: rule
+                    .map(|r| r.order)
+                    .unwrap_or_else(|| i32::try_from(i).unwrap_or(i32::MAX)),
                 section: rule.and_then(|r| r.section.clone()),
                 help: rule.and_then(|r| r.help.clone()),
                 min: min.or(None),
@@ -232,10 +234,7 @@ mod tests {
     #[test]
     fn layout_round_trip_and_plan() {
         let mut layout = InspectorLayout::default();
-        layout.sections.push(InspectorSection {
-            name: "Stats".into(),
-            order: 0,
-        });
+        layout.sections.push(InspectorSection { name: "Stats".into(), order: 0 });
         layout.fields.push(InspectorFieldRule {
             field: "walk_speed".into(),
             section: Some("Stats".into()),
@@ -260,10 +259,7 @@ mod tests {
         let fields = &["x", "walk_speed", "bounce", "y"];
         let plan = plan_rows(fields, Some(&layout));
         assert!(plan.iter().find(|r| r.field == "bounce").unwrap().hidden);
-        assert_eq!(
-            plan.iter().find(|r| r.field == "walk_speed").unwrap().min,
-            Some(0.0)
-        );
+        assert_eq!(plan.iter().find(|r| r.field == "walk_speed").unwrap().min, Some(0.0));
         assert!(plan[0].field == "walk_speed" || plan[0].order <= plan[1].order);
     }
 

@@ -1,6 +1,6 @@
 [advisories]
 yanked = "warn"
-unmaintained = "warn"
+unmaintained = "workspace"
 
 [licenses]
 allow = [
@@ -17,6 +17,9 @@ allow = [
     "0BSD",
     "OFL-1.1",
     "Ubuntu-font-1.0",
+    # Permissive, not copyleft: a build-time target parser and the CA root list.
+    "Apache-2.0 WITH LLVM-exception",
+    "CDLA-Permissive-2.0",
 ]
 confidence-threshold = 0.8
 
@@ -30,3 +33,5 @@ wildcards = "allow"
 [sources]
 unknown-registry = "deny"
 unknown-git = "deny"
+# The ASTC encoder fork Seal builds (see the patch in Cargo.toml).
+allow-git = ["https://github.com/404poplopop/intel-tex-rs-2"]

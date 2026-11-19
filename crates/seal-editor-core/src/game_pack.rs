@@ -21,9 +21,9 @@ pub fn write_pack(root: &Path, files: &[String]) -> Result<Vec<u8>, CoreError> {
     for (rel, (offset, len)) in &index {
         out.extend_from_slice(rel.as_bytes());
         out.push(0);
-        out.extend_from_slice(&offset.to_string().as_bytes());
+        out.extend_from_slice(offset.to_string().as_bytes());
         out.push(b' ');
-        out.extend_from_slice(&len.to_string().as_bytes());
+        out.extend_from_slice(len.to_string().as_bytes());
         out.push(b'\n');
     }
     out.push(b'-');

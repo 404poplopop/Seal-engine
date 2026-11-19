@@ -62,11 +62,7 @@ fn build(gl: &glow::Context) -> Result<GlSpriteState, String> {
             gl.detach_shader(program, shader);
             gl.delete_shader(shader);
         }
-        Ok(GlSpriteState {
-            program,
-            vao: gl.create_vertex_array()?,
-            vbo: gl.create_buffer()?,
-        })
+        Ok(GlSpriteState { program, vao: gl.create_vertex_array()?, vbo: gl.create_buffer()? })
     }
 }
 
@@ -121,12 +117,7 @@ fn apply_batch_blend(gl: &glow::Context, mode: &str) {
     }
 }
 
-fn draw_batches(
-    gl: &glow::Context,
-    painter: &egui_glow::Painter,
-    rect: Rect,
-    draws: &[BlendDraw],
-) {
+fn draw_batches(gl: &glow::Context, painter: &egui_glow::Painter, rect: Rect, draws: &[BlendDraw]) {
     let mut guard = STATE.lock().unwrap_or_else(|e| e.into_inner());
     if guard.is_none() {
         match build(gl) {
@@ -176,8 +167,10 @@ fn draw_batches(
             if data.is_empty() {
                 continue;
             }
-            let bytes: &[u8] =
-                std::slice::from_raw_parts(data.as_ptr().cast(), std::mem::size_of_val(data.as_slice()));
+            let bytes: &[u8] = std::slice::from_raw_parts(
+                data.as_ptr().cast(),
+                std::mem::size_of_val(data.as_slice()),
+            );
             gl.buffer_data_u8_slice(glow::ARRAY_BUFFER, bytes, glow::STREAM_DRAW);
             gl.draw_arrays(glow::TRIANGLES, 0, (data.len() / FLOATS_PER_VERTEX) as i32);
         }

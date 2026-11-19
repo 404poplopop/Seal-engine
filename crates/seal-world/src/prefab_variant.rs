@@ -43,7 +43,7 @@ fn entity_row_diff(base: &Entity, current: &Entity) -> Option<Entity> {
     let b = entity_value(base);
     let c = entity_value(current);
     let patch = seal_ecs::diff_patch(&b, &c)?;
-    let Some(map) = patch.as_map() else { return None };
+    let map = patch.as_map()?;
     let mut entries = map.to_vec();
     if !entries.iter().any(|(k, _)| k == "id") {
         entries.push(("id".into(), SealValue::String(current.id.clone())));
@@ -201,7 +201,7 @@ entities = [
 ]
 "#;
         let expanded = expand_prefab_file(&dir, variant).unwrap();
-        assert!(expanded.contains("wood") == false || expanded.contains("metal"));
+        assert!(!expanded.contains("wood") || expanded.contains("metal"));
         assert!(expanded.contains("metal = 0.9"));
         let map = load_entity_map(&expanded).unwrap();
         let row = map.get("crate").unwrap();

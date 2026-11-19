@@ -127,6 +127,9 @@ fn property_tracks_key_move_ease_delete_undo_and_stay_on_disk() {
     again.project = Some(seal_editor_core::open_project(&dir).unwrap());
     let loaded = again.load_sequence(path).unwrap();
     assert!(loaded.properties.is_empty());
-    assert!(loaded.sample(1.0).iter().any(|(_, target, value)| *target == "position.x" && *value > 0.0));
+    assert!(loaded
+        .sample(1.0)
+        .iter()
+        .any(|(_, target, value)| *target == "position.x" && *value > 0.0));
     let _ = std::fs::remove_dir_all(&dir);
 }

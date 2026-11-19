@@ -297,7 +297,7 @@ impl PhysicsBackend for BuiltinBackend {
         for shape in &self.shapes {
             let Some(at) = self.pose(shape.body) else { continue };
             if let Some(distance) = shapes::ray(&shape.geom, at, from, dir, max_t) {
-                if best.as_ref().map_or(true, |hit| distance < hit.distance) {
+                if best.as_ref().is_none_or(|hit| distance < hit.distance) {
                     best = Some(RayHit { body: shape.body, distance });
                 }
             }

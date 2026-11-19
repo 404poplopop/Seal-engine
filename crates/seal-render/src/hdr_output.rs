@@ -86,11 +86,7 @@ pub fn displayed_channel(linear: f32, space: OutputSpace, paper_white_nits: f32)
 }
 
 /// [`displayed_channel`] for red, green and blue.
-pub fn displayed_rgb(
-    linear: [f32; 3],
-    space: OutputSpace,
-    paper_white_nits: f32,
-) -> [f32; 3] {
+pub fn displayed_rgb(linear: [f32; 3], space: OutputSpace, paper_white_nits: f32) -> [f32; 3] {
     linear.map(|channel| displayed_channel(channel, space, paper_white_nits))
 }
 

@@ -25,7 +25,9 @@ fn over_aligned_allocations_stay_aligned() {
     #[repr(align(64))]
     struct Wide([u8; 64]);
     let items: Vec<Box<Wide>> = (0..32).map(|_| Box::new(Wide([1; 64]))).collect();
-    assert!(items.iter().all(|b| (&**b as *const Wide as usize) % 64 == 0 && b.0[63] == 1));
+    assert!(items
+        .iter()
+        .all(|b| (&**b as *const Wide as usize).is_multiple_of(64) && b.0[63] == 1));
     let mut grow = tagged(MemTag::Assets, Vec::<u64>::new);
     for i in 0..10_000 {
         grow.push(i);

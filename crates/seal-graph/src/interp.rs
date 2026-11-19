@@ -2,10 +2,10 @@
 //! breakpoints, single stepping, watched values, a trace and live reload.
 
 use crate::rt::NO_ENTITY;
-use crate::script_core;
 use crate::rt::{
     self, Budget, Cont, GraphError, GraphInstance, Host, RunState, Timers, Value, DEFAULT_BUDGET,
 };
+use crate::script_core;
 use crate::{apply_pure, state_machine, Op, Program, Src};
 use std::collections::{BTreeMap, BTreeSet, VecDeque};
 
@@ -1045,14 +1045,18 @@ impl Interp {
                     Op::OpenFileDialog => {
                         let title = cx.eval(&n.inputs[0], host)?.str();
                         let filter = cx.eval(&n.inputs[1], host)?.str();
-                        let path = host.open_file_dialog(&title, &filter).map_err(|m| GraphError::at(n.id, m))?;
+                        let path = host
+                            .open_file_dialog(&title, &filter)
+                            .map_err(|m| GraphError::at(n.id, m))?;
                         self.slots[n.slots[0] as usize] = Value::Str(path);
                         push(stack, n.next[0]);
                     }
                     Op::SaveFileDialog => {
                         let title = cx.eval(&n.inputs[0], host)?.str();
                         let name = cx.eval(&n.inputs[1], host)?.str();
-                        let path = host.save_file_dialog(&title, &name).map_err(|m| GraphError::at(n.id, m))?;
+                        let path = host
+                            .save_file_dialog(&title, &name)
+                            .map_err(|m| GraphError::at(n.id, m))?;
                         self.slots[n.slots[0] as usize] = Value::Str(path);
                         push(stack, n.next[0]);
                     }
@@ -1096,7 +1100,8 @@ impl Interp {
                         let slot = cx.eval(&n.inputs[0], host)?.str();
                         let saved_at = cx.eval(&n.inputs[1], host)?.int();
                         let body = cx.eval(&n.inputs[2], host)?.str();
-                        host.cloud_reply(&slot, saved_at, &body).map_err(|m| GraphError::at(n.id, m))?;
+                        host.cloud_reply(&slot, saved_at, &body)
+                            .map_err(|m| GraphError::at(n.id, m))?;
                         push(stack, n.next[0]);
                     }
                     Op::PlaySound { at } => {

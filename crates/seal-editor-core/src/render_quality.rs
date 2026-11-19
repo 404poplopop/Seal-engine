@@ -147,7 +147,11 @@ pub fn from_session(session: &crate::EditorSession) -> RenderQuality {
 pub fn from_effective(get: impl Fn(&str) -> String) -> RenderQuality {
     from_store(|id| {
         let value = get(id);
-        if value.is_empty() { None } else { Some(value) }
+        if value.is_empty() {
+            None
+        } else {
+            Some(value)
+        }
     })
 }
 
@@ -160,8 +164,12 @@ pub fn editor_shadow_map_size(session: &crate::EditorSession) -> usize {
 }
 
 /// Apply a quality level's bundled values to the settings store and model rows.
-pub fn apply_level_to_session(session: &mut crate::EditorSession, level: &str) -> Result<(), CoreError> {
-    let preset = level_by_id(level).ok_or_else(|| CoreError::new("quality level must be low, medium, high, or ultra"))?;
+pub fn apply_level_to_session(
+    session: &mut crate::EditorSession,
+    level: &str,
+) -> Result<(), CoreError> {
+    let preset = level_by_id(level)
+        .ok_or_else(|| CoreError::new("quality level must be low, medium, high, or ultra"))?;
     let pairs = [
         (QUALITY_LEVEL, preset.id),
         (MSAA, &preset.msaa.to_string()),
@@ -247,8 +255,7 @@ pub fn parse_runner(text: &str) -> Result<RunnerQuality, String> {
         match key {
             "level" => level = value.to_string(),
             "msaa" => {
-                msaa = parse_u32(value, 0, 8)
-                    .map_err(|e| format!("line {}: {e}", line_no + 1))?;
+                msaa = parse_u32(value, 0, 8).map_err(|e| format!("line {}: {e}", line_no + 1))?;
             }
             "shadow_map_size" => {
                 shadow_map_size =
@@ -259,7 +266,8 @@ pub fn parse_runner(text: &str) -> Result<RunnerQuality, String> {
                     parse_u32(value, 0, 8192).map_err(|e| format!("line {}: {e}", line_no + 1))?;
             }
             "anisotropy" => {
-                anisotropy = parse_u32(value, 1, 16).map_err(|e| format!("line {}: {e}", line_no + 1))?;
+                anisotropy =
+                    parse_u32(value, 1, 16).map_err(|e| format!("line {}: {e}", line_no + 1))?;
             }
             "glow" => glow = parse_bool(value).map_err(|e| format!("line {}: {e}", line_no + 1))?,
             "render_scale" => {
@@ -324,7 +332,9 @@ pub fn validate_field(id: &str, value: &str) -> Result<(), CoreError> {
         SHADOW_MAP => parse_u32(value, 64, 2048).map(|_| ()).map_err(CoreError::new),
         TEXTURE_MAX => parse_u32(value, 0, 8192).map(|_| ()).map_err(CoreError::new),
         ANISOTROPY => parse_u32(value, 1, 16).map(|_| ()).map_err(CoreError::new),
-        GLOW if !matches!(value, "true" | "false") => Err(CoreError::new("rendering.glow is true or false")),
+        GLOW if !matches!(value, "true" | "false") => {
+            Err(CoreError::new("rendering.glow is true or false"))
+        }
         RENDER_SCALE => parse_u32(value, 25, 100).map(|_| ()).map_err(CoreError::new),
         TEXTURE_BUDGET => parse_u32(value, 1, 65536).map(|_| ()).map_err(CoreError::new),
         _ if FIELD_IDS.contains(&id) => Ok(()),
@@ -353,7 +363,11 @@ fn parse_bool(value: &str) -> Result<bool, String> {
 }
 
 fn bool_word(value: bool) -> &'static str {
-    if value { "true" } else { "false" }
+    if value {
+        "true"
+    } else {
+        "false"
+    }
 }
 
 #[cfg(test)]
@@ -383,7 +397,7 @@ mod tests {
         let parsed = parse_runner(&text).unwrap();
         assert_eq!(parsed.level, "medium");
         assert_eq!(parsed.shadow_map_size, 384);
-        assert_eq!(parsed.glow, true);
+        assert!(parsed.glow);
     }
 
     #[test]

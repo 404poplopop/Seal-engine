@@ -10,12 +10,11 @@ use seal_app::audio_out::AudioOut;
 use seal_audio::listener::spatial_mix;
 use seal_audio::{BusId, Mixer, PlayParams, Sound, SoundId, VoiceId};
 use seal_editor_core::asset_editor::AudioRequest;
-use seal_editor_core::{
-    effective_output,
-    apply_to_mixer, bus_gains, parsed_output_sample_rate, sound_load_type, ScriptMusic as MusicCue,
-    ScriptSound as SoundCue, SettingsStore, EFFECTS_BUS,
-};
 use seal_editor_core::{active_listener, World};
+use seal_editor_core::{
+    apply_to_mixer, bus_gains, effective_output, parsed_output_sample_rate, sound_load_type,
+    ScriptMusic as MusicCue, ScriptSound as SoundCue, SettingsStore, EFFECTS_BUS,
+};
 
 struct LoadedSound {
     image: Option<std::time::SystemTime>,
@@ -188,22 +187,25 @@ pub fn play(project: Option<&Path>, world: &World, cues: &[SoundCue]) {
             let sidecar = std::fs::metadata(format!("{}.import.seal", path.display()))
                 .and_then(|m| m.modified())
                 .ok();
-            let stale = audio.loaded.get(&path).is_none_or(|loaded| {
-                loaded.image != image || loaded.sidecar != sidecar
-            });
-            let (gain, pan) = cue.at.and_then(|at| {
-                listener.map(|l| {
-                    let pose = seal_audio::listener::ListenerPose {
-                        position: l.pose.position,
-                        forward: l.pose.forward,
-                    };
-                    let tuning = seal_audio::listener::ListenerTuning {
-                        max_distance: l.tuning.max_distance,
-                        rolloff: l.tuning.rolloff,
-                    };
-                    spatial_mix(&pose, &tuning, at, cue.volume)
+            let stale = audio
+                .loaded
+                .get(&path)
+                .is_none_or(|loaded| loaded.image != image || loaded.sidecar != sidecar);
+            let (gain, pan) = cue
+                .at
+                .and_then(|at| {
+                    listener.map(|l| {
+                        let pose = seal_audio::listener::ListenerPose {
+                            position: l.pose.position,
+                            forward: l.pose.forward,
+                        };
+                        let tuning = seal_audio::listener::ListenerTuning {
+                            max_distance: l.tuning.max_distance,
+                            rolloff: l.tuning.rolloff,
+                        };
+                        spatial_mix(&pose, &tuning, at, cue.volume)
+                    })
                 })
-            })
                 .map(|m| (m.gain, m.pan))
                 .unwrap_or((cue.volume, 0.0));
             if stream {

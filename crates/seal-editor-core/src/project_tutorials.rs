@@ -52,34 +52,104 @@ pub fn ensure_legacy_templates(folder: &Path, template_id: &str) -> Result<(), C
 fn guide_for_template(id: &str) -> TutorialGuide {
     let steps: Vec<(&str, &str, &str, &str, &str, &str)> = match id {
         "2d" => vec![
-            ("open_outliner", "1", "Open the Outliner", "Find the scene tree on the left.", "select", "World"),
-            ("press_play", "2", "Press Play", "Start play mode to test the empty scene.", "play", ""),
+            (
+                "open_outliner",
+                "1",
+                "Open the Outliner",
+                "Find the scene tree on the left.",
+                "select",
+                "World",
+            ),
+            (
+                "press_play",
+                "2",
+                "Press Play",
+                "Start play mode to test the empty scene.",
+                "play",
+                "",
+            ),
         ],
         "3d" => vec![
-            ("pick_player", "1", "Select Player Start", "Choose the player start in the Outliner.", "select", "Player Start"),
+            (
+                "pick_player",
+                "1",
+                "Select Player Start",
+                "Choose the player start in the Outliner.",
+                "select",
+                "Player Start",
+            ),
             ("press_play", "2", "Press Play", "Walk in the 3D scene with W, A, S, D.", "play", ""),
         ],
         "puzzle" => vec![
             ("press_play", "1", "Press Play", "Open the puzzle from the main menu.", "play", ""),
-            ("toggle_cell", "2", "Flip a cell", "Click a lit cell to toggle it and neighbors.", "score", "progress"),
+            (
+                "toggle_cell",
+                "2",
+                "Flip a cell",
+                "Click a lit cell to toggle it and neighbors.",
+                "score",
+                "progress",
+            ),
         ],
         "topdown" => vec![
             ("press_play", "1", "Press Play", "Enter the village scene.", "play", ""),
-            ("move_hero", "2", "Move the hero", "Walk with W, A, S, D or the gamepad stick.", "key", "W"),
+            (
+                "move_hero",
+                "2",
+                "Move the hero",
+                "Walk with W, A, S, D or the gamepad stick.",
+                "key",
+                "W",
+            ),
         ],
         "platformer" => vec![
             ("press_play", "1", "Press Play", "Run level 1.", "play", ""),
-            ("collect_coin", "2", "Collect a coin", "Touch a coin along the level.", "score", "coins"),
+            (
+                "collect_coin",
+                "2",
+                "Collect a coin",
+                "Touch a coin along the level.",
+                "score",
+                "coins",
+            ),
         ],
         "first_person" => vec![
             ("press_play", "1", "Press Play", "Enter the arena in first person.", "play", ""),
-            ("look_around", "2", "Look around", "Hold the right mouse button and move the mouse while playing.", "mouse", ""),
-            ("reach_goal", "3", "Reach the goal pickup", "Walk to the gold sphere.", "score", "goal"),
+            (
+                "look_around",
+                "2",
+                "Look around",
+                "Hold the right mouse button and move the mouse while playing.",
+                "mouse",
+                "",
+            ),
+            (
+                "reach_goal",
+                "3",
+                "Reach the goal pickup",
+                "Walk to the gold sphere.",
+                "score",
+                "goal",
+            ),
         ],
         "third_person" => vec![
             ("press_play", "1", "Press Play", "Enter the arena behind the player.", "play", ""),
-            ("orbit_camera", "2", "Orbit the camera", "Hold the right mouse button and move the mouse to orbit.", "mouse", ""),
-            ("reach_goal", "3", "Reach the goal pickup", "Walk to the gold sphere.", "score", "goal"),
+            (
+                "orbit_camera",
+                "2",
+                "Orbit the camera",
+                "Hold the right mouse button and move the mouse to orbit.",
+                "mouse",
+                "",
+            ),
+            (
+                "reach_goal",
+                "3",
+                "Reach the goal pickup",
+                "Walk to the gold sphere.",
+                "score",
+                "goal",
+            ),
         ],
         _ => vec![("press_play", "1", "Press Play", "Start play mode.", "play", "")],
     };
@@ -260,34 +330,41 @@ fn detect_step(session: &EditorSession, step: &TutorialStep) -> bool {
             .selection
             .as_deref()
             .is_some_and(|id| entity_matches(session, id, &step.target)),
-        "key" => session.world.mode == PlayMode::Playing
-            && session.world.play_keys.iter().any(|(k, down)| *down && k == &step.target),
-        "mouse" => session.world.mode == PlayMode::Playing
-            && (session.world.controls.mouse_delta[0].abs() > 0.5
-                || session.world.controls.mouse_delta[1].abs() > 0.5),
-        "score" => session
-            .world
-            .play_game()
-            .and_then(|g| g.scores.get(step.target.as_str()))
-            .copied()
-            .unwrap_or(0)
-            > 0,
-        "recipe_import" => session.models.panel_states.get("recipe.last_import").as_deref() == Some(&step.target),
+        "key" => {
+            session.world.mode == PlayMode::Playing
+                && session.world.play_keys.iter().any(|(k, down)| *down && k == &step.target)
+        }
+        "mouse" => {
+            session.world.mode == PlayMode::Playing
+                && (session.world.controls.mouse_delta[0].abs() > 0.5
+                    || session.world.controls.mouse_delta[1].abs() > 0.5)
+        }
+        "score" => {
+            session
+                .world
+                .play_game()
+                .and_then(|g| g.scores.get(step.target.as_str()))
+                .copied()
+                .unwrap_or(0)
+                > 0
+        }
+        "recipe_import" => {
+            session.models.panel_states.get("recipe.last_import") == Some(&step.target)
+        }
         _ => false,
     }
 }
 
 fn entity_matches(session: &EditorSession, id: &str, target: &str) -> bool {
     session.world.entities.iter().any(|e| {
-        (e.id == id || e.name == id)
-            && (e.name == target || e.id == target || e.tag == target)
+        (e.id == id || e.name == id) && (e.name == target || e.id == target || e.tag == target)
     })
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{create_project, Layout, EditorSession};
+    use crate::{create_project, EditorSession, Layout};
 
     #[test]
     fn guide_round_trip_and_steps_for_every_template() {
@@ -298,8 +375,8 @@ mod tests {
             assert_eq!(back.template_id, id);
             assert!(!back.steps.is_empty(), "{id}");
             // Step numbers survive the round trip (they were all read back as 1).
-            let numbers: Vec<u32> = back.steps.iter().map(|s| s.number as u32).collect();
-            let want: Vec<u32> = g.steps.iter().map(|s| s.number as u32).collect();
+            let numbers: Vec<u32> = back.steps.iter().map(|s| s.number).collect();
+            let want: Vec<u32> = g.steps.iter().map(|s| s.number).collect();
             assert_eq!(numbers, want, "{id}");
         }
     }

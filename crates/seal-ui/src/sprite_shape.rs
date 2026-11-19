@@ -2,6 +2,9 @@
 
 use egui::{Color32, Pos2, Stroke};
 
+/// Three 2D points: a triangle on the view plane or its UVs.
+pub type Tri2 = [[f32; 2]; 3];
+
 /// One control, already placed on the view plane.
 #[derive(Clone, Debug)]
 pub struct SplineControl {
@@ -18,8 +21,8 @@ pub struct SpriteShapeMark {
     pub outline: Vec<[f32; 2]>,
     /// Control segment that each outline edge belongs to.
     pub seg: Vec<usize>,
-    pub fill: Vec<([[f32; 2]; 3], [[f32; 2]; 3])>,
-    pub edge: Vec<(u8, [[f32; 2]; 3], [[f32; 2]; 3])>,
+    pub fill: Vec<(Tri2, Tri2)>,
+    pub edge: Vec<(u8, Tri2, Tri2)>,
     pub fill_image: Option<String>,
     pub edge_image: [Option<String>; 3],
     pub tint: [u8; 4],

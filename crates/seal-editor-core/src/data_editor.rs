@@ -53,14 +53,17 @@ pub fn load_data_asset(
     let type_full = root.join(&raw.type_path);
     let type_text = std::fs::read_to_string(&type_full)
         .map_err(|_| CoreError::new(format!("data type {} was not found", raw.type_path)))?;
-    let type_def = DataTypeDef::parse(&type_text).map_err(|e| CoreError::new(format!("{}: {e}", raw.type_path)))?;
+    let type_def = DataTypeDef::parse(&type_text)
+        .map_err(|e| CoreError::new(format!("{}: {e}", raw.type_path)))?;
     raw = DataAsset::parse(&text, &type_def).map_err(|e| CoreError::new(format!("{rel}: {e}")))?;
     Ok((full, raw, type_def))
 }
 
-fn open_data(session: &EditorSession) -> Result<(String, std::path::PathBuf, DataAsset, DataTypeDef), CoreError> {
-    let (rel, full) = open_asset(session)
-        .ok_or_else(|| CoreError::new("no file is open in the Asset Editor"))?;
+fn open_data(
+    session: &EditorSession,
+) -> Result<(String, std::path::PathBuf, DataAsset, DataTypeDef), CoreError> {
+    let (rel, full) =
+        open_asset(session).ok_or_else(|| CoreError::new("no file is open in the Asset Editor"))?;
     let text = std::fs::read_to_string(&full)?;
     let mut raw = parse_data_type_only(&text).map_err(|e| CoreError::new(format!("{rel}: {e}")))?;
     let root = project_root(session)?;
@@ -241,11 +244,7 @@ pub fn cmd_data_set(session: &mut EditorSession, args: &CommandArgs) -> Result<(
     let next = asset.to_text();
     if next != previous {
         crate::persist::atomic_write(&full, next.as_bytes())?;
-        session.push_past(Past::File {
-            path: full.to_string_lossy().to_string(),
-            previous,
-            next,
-        });
+        session.push_past(Past::File { path: full.to_string_lossy().to_string(), previous, next });
         session.future.clear();
     }
     Ok(())
@@ -280,7 +279,11 @@ field lst list list=text
         session
             .dispatch(
                 "asset.data_new",
-                &CommandArgs::new(&[("path", "data/row"), ("type", "data/all.datatype"), ("unique", "yes")]),
+                &CommandArgs::new(&[
+                    ("path", "data/row"),
+                    ("type", "data/all.datatype"),
+                    ("unique", "yes"),
+                ]),
             )
             .unwrap();
         let rel = "data/row.data";

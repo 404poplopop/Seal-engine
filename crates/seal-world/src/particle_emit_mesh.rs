@@ -81,7 +81,11 @@ pub fn parse_mesh_text(text: &str) -> Option<EmitMeshData> {
     Some(EmitMeshData { vertices, triangles })
 }
 
-pub fn sample_on_mesh(data: &EmitMeshData, mode: MeshSampleMode, mut rand: impl FnMut() -> f32) -> [f32; 3] {
+pub fn sample_on_mesh(
+    data: &EmitMeshData,
+    mode: MeshSampleMode,
+    mut rand: impl FnMut() -> f32,
+) -> [f32; 3] {
     match mode {
         MeshSampleMode::Vertices => {
             if data.vertices.is_empty() {
@@ -107,7 +111,8 @@ pub fn sample_on_mesh(data: &EmitMeshData, mode: MeshSampleMode, mut rand: impl 
                     ab[2] * ac[0] - ab[0] * ac[2],
                     ab[0] * ac[1] - ab[1] * ac[0],
                 ];
-                let area = (cross[0] * cross[0] + cross[1] * cross[1] + cross[2] * cross[2]).sqrt() * 0.5;
+                let area =
+                    (cross[0] * cross[0] + cross[1] * cross[1] + cross[2] * cross[2]).sqrt() * 0.5;
                 areas.push(area.max(0.0));
                 total += area.max(0.0);
             }
@@ -132,7 +137,11 @@ pub fn sample_on_mesh(data: &EmitMeshData, mode: MeshSampleMode, mut rand: impl 
                 v = 1.0 - v;
             }
             let w = 1.0 - u - v;
-            [a[0] * u + b[0] * v + c[0] * w, a[1] * u + b[1] * v + c[1] * w, a[2] * u + b[2] * v + c[2] * w]
+            [
+                a[0] * u + b[0] * v + c[0] * w,
+                a[1] * u + b[1] * v + c[1] * w,
+                a[2] * u + b[2] * v + c[2] * w,
+            ]
         }
     }
 }
@@ -140,10 +149,9 @@ pub fn sample_on_mesh(data: &EmitMeshData, mode: MeshSampleMode, mut rand: impl 
 pub fn offset_on_mesh(data: &EmitMeshData, offset: [f32; 3], mode: MeshSampleMode) -> bool {
     const EPS: f32 = 0.02;
     match mode {
-        MeshSampleMode::Vertices => data
-            .vertices
-            .iter()
-            .any(|v| (v[0] - offset[0]).hypot(v[1] - offset[1]) < EPS && (v[2] - offset[2]).abs() < EPS),
+        MeshSampleMode::Vertices => data.vertices.iter().any(|v| {
+            (v[0] - offset[0]).hypot(v[1] - offset[1]) < EPS && (v[2] - offset[2]).abs() < EPS
+        }),
         MeshSampleMode::Surface => {
             if data.triangles.is_empty() {
                 return offset_on_mesh(data, offset, MeshSampleMode::Vertices);
@@ -170,7 +178,7 @@ fn point_in_tri(p: [f32; 3], a: [f32; 3], b: [f32; 3], c: [f32; 3], eps: f32) ->
     let inv = 1.0 / (dot00 * dot11 - dot01 * dot01).max(1e-8);
     let u = (dot11 * dot02 - dot01 * dot12) * inv;
     let v = (dot00 * dot12 - dot01 * dot02) * inv;
-        u >= -eps && v >= -eps && (u + v) <= 1.0 + eps
+    u >= -eps && v >= -eps && (u + v) <= 1.0 + eps
 }
 
 fn cube_mesh() -> EmitMeshData {
@@ -199,10 +207,7 @@ fn cube_mesh() -> EmitMeshData {
         [1, 5, 6],
         [1, 6, 2],
     ];
-    EmitMeshData {
-        vertices: v.to_vec(),
-        triangles: t.to_vec(),
-    }
+    EmitMeshData { vertices: v.to_vec(), triangles: t.to_vec() }
 }
 
 fn plane_mesh() -> EmitMeshData {
@@ -286,7 +291,7 @@ mod tests {
             (seed % 10_000) as f32 / 10_000.0
         };
         for _ in 0..40 {
-            let p = sample_on_mesh(&data, MeshSampleMode::Surface, || rand());
+            let p = sample_on_mesh(&data, MeshSampleMode::Surface, &mut rand);
             assert!(offset_on_mesh(&data, p, MeshSampleMode::Surface), "{p:?}");
         }
     }

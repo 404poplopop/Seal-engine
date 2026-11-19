@@ -37,11 +37,7 @@ fn random_brush_uses_the_seed_and_pattern_save_round_trips() {
     .unwrap();
     s.dispatch(
         "tiles.pattern_save",
-        &CommandArgs::new(&[
-            ("name", "test"),
-            ("cells", "0,0;1,0"),
-            ("layer", "0"),
-        ]),
+        &CommandArgs::new(&[("name", "test"), ("cells", "0,0;1,0"), ("layer", "0")]),
     )
     .unwrap();
     assert!(dir.join("tilepatterns/test.pattern").is_file());
@@ -52,10 +48,7 @@ fn random_brush_uses_the_seed_and_pattern_save_round_trips() {
         &CommandArgs::new(&[("name", "test"), ("origin", "3,0"), ("layer", "0")]),
     )
     .unwrap();
-    assert_eq!(
-        s.world.entities.iter().filter(|e| !e.sprite.is_empty()).count(),
-        4
-    );
+    assert_eq!(s.world.entities.iter().filter(|e| !e.sprite.is_empty()).count(), 4);
 }
 
 #[test]
@@ -76,19 +69,10 @@ tile sprites/wall.png
     std::fs::write(dir.join("tiles/wall.tiles"), TILES).unwrap();
     s.dispatch(
         "tiles.paint",
-        &CommandArgs::new(&[
-            ("brush", "tiles/wall.tiles"),
-            ("cells", "0,0"),
-            ("solid", "true"),
-        ]),
+        &CommandArgs::new(&[("brush", "tiles/wall.tiles"), ("cells", "0,0"), ("solid", "true")]),
     )
     .unwrap();
-    let e = s
-        .world
-        .entities
-        .iter()
-        .find(|e| e.sprite == "sprites/wall.png")
-        .unwrap();
+    let e = s.world.entities.iter().find(|e| e.sprite == "sprites/wall.png").unwrap();
     assert_eq!(e.tag, "nav_block");
     assert!(e.overrides.starts_with("tiledata:"));
     let before = s.world.entities.len();

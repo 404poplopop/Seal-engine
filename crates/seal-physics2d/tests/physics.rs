@@ -1,4 +1,4 @@
-use seal_ecs::core::{Transform, SceneSettings};
+use seal_ecs::core::{SceneSettings, Transform};
 use seal_ecs::World;
 use seal_physics2d::*;
 

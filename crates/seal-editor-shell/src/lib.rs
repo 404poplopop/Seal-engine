@@ -2,12 +2,12 @@
 #![forbid(unsafe_code)]
 
 mod doc_tabs;
-mod native_dialog;
 mod game_window;
-mod hdr_game;
-mod play_extra_windows;
 mod gamepad;
+mod hdr_game;
 mod input_devices;
+mod native_dialog;
+mod play_extra_windows;
 mod sound;
 pub use sound::{
     set_mix_sink, set_music_sink, set_preview_sink, set_sound_sink, MixSink, MusicSink,
@@ -35,9 +35,8 @@ use seal_editor_core::{
 };
 use seal_editor_panels::{register_builtin, show, PanelEvent};
 use seal_ui::{
-    apply_look, paint_icon, panel_base, pressed_chord,
-    show_dock_with_badges, show_palette, typeahead_key, DockHost, Icon, PaletteEvent,
-    TabMenuResult, ThemeColors, ICON_PX,
+    apply_look, paint_icon, panel_base, pressed_chord, show_dock_with_badges, show_palette,
+    typeahead_key, DockHost, Icon, PaletteEvent, TabMenuResult, ThemeColors, ICON_PX,
 };
 
 pub fn run() -> eframe::Result<()> {
@@ -141,7 +140,10 @@ fn run_shell(
     match start(native.clone()) {
         // Some graphics drivers offer no multisampled window: start without MSAA instead of failing.
         Err(err) if native.multisampling > 0 => {
-            seal_log::warn!("MSAA {}x is not available here ({err}); starting without it", native.multisampling);
+            seal_log::warn!(
+                "MSAA {}x is not available here ({err}); starting without it",
+                native.multisampling
+            );
             native.multisampling = 0;
             start(native)
         }
@@ -1058,11 +1060,8 @@ impl Shell {
     }
 
     fn pick_folder(&mut self, create: bool) {
-        let prompt = if create {
-            PendingPathPrompt::NewProject
-        } else {
-            PendingPathPrompt::OpenProject
-        };
+        let prompt =
+            if create { PendingPathPrompt::NewProject } else { PendingPathPrompt::OpenProject };
         let Some(path) = self.take_path(pick_folder_dialog(), prompt) else {
             return;
         };
@@ -1159,7 +1158,8 @@ impl Shell {
     }
 
     fn save_as(&mut self) {
-        let Some(path) = self.take_path(save_file_dialog("scratch.seal"), PendingPathPrompt::SaveAs)
+        let Some(path) =
+            self.take_path(save_file_dialog("scratch.seal"), PendingPathPrompt::SaveAs)
         else {
             return;
         };
@@ -1209,7 +1209,8 @@ impl Shell {
     }
 
     fn export_layout(&mut self) {
-        let Some(path) = self.take_path(save_file_dialog("layout.seal"), PendingPathPrompt::ExportLayout)
+        let Some(path) =
+            self.take_path(save_file_dialog("layout.seal"), PendingPathPrompt::ExportLayout)
         else {
             return;
         };
@@ -1247,7 +1248,8 @@ impl Shell {
 
     fn pick_profile_import(&mut self, name: &str) {
         self.path_prompt_arg = name.to_string();
-        let Some(path) = self.take_path(open_file_dialog(), PendingPathPrompt::ImportProfile) else {
+        let Some(path) = self.take_path(open_file_dialog(), PendingPathPrompt::ImportProfile)
+        else {
             return;
         };
         self.apply_import_profile(name, path);
@@ -1647,7 +1649,9 @@ impl Shell {
                 if let Err(err) =
                     self.session.dispatch("play.stop", &seal_editor_core::CommandArgs::default())
                 {
-                    seal_log::warn!("the editor did not leave play after the HDR window opened: {err}");
+                    seal_log::warn!(
+                        "the editor did not leave play after the HDR window opened: {err}"
+                    );
                 }
             }
             Err(err) => {

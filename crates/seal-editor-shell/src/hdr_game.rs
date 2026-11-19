@@ -138,7 +138,11 @@ fn texture_format(buffer: HdrBuffer) -> wgpu::TextureFormat {
     }
 }
 
-fn targets(device: &wgpu::Device, width: u32, height: u32) -> (wgpu::TextureView, wgpu::Texture, wgpu::TextureView) {
+fn targets(
+    device: &wgpu::Device,
+    width: u32,
+    height: u32,
+) -> (wgpu::TextureView, wgpu::Texture, wgpu::TextureView) {
     let depth = device.create_texture(&wgpu::TextureDescriptor {
         label: Some("seal game depth"),
         size: wgpu::Extent3d { width, height, depth_or_array_layers: 1 },
@@ -296,11 +300,8 @@ impl HdrApp {
             wgpu::SurfaceColorSpace::Auto
         };
         self.space = output_space(true, extended);
-        let present = if plan.vsync {
-            wgpu::PresentMode::AutoVsync
-        } else {
-            wgpu::PresentMode::AutoNoVsync
-        };
+        let present =
+            if plan.vsync { wgpu::PresentMode::AutoVsync } else { wgpu::PresentMode::AutoNoVsync };
         let present = if caps.present_modes.contains(&present) {
             present
         } else {
@@ -362,12 +363,7 @@ impl HdrApp {
         seal_ui::gpu_viewport_wgpu::set_active(!cpu_only);
         seal_ui::gpu_viewport_wgpu::set_hdr(true);
         window.set_visible(true);
-        seal_log::info!(
-            "HDR window {}x{} extended {}",
-            config.width,
-            config.height,
-            extended
-        );
+        seal_log::info!("HDR window {}x{} extended {}", config.width, config.height, extended);
         self.shell = Some(Shell::new(self.layout.clone(), &self.launch));
         self.window = Some(window);
         self.state = Some(state);
@@ -515,13 +511,8 @@ impl HdrApp {
                 );
             }
         }
-        let user = gpu.renderer.update_buffers(
-            &gpu.device,
-            &gpu.queue,
-            &mut encoder,
-            primitives,
-            &screen,
-        );
+        let user =
+            gpu.renderer.update_buffers(&gpu.device, &gpu.queue, &mut encoder, primitives, &screen);
         let frame = match gpu.surface.get_current_texture() {
             wgpu::CurrentSurfaceTexture::Success(frame)
             | wgpu::CurrentSurfaceTexture::Suboptimal(frame) => frame,

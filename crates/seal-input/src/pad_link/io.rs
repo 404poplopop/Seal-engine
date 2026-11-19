@@ -579,11 +579,11 @@ mod sys {
                 std::ptr::null_mut(),
             );
         }
-        if needed < 8 || needed > 16 * 1024 {
+        if !(8..=16 * 1024).contains(&needed) {
             return None;
         }
         let cb: u32 = if cfg!(target_pointer_width = "64") { 8 } else { 6 };
-        let mut raw = vec![0u64; (needed as usize + 7) / 8];
+        let mut raw = vec![0u64; (needed as usize).div_ceil(8)];
         unsafe {
             raw.as_mut_ptr().cast::<u32>().write(cb);
             let ok = SetupDiGetDeviceInterfaceDetailW(

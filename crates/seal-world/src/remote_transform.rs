@@ -73,7 +73,8 @@ pub fn apply(remote: &mut RemoteTransform, key: &str, value: &str) -> bool {
 /// Write each helper onto its target. Reads every source first, so a chain
 /// moves one step per frame and two helpers cannot see each other's write.
 pub fn step(entities: &mut [Entity]) {
-    let planned: Vec<(usize, [f32; 3], [f32; 3], [f32; 3], bool, bool, bool)> = entities
+    type Plan = (usize, [f32; 3], [f32; 3], [f32; 3], bool, bool, bool);
+    let planned: Vec<Plan> = entities
         .iter()
         .enumerate()
         .filter(|(_, entity)| entity.remote.on && !entity.remote.target.trim().is_empty())

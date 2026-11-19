@@ -468,7 +468,7 @@ fn animation(source: &Source, sheet: &str) -> Result<(SpriteFrames, Vec<String>)
         if tag.repeat > 1 {
             dropped.push(name.clone());
         }
-        let frames = indices.into_iter().map(|i| Frame::cell(&sheet, cell_uv(i, &grid))).collect();
+        let frames = indices.into_iter().map(|i| Frame::cell(sheet, cell_uv(i, &grid))).collect();
         clips.push(Clip { name, fps, looping: tag.repeat == 0, frames });
     }
     if !averaged.is_empty() {

@@ -33,10 +33,7 @@ fn project(tag: &str) -> (PathBuf, EditorSession) {
 fn reference_listing_and_undo_after_rename() {
     let (project, mut session) = project("undo");
     session
-        .dispatch(
-            "asset.find_references",
-            &CommandArgs::new(&[("path", "sprites/a.png")]),
-        )
+        .dispatch("asset.find_references", &CommandArgs::new(&[("path", "sprites/a.png")]))
         .unwrap();
     assert!(!session.models.asset_reference_report.referencers.is_empty());
     session

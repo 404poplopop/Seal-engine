@@ -699,13 +699,16 @@ pub(crate) fn paint(frame: &mut PanelFrame, session: &EditorSession) -> PanelEve
                 prefab_banner: None,
                 measure_mode: tool == "measure" || tool == "collider",
                 sprite_order: None,
-                glow: (session.world.glow.enabled && session.models.quality_glow && pane.view == "front").then_some([
-                    session.world.glow.threshold,
-                    session.world.glow.intensity,
-                    session.world.glow.radius,
-                ]),
+                glow: (session.world.glow.enabled
+                    && session.models.quality_glow
+                    && pane.view == "front")
+                    .then_some([
+                        session.world.glow.threshold,
+                        session.world.glow.intensity,
+                        session.world.glow.radius,
+                    ]),
                 anisotropy: seal_editor_core::render_quality_from_session(session).anisotropy,
-            render_scale: seal_editor_core::render_quality_from_session(session).render_scale,
+                render_scale: seal_editor_core::render_quality_from_session(session).render_scale,
                 light_gain: seal_ui::scene_light_gain(
                     session
                         .world

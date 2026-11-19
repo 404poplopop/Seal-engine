@@ -10,7 +10,8 @@ use seal_editor_core::import_presets::{
 use seal_editor_core::picture_import;
 
 fn scratch(name: &str) -> std::path::PathBuf {
-    let dir = std::env::temp_dir().join(format!("seal-picture-import-{name}-{}", std::process::id()));
+    let dir =
+        std::env::temp_dir().join(format!("seal-picture-import-{name}-{}", std::process::id()));
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).unwrap();
     dir
@@ -74,9 +75,7 @@ pixels_per_unit = 0
 fn max_size_downscales_on_load_and_reimport_survives_a_damaged_file() {
     let dir = scratch("size");
     let rgba: Vec<u8> = (0..2)
-        .flat_map(|_| {
-            (0..4).flat_map(|x| if x < 2 { [255, 0, 0, 255] } else { [0, 0, 255, 255] })
-        })
+        .flat_map(|_| (0..4).flat_map(|x| if x < 2 { [255, 0, 0, 255] } else { [0, 0, 255, 255] }))
         .collect();
     write_png(&dir.join("wide.png"), 4, 2, &rgba);
     let state = FileImportState {

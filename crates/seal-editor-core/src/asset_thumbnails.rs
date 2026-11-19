@@ -97,8 +97,8 @@ pub fn waveform_thumbnail(source: &Path) -> Result<(Vec<u8>, u32, u32), CoreErro
         *peak = max;
     }
     let mut rgba = vec![0u8; (SIZE * SIZE * 4) as usize];
-    for x in 0..bins {
-        let h = u32::from(peaks[x]) * SIZE / 255;
+    for (x, &peak) in peaks.iter().enumerate().take(bins) {
+        let h = u32::from(peak) * SIZE / 255;
         let y0 = SIZE.saturating_sub(h.max(4));
         for y in y0..SIZE {
             let i = ((y * SIZE + x as u32) * 4) as usize;
@@ -201,7 +201,8 @@ pub fn ensure_thumbnail(
         write_stamp(&cache, source).ok()?;
         return Some(cache);
     }
-    let result = match kind {
+
+    match kind {
         "material" => {
             let rgba = crate::asset_preview::material_sphere_rgba(source).ok()?;
             let s = crate::asset_preview::PREVIEW_SIZE;
@@ -240,8 +241,7 @@ pub fn ensure_thumbnail(
             None
         }
         _ => None,
-    };
-    result
+    }
 }
 
 fn first_frames_thumbnail(project_root: &Path, rel: &str, source: &Path) -> Option<PathBuf> {

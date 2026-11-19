@@ -27,15 +27,17 @@ pub fn audio_listener_section(
             &session.messages.get("inspector-audio-listener"),
             field_value(session, id, "audio_listener") == "yes",
         ) {
-            let value = if field_value(session, id, "audio_listener") == "yes" {
-                "no"
-            } else {
-                "yes"
-            };
-            event = command("inspector.field", &[("id", id), ("field", "audio_listener"), ("value", value)]);
+            let value =
+                if field_value(session, id, "audio_listener") == "yes" { "no" } else { "yes" };
+            event = command(
+                "inspector.field",
+                &[("id", id), ("field", "audio_listener"), ("value", value)],
+            );
         }
         let mut max_d = field_value(session, id, "listener_max_distance");
-        if frame.property(&session.messages.get("inspector-field-listener-max-distance"), &mut max_d) {
+        if frame
+            .property(&session.messages.get("inspector-field-listener-max-distance"), &mut max_d)
+        {
             event = command(
                 "inspector.field",
                 &[("id", id), ("field", "listener_max_distance"), ("value", max_d.as_str())],

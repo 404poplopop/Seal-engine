@@ -345,13 +345,11 @@ pub fn segment_angle(a: [f32; 2], b: [f32; 2]) -> f32 {
 
 /// Top, side or bottom from a segment's direction and the three ranges.
 /// Top wins, then bottom, then side. Anything left over is a side.
-pub fn classify(angle: f32, top: [f32; 2], side: [f32; 2], bottom: [f32; 2]) -> Band {
+pub fn classify(angle: f32, top: [f32; 2], _side: [f32; 2], bottom: [f32; 2]) -> Band {
     if in_range(angle, top[0], top[1]) {
         Band::Top
     } else if in_range(angle, bottom[0], bottom[1]) {
         Band::Bottom
-    } else if in_range(angle, side[0], side[1]) {
-        Band::Side
     } else {
         Band::Side
     }

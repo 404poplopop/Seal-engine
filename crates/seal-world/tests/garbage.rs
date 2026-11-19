@@ -40,7 +40,7 @@ fn broken_network_packets_are_refused_not_crashed_on() {
     survives("snapshot", &snapshot, |b| drop(Snapshot::decode(b)));
     let input = InputMsg {
         seq: 9,
-        input: seal_world::PlayInput { left: true, right: false, jump: true, ..Default::default() },
+        input: seal_world::PlayInput { left: true, right: false, jump: true },
         keys: vec![("e".into(), true), ("space".into(), false)],
     }
     .encode();

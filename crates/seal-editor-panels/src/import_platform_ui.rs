@@ -1,9 +1,11 @@
 //! Per-platform import override tabs in the Asset Editor.
 
 use seal_editor_core::import_platform::{
-    effective_picture, ALL_PLATFORMS, ImportPlatform, PicturePlatformOverride,
+    effective_picture, ImportPlatform, PicturePlatformOverride, ALL_PLATFORMS,
 };
-use seal_editor_core::import_presets::{load_file_state, ImportKind, PictureSettings, PICTURE_MAX_SIZES};
+use seal_editor_core::import_presets::{
+    load_file_state, ImportKind, PictureSettings, PICTURE_MAX_SIZES,
+};
 use seal_editor_core::EditorSession;
 use seal_ui::PanelFrame;
 
@@ -32,12 +34,7 @@ pub fn platform_overrides_block(
     let state = load_file_state(&root, rel, ImportKind::Picture);
     let tabs: Vec<(&str, String)> = ALL_PLATFORMS
         .iter()
-        .map(|p| {
-            (
-                p.id(),
-                session.messages.format("import-platform-name", &[("id", p.id())]),
-            )
-        })
+        .map(|p| (p.id(), session.messages.format("import-platform-name", &[("id", p.id())])))
         .collect();
     let mut tab = session
         .draft("import-platform-tab")
@@ -64,15 +61,21 @@ pub fn platform_overrides_block(
             ],
         );
         f.muted(&eff_text);
-        if let Some(e) = platform_field_edits(f, rel, platform, &ov, &PlatformLabels {
-            max: max_l,
-            max_original: max_original.clone(),
-            compression: compression_l,
-            format: format_l,
-            inherit: inherit.clone(),
-            inherit_note: default_l,
-            override_note: override_l,
-        }) {
+        if let Some(e) = platform_field_edits(
+            f,
+            rel,
+            platform,
+            &ov,
+            &PlatformLabels {
+                max: max_l,
+                max_original: max_original.clone(),
+                compression: compression_l,
+                format: format_l,
+                inherit: inherit.clone(),
+                inherit_note: default_l,
+                override_note: override_l,
+            },
+        ) {
             event = e;
         }
     });
@@ -96,29 +99,21 @@ fn platform_field_edits(
     ov: &PicturePlatformOverride,
     labels: &PlatformLabels,
 ) -> Option<PanelEvent> {
-    let send =
-        |field: &str, value: &str| {
-            command(
-                "import.platform.field",
-                &[
-                    ("path", rel),
-                    ("platform", platform.id()),
-                    ("field", field),
-                    ("value", value),
-                ],
-            )
-        };
+    let send = |field: &str, value: &str| {
+        command(
+            "import.platform.field",
+            &[("path", rel), ("platform", platform.id()), ("field", field), ("value", value)],
+        )
+    };
     let mut sizes = vec![(labels.inherit.clone(), labels.inherit.clone())];
     sizes.push(("0".into(), labels.max_original.clone()));
     for size in PICTURE_MAX_SIZES {
         let text = size.to_string();
         sizes.push((text.clone(), text));
     }
-    let size_pairs: Vec<(&str, String)> = sizes.iter().map(|(id, t)| (id.as_str(), t.clone())).collect();
-    let current_size = ov
-        .max_size
-        .map(|n| n.to_string())
-        .unwrap_or_else(|| labels.inherit.clone());
+    let size_pairs: Vec<(&str, String)> =
+        sizes.iter().map(|(id, t)| (id.as_str(), t.clone())).collect();
+    let current_size = ov.max_size.map(|n| n.to_string()).unwrap_or_else(|| labels.inherit.clone());
     if let Some(picked) = frame.choice(&labels.max, &current_size, &size_pairs) {
         if picked != current_size {
             let value = if picked == labels.inherit { "default" } else { picked.as_str() };
@@ -137,11 +132,9 @@ fn platform_field_edits(
         ("balanced", "Balanced".into()),
         ("maximum", "Maximum".into()),
     ];
-    let comp: Vec<(&str, String)> = compression_pairs.iter().map(|(id, t)| (*id, t.clone())).collect();
-    let current_comp = ov
-        .compression
-        .clone()
-        .unwrap_or_else(|| labels.inherit.clone());
+    let comp: Vec<(&str, String)> =
+        compression_pairs.iter().map(|(id, t)| (*id, t.clone())).collect();
+    let current_comp = ov.compression.clone().unwrap_or_else(|| labels.inherit.clone());
     let comp_key = ov.compression.as_deref().unwrap_or("default");
     if let Some(picked) = frame.choice(&labels.compression, &current_comp, &comp) {
         let picked_key = if picked == labels.inherit {
@@ -194,12 +187,7 @@ pub fn atlas_platform_section(frame: &mut PanelFrame, session: &mut EditorSessio
     let mut event = PanelEvent::None;
     let tabs: Vec<(&str, String)> = ALL_PLATFORMS
         .iter()
-        .map(|p| {
-            (
-                p.id(),
-                session.messages.format("import-platform-name", &[("id", p.id())]),
-            )
-        })
+        .map(|p| (p.id(), session.messages.format("import-platform-name", &[("id", p.id())])))
         .collect();
     let mut tab = session
         .draft("import-atlas-platform-tab")
@@ -229,11 +217,9 @@ pub fn atlas_platform_section(frame: &mut PanelFrame, session: &mut EditorSessio
                 sizes.push((text.clone(), text));
             }
         }
-        let pairs: Vec<(&str, String)> = sizes.iter().map(|(id, t)| (id.as_str(), t.clone())).collect();
-        let current = ov
-            .page_size
-            .map(|n| n.to_string())
-            .unwrap_or_else(|| inherit.clone());
+        let pairs: Vec<(&str, String)> =
+            sizes.iter().map(|(id, t)| (id.as_str(), t.clone())).collect();
+        let current = ov.page_size.map(|n| n.to_string()).unwrap_or_else(|| inherit.clone());
         let key = ov.page_size.map(|n| n.to_string()).unwrap_or_else(|| "default".into());
         if let Some(picked) = f.choice(&page_l, &current, &pairs) {
             let picked_key = if picked == inherit {

@@ -70,11 +70,12 @@ impl GpuBlockFormat {
         if !self.is_block_compressed() {
             return Self::Rgba8;
         }
-        let ok = self
-            .required_feature_names()
-            .iter()
-            .all(|need| supported.iter().any(|have| *have == *need));
-        if ok { self } else { Self::Rgba8 }
+        let ok = self.required_feature_names().iter().all(|need| supported.contains(need));
+        if ok {
+            self
+        } else {
+            Self::Rgba8
+        }
     }
 
     pub fn block_bytes_per_pixel(self) -> f32 {
@@ -95,7 +96,7 @@ pub fn encode_bc1_tile(rgba: &[u8]) -> [u8; 8] {
     write_rgb565(c0, &mut out[0..2]);
     write_rgb565(c1, &mut out[2..4]);
     let mut indices = 0u32;
-    for (i, px) in rgba.chunks_exact(4).take(16).enumerate() {
+    for (i, px) in rgba.as_chunks::<4>().0.iter().take(16).enumerate() {
         let d0 = color_dist_rgb(px, c0);
         let d1 = color_dist_rgb(px, c1);
         let code = if d0 <= d1 { 0u32 } else { 1u32 };
@@ -124,12 +125,7 @@ fn bc1_palette(c0: [u8; 4], c1: [u8; 4]) -> [[u8; 4]; 4] {
     let gt = u16::from(c0[0]) + u16::from(c0[1]) + u16::from(c0[2])
         > u16::from(c1[0]) + u16::from(c1[1]) + u16::from(c1[2]);
     if gt {
-        [
-            c0,
-            c1,
-            lerp3(c0, c1, 1, 2),
-            [0, 0, 0, 0],
-        ]
+        [c0, c1, lerp3(c0, c1, 1, 2), [0, 0, 0, 0]]
     } else {
         [c0, c1, lerp3(c0, c1, 1, 2), lerp3(c0, c1, 2, 1)]
     }
@@ -148,7 +144,7 @@ fn lerp3(a: [u8; 4], b: [u8; 4], na: u32, nb: u32) -> [u8; 4] {
 fn dominant_color(rgba: &[u8]) -> [u8; 4] {
     let (mut r, mut g, mut b) = (0u32, 0u32, 0u32);
     let n = (rgba.len() / 4).max(1) as u32;
-    for px in rgba.chunks_exact(4) {
+    for px in rgba.as_chunks::<4>().0 {
         r += u32::from(px[0]);
         g += u32::from(px[1]);
         b += u32::from(px[2]);
@@ -173,12 +169,7 @@ fn read_rgb565(raw: &[u8]) -> [u8; 4] {
     let r = ((v >> 11) & 0x1f) as u8;
     let g = ((v >> 5) & 0x3f) as u8;
     let b = (v & 0x1f) as u8;
-    [
-        (r << 3) | (r >> 2),
-        (g << 2) | (g >> 4),
-        (b << 3) | (b >> 2),
-        255,
-    ]
+    [(r << 3) | (r >> 2), (g << 2) | (g >> 4), (b << 3) | (b >> 2), 255]
 }
 
 /// Turn RGBA8 mip0 into block-compressed export bytes when the format is supported.
@@ -293,10 +284,7 @@ mod tests {
     #[test]
     fn format_fallback_bc_without_feature() {
         let supported = &[] as &[&str];
-        assert_eq!(
-            GpuBlockFormat::Bc7.effective_load_format(supported),
-            GpuBlockFormat::Rgba8
-        );
+        assert_eq!(GpuBlockFormat::Bc7.effective_load_format(supported), GpuBlockFormat::Rgba8);
         assert_eq!(
             GpuBlockFormat::Bc1.effective_load_format(&["texture_compression_bc"]),
             GpuBlockFormat::Bc1
@@ -320,7 +308,8 @@ mod tests {
     #[test]
     fn export_bc1_encodes_when_supported() {
         let rgba = vec![255u8; 4 * 4 * 4];
-        let encoded = encode_export_rgba(GpuBlockFormat::Bc1, &["texture_compression_bc"], 4, 4, &rgba);
+        let encoded =
+            encode_export_rgba(GpuBlockFormat::Bc1, &["texture_compression_bc"], 4, 4, &rgba);
         assert_eq!(encoded.len(), 8);
         let decoded = decode_block_to_rgba8(GpuBlockFormat::Bc1, 4, 4, &encoded).unwrap();
         assert_eq!(decoded.len(), 64);

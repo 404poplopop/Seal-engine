@@ -1,8 +1,8 @@
 //! Inspector layout editor inside the graph panel.
 
 use seal_editor_core::graph_doc::GraphDoc;
-use seal_editor_core::INSPECTOR_FIELD_SPECS;
 use seal_editor_core::InspectorFieldRule;
+use seal_editor_core::INSPECTOR_FIELD_SPECS;
 use seal_ui::PanelFrame;
 
 use crate::PanelEvent;
@@ -16,15 +16,10 @@ pub fn paint_strip(
     frame.padded(|outer| {
         outer.label(&text("graph-inspector-layout-title"));
         outer.muted(&text("graph-inspector-layout-hint"));
-        let options: Vec<(&str, String)> = INSPECTOR_FIELD_SPECS
-            .iter()
-            .map(|spec| (spec.key, spec.key.to_string()))
-            .collect();
-        let mut pick = layout
-            .fields
-            .first()
-            .map(|f| f.field.clone())
-            .unwrap_or_else(|| "x".to_string());
+        let options: Vec<(&str, String)> =
+            INSPECTOR_FIELD_SPECS.iter().map(|spec| (spec.key, spec.key.to_string())).collect();
+        let mut pick =
+            layout.fields.first().map(|f| f.field.clone()).unwrap_or_else(|| "x".to_string());
         if let Some(name) = outer
             .choice_row(
                 &text("graph-inspector-layout-field"),
@@ -129,19 +124,14 @@ pub fn paint_strip(
                 } else {
                     Some(section.trim().to_string())
                 },
-                    order: order.trim().parse().unwrap_or(0),
-                    hidden: hidden == seal_ui::PropertyCheckbox::On,
+                order: order.trim().parse().unwrap_or(0),
+                hidden: hidden == seal_ui::PropertyCheckbox::On,
                 min: min_s.trim().parse().ok(),
                 max: max_s.trim().parse().ok(),
-                help: if help.trim().is_empty() {
-                    None
-                } else {
-                    Some(help)
-                },
+                help: if help.trim().is_empty() { None } else { Some(help) },
             });
         }
-        if layout.sections.is_empty() && outer.button(&text("graph-inspector-layout-add-section"))
-        {
+        if layout.sections.is_empty() && outer.button(&text("graph-inspector-layout-add-section")) {
             doc.ensure_inspector_section("Properties");
         }
     });

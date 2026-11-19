@@ -1,8 +1,8 @@
 //! Prefab tile brush strokes and Inspector tile data on instances.
 
 use seal_editor_core::tiles::{
-    decode_tile_data, decode_tile_set, is_painted_tile, pack_tile_overrides, Grid, PREFAB_BRUSH_PREFIX,
-    RuleSet,
+    decode_tile_data, decode_tile_set, is_painted_tile, pack_tile_overrides, Grid, RuleSet,
+    PREFAB_BRUSH_PREFIX,
 };
 use seal_editor_core::{CommandArgs, EditorSession, Layout};
 
@@ -60,19 +60,10 @@ tile sprites/floor.png
     std::fs::write(dir.join("tiles/floor.tiles"), TILES).unwrap();
     s.dispatch(
         "tiles.paint",
-        &CommandArgs::new(&[
-            ("brush", "tiles/floor.tiles"),
-            ("cells", "0,0"),
-            ("solid", "true"),
-        ]),
+        &CommandArgs::new(&[("brush", "tiles/floor.tiles"), ("cells", "0,0"), ("solid", "true")]),
     )
     .unwrap();
-    let tile = s
-        .world
-        .entities
-        .iter()
-        .find(|e| e.sprite == "sprites/floor.png")
-        .unwrap();
+    let tile = s.world.entities.iter().find(|e| e.sprite == "sprites/floor.png").unwrap();
     assert!(is_painted_tile(tile));
     assert!(decode_tile_set(&tile.overrides).as_deref() == Some("tiles/floor.tiles"));
     let id = tile.id.clone();
@@ -85,11 +76,8 @@ tile sprites/floor.png
     let data = decode_tile_data(&entity.overrides);
     assert!(data.iter().any(|(k, v)| k == "type" && v == "grass"));
     assert!(data.iter().any(|(k, _)| k == "seed"));
-    s.dispatch(
-        "tiles.data_remove",
-        &CommandArgs::new(&[("id", id.as_str()), ("key", "seed")]),
-    )
-    .unwrap();
+    s.dispatch("tiles.data_remove", &CommandArgs::new(&[("id", id.as_str()), ("key", "seed")]))
+        .unwrap();
     let entity = s.world.entity(&id).unwrap();
     assert!(!decode_tile_data(&entity.overrides).iter().any(|(k, _)| k == "seed"));
     let packed = pack_tile_overrides(&[("a".into(), "b".into())], Some("tiles/x.tiles"));
@@ -105,8 +93,5 @@ tile sprites/floor.png
 #[test]
 fn damaged_tiledata_still_parses_pairs() {
     let packed = "tiledata:badpair,type=ok";
-    assert_eq!(
-        decode_tile_data(packed),
-        vec![("type".to_string(), "ok".to_string())]
-    );
+    assert_eq!(decode_tile_data(packed), vec![("type".to_string(), "ok".to_string())]);
 }

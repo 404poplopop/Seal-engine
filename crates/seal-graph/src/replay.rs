@@ -313,7 +313,10 @@ fn mix_value(h: u64, v: &Value) -> u64 {
         }
         Value::Plane(p) => {
             let h = mix(
-                mix(mix(mix(h, &[9]), &p.nx.to_bits().to_le_bytes()), &p.ny.to_bits().to_le_bytes()),
+                mix(
+                    mix(mix(h, &[9]), &p.nx.to_bits().to_le_bytes()),
+                    &p.ny.to_bits().to_le_bytes(),
+                ),
                 &p.nz.to_bits().to_le_bytes(),
             );
             mix(h, &p.d.to_bits().to_le_bytes())

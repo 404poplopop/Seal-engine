@@ -270,10 +270,13 @@ impl Atlas {
     }
 }
 
+/// Page index, x and y of one packed picture.
+pub type Spot = (usize, u32, u32);
+
 /// Shelf packing: tallest pictures first, left to right in rows, opening a new
 /// page when one is full. Returns placements (without paths) in input order
 /// and each page's used size, rounded up to a power of two.
-pub fn pack(sizes: &[(u32, u32)], page_size: u32) -> (Vec<(usize, u32, u32)>, Vec<(u32, u32)>) {
+pub fn pack(sizes: &[(u32, u32)], page_size: u32) -> (Vec<Spot>, Vec<(u32, u32)>) {
     let mut order: Vec<usize> = (0..sizes.len()).collect();
     order.sort_by_key(|&i| (std::cmp::Reverse(sizes[i].1), std::cmp::Reverse(sizes[i].0), i));
     let mut spots = vec![(0, 0, 0); sizes.len()];
@@ -478,25 +481,24 @@ fn build_configured(data: &Path, options: &AtlasOptions) -> Result<usize, CoreEr
         }
         let sizes: Vec<(u32, u32)> =
             prepared.iter().map(|item| (item.pack_w, item.pack_h)).collect();
-        let (spots, page_sizes): (Vec<Option<(usize, u32, u32, bool)>>, Vec<(u32, u32)>) =
-            if options.rotate {
-                let shelf = pack_turning(&sizes, page_size);
-                let spots = shelf
-                    .spots
-                    .into_iter()
-                    .map(|spot| spot.map(|spot| (spot.page, spot.x, spot.y, spot.turned)))
-                    .collect();
-                (spots, shelf.pages)
-            } else {
-                let (spots, pages) = pack(&sizes, page_size);
-                let pages = pages
-                    .into_iter()
-                    .map(|(w, h)| (w.min(page_size).max(1), h.min(page_size).max(1)))
-                    .collect();
-                let spots =
-                    spots.into_iter().map(|(page, x, y)| Some((page, x, y, false))).collect();
-                (spots, pages)
-            };
+        type TurnedSpot = Option<(usize, u32, u32, bool)>;
+        let (spots, page_sizes): (Vec<TurnedSpot>, Vec<(u32, u32)>) = if options.rotate {
+            let shelf = pack_turning(&sizes, page_size);
+            let spots = shelf
+                .spots
+                .into_iter()
+                .map(|spot| spot.map(|spot| (spot.page, spot.x, spot.y, spot.turned)))
+                .collect();
+            (spots, shelf.pages)
+        } else {
+            let (spots, pages) = pack(&sizes, page_size);
+            let pages = pages
+                .into_iter()
+                .map(|(w, h)| (w.min(page_size).max(1), h.min(page_size).max(1)))
+                .collect();
+            let spots = spots.into_iter().map(|(page, x, y)| Some((page, x, y, false))).collect();
+            (spots, pages)
+        };
         let base = atlas.pages.len();
         for (n, (w, h)) in page_sizes.iter().enumerate() {
             atlas.pages.push((format!("{FOLDER}/page{}.png", base + n), *w, *h, nearest));
@@ -676,8 +678,8 @@ fn scale_image(src: &[u8], w: u32, h: u32, percent: u32) -> (Vec<u8>, u32, u32) 
             for y in y0..y1 {
                 for x in x0..x1 {
                     let i = ((y as u32 * w + x as u32) * 4) as usize;
-                    for channel in 0..4 {
-                        acc[channel] += src.get(i + channel).copied().unwrap_or(0) as u32;
+                    for (channel, sum) in acc.iter_mut().enumerate() {
+                        *sum += src.get(i + channel).copied().unwrap_or(0) as u32;
                     }
                     count += 1;
                 }

@@ -6,7 +6,7 @@
 //! input actions and axes, and mixed sound.
 
 use seal_app::audio::Sound;
-use seal_app::ecs::core::{Transform, SceneSettings};
+use seal_app::ecs::core::{SceneSettings, Transform};
 use seal_app::ecs::Entity;
 use seal_app::physics2d::{Body2D, Collider2D, Velocity2D};
 use seal_app::render2d::{Camera2D, Sprite};

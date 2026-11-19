@@ -32,7 +32,7 @@ pub fn binding_conflicts(keymap: &Keymap) -> Vec<KeymapConflict> {
             KeymapConflict { chord, commands }
         })
         .collect();
-    out.sort_by(|left, right| left.chord.token().cmp(&right.chord.token()));
+    out.sort_by_key(|left| left.chord.token());
     out
 }
 

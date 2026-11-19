@@ -40,7 +40,7 @@ pub fn apply_package(
             .as_deref()
             .filter(|s| !s.is_empty())
             .unwrap_or(base.compression.as_str());
-        let Some((format, quality)) = export_block_format(&platform_id, compression, None) else {
+        let Some((format, quality)) = export_block_format(platform_id, compression, None) else {
             continue;
         };
         let full = data_root.join(&rel);

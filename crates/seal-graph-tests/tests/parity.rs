@@ -610,7 +610,7 @@ fn numbers_are_read_from_the_start_of_text() {
 fn numbers_show_grouped_with_three_decimals_at_most() {
     let cases: [(i64, f64); 8] = [
         (0, 0.0),
-        (999, 2.718281),
+        (999, 2.718291),
         (1000, 1234.5),
         (-1234567, -0.0004),
         (i64::MIN, 1e6),
@@ -736,8 +736,8 @@ fn vectors_print_with_three_fixed_decimals() {
             "X=1.000 Y=-2.500 Z=1234.568",
             "X=0.001 Y=-0.000",
             "X=0.000 Y=0.000 Z=0.000",
-        "X=1000000.000 Y=0.667"
-    ]
+            "X=1000000.000 Y=0.667"
+        ]
     );
 }
 
@@ -762,9 +762,7 @@ fn physics_queries_match_on_both_backends() {
     };
     let (_, _, states) = both("queries", host, &[Step::Fire("ask", vec![])], None);
     let last = states.last().unwrap();
-    let ids = |name: &str| {
-        var(last, name).list().iter().map(|v| v.entity()).collect::<Vec<_>>()
-    };
+    let ids = |name: &str| var(last, name).list().iter().map(|v| v.entity()).collect::<Vec<_>>();
     assert_eq!(ids("ents"), vec![1, 3, 2]);
     assert!((var(last, "dist").float() - 1.5).abs() < 1e-6);
     assert!((var(last, "cast").float() - 1.25).abs() < 1e-3, "{}", var(last, "cast").float());

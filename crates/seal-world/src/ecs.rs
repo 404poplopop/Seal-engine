@@ -11,9 +11,9 @@ use seal_ecs::core::SceneSettings;
 use seal_ecs::core::{Name, Transform};
 use seal_ecs::{ChildOf, SceneId};
 pub use seal_scene::{
-    AudioListener, Body, Camera, Camera2d, Character2d, EditorInfo, Light, Light2d, Look, Material2d, NavAgent2d,
-    Particles, PathFollow, Physics2d, Script, Shape2d, SpriteClip, SpriteImage, SpriteMask,
-    SpriteShape,
+    AudioListener, Body, Camera, Camera2d, Character2d, EditorInfo, Light, Light2d, Look,
+    Material2d, NavAgent2d, Particles, PathFollow, Physics2d, Script, Shape2d, SpriteClip,
+    SpriteImage, SpriteMask, SpriteShape,
 };
 
 use crate::{color_for, sprite_sort, Entity, PlayMode, Shape, World, DEFAULT_GRAVITY};
@@ -111,7 +111,9 @@ impl World {
             if crate::script_groups::name(&e.script_group) != crate::script_groups::BEFORE {
                 world.insert(
                     id,
-                    crate::script_groups::ScriptGroup { group: crate::script_groups::name(&e.script_group).into() },
+                    crate::script_groups::ScriptGroup {
+                        group: crate::script_groups::name(&e.script_group).into(),
+                    },
                 );
             }
             if e.remote.on {
@@ -301,14 +303,23 @@ impl World {
                     .get::<crate::script_groups::ScriptGroup>(id)
                     .map(|g| crate::script_groups::stored(&g.group))
                     .unwrap_or_default(),
-                remote: world.get::<crate::remote_transform::RemoteTransform>(id).cloned().unwrap_or_default(),
+                remote: world
+                    .get::<crate::remote_transform::RemoteTransform>(id)
+                    .cloned()
+                    .unwrap_or_default(),
                 collider_enabled: world
                     .get::<crate::collider_gate::ColliderGate>(id)
                     .map(|g| g.enabled)
                     .unwrap_or(true),
-                merged: world.get::<crate::object_merge::MergedDraw>(id).cloned().unwrap_or_default(),
+                merged: world
+                    .get::<crate::object_merge::MergedDraw>(id)
+                    .cloned()
+                    .unwrap_or_default(),
                 post: world.get::<crate::post_volume::PostVolume>(id).cloned().unwrap_or_default(),
-                mesh_material: world.get::<seal_scene::MeshMaterial>(id).cloned().unwrap_or_default(),
+                mesh_material: world
+                    .get::<seal_scene::MeshMaterial>(id)
+                    .cloned()
+                    .unwrap_or_default(),
             });
         }
         if entities.is_empty() {
@@ -360,7 +371,8 @@ impl World {
         if let Some(sky) = world.resource::<seal_scene::SkyCubemap>() {
             out.sky_cubemap = sky.texture.clone();
         }
-        out.objects_per_file = world.resource::<crate::object_files::ObjectFiles>().is_some_and(|f| f.on);
+        out.objects_per_file =
+            world.resource::<crate::object_files::ObjectFiles>().is_some_and(|f| f.on);
         out.join_on = world.resource::<crate::players::LocalJoin>().is_some_and(|j| j.on);
         if let Some(scene) = world.resource::<crate::physics::PhysicsSceneSave>() {
             out.physics.scene = scene.clone();

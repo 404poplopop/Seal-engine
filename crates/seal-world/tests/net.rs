@@ -82,7 +82,7 @@ fn a_joined_world_shows_the_host_game_and_drives_it_with_its_input() {
         let before = host.play_keys.len();
         host.step(1.0 / 60.0);
         let _ = before;
-        host_keys.extend(host.play_keys.drain(..));
+        host_keys.append(&mut host.play_keys);
         std::thread::sleep(std::time::Duration::from_millis(2));
     }
     assert!(host.play_input.right, "the guest's held button reaches the host");

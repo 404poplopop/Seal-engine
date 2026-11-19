@@ -840,7 +840,7 @@ impl Host for SceneHost<'_> {
                 }
             };
             if let Some(t) = t {
-                if t <= max && best.map_or(true, |b| t < b.1) {
+                if t <= max && best.is_none_or(|b| t < b.1) {
                     best = Some((i, t));
                 }
             }
@@ -1182,10 +1182,7 @@ impl Host for SceneHost<'_> {
                     camera,
                     ui_screen,
                 };
-                let window_id =
-                    i64::try_from(self.game.extra_windows.open_window(id.max(0) as u32, spec)?)
-                        .unwrap_or(i64::MAX);
-                let _ = window_id;
+                self.game.extra_windows.open_window(id.max(0) as u32, spec)?;
             }
             GameCmd::MoveGameWindow { id, x, y } => {
                 self.game.extra_windows.move_window(id, x, y)?;
@@ -2039,7 +2036,8 @@ impl Scripts {
         let mut now = Vec::new();
         // Solid pairs with where they meet and the normal pointing at the
         // pair's first (lower) handle.
-        let mut solid: Vec<((u64, u64), [f64; 3], [f64; 3])> = Vec::new();
+        type Contact = ((u64, u64), [f64; 3], [f64; 3]);
+        let mut solid: Vec<Contact> = Vec::new();
         for (i, a) in boxes.iter().enumerate() {
             for b in &boxes[i + 1..] {
                 if (0..3).all(|k| (a.1[k] - b.1[k]).abs() < a.2[k] + b.2[k]) {

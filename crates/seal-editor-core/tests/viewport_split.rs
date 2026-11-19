@@ -133,10 +133,7 @@ fn input_routing_picks_the_pane_under_the_pointer() {
     let side = pane_rects(outer, "two_cols", &[0.5], 4.0);
     assert_eq!(pane_under_pointer(&side, side[1].x + 2.0, side[1].y + 2.0), Some(1));
     let stacked = pane_rects(outer, "two_rows", &[0.5], 4.0);
-    assert_eq!(
-        pane_under_pointer(&stacked, stacked[1].x + 2.0, stacked[1].y + 2.0),
-        Some(1)
-    );
+    assert_eq!(pane_under_pointer(&stacked, stacked[1].x + 2.0, stacked[1].y + 2.0), Some(1));
 }
 
 #[test]

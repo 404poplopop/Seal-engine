@@ -74,7 +74,9 @@ mod tests {
 
     #[test]
     fn quality_keys_are_read_and_old_files_keep_defaults() {
-        let cfg = parse_render_text("level high\nmsaa 4\nanisotropy 8\nrender_scale 50\nglow false\n").unwrap();
+        let cfg =
+            parse_render_text("level high\nmsaa 4\nanisotropy 8\nrender_scale 50\nglow false\n")
+                .unwrap();
         assert_eq!((cfg.msaa, cfg.anisotropy, cfg.render_scale, cfg.glow), (4, 8, 50, false));
         let old = parse_render_text("texture_max_size 2048\n").unwrap();
         assert_eq!((old.msaa, old.anisotropy, old.render_scale), (0, 1, 100));

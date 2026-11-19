@@ -18,18 +18,6 @@ pub fn area_section_wanted(mode: Option<&str>, body: Option<&str>) -> bool {
         || body.is_some_and(|b| !b.is_empty() && b != "none")
 }
 
-#[cfg(test)]
-mod area_section_tests {
-    #[test]
-    fn only_colliders_or_set_effects_show_the_area_section() {
-        use super::area_section_wanted as w;
-        assert!(!w(Some("none"), Some("none")));
-        assert!(!w(None, None));
-        assert!(w(Some("none"), Some("fixed")));
-        assert!(w(Some("point"), Some("none")));
-    }
-}
-
 pub fn inspector_section_visible(pick: &str, section: &str) -> bool {
     if pick.is_empty() {
         return true;
@@ -428,7 +416,8 @@ pub fn inspector_header_row(
                     *event = command("prefab.done", &[]);
                 }
             }
-            let nested = seal_editor_core::prefab_nest::override_lines(&session.world.entities, &primary.id);
+            let nested =
+                seal_editor_core::prefab_nest::override_lines(&session.world.entities, &primary.id);
             if !nested.is_empty() {
                 ui.label(format!("Nested prefab changes: {}", nested.join("; ")));
             }
@@ -829,5 +818,17 @@ fn inspector_component_picker(
             *event = component_pick_event(id, "role", role);
             ui.close();
         }
+    }
+}
+
+#[cfg(test)]
+mod area_section_tests {
+    #[test]
+    fn only_colliders_or_set_effects_show_the_area_section() {
+        use super::area_section_wanted as w;
+        assert!(!w(Some("none"), Some("none")));
+        assert!(!w(None, None));
+        assert!(w(Some("none"), Some("fixed")));
+        assert!(w(Some("point"), Some("none")));
     }
 }

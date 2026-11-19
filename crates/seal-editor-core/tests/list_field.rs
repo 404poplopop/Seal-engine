@@ -19,7 +19,11 @@ fn list_edits_each_push_one_undo_step() {
     session
         .dispatch(
             "inspector.set",
-            &CommandArgs::new(&[("id", id.as_str()), ("field", "shape_points"), ("value", "0 0; 1 0")]),
+            &CommandArgs::new(&[
+                ("id", id.as_str()),
+                ("field", "shape_points"),
+                ("value", "0 0; 1 0"),
+            ]),
         )
         .unwrap();
     let run = |session: &mut EditorSession, op: &str, index: usize| {
@@ -85,9 +89,7 @@ fn damaged_point_still_serializes_valid_neighbors() {
     assert!(rows[1].damaged);
     let text = serialize_list_field(&rows);
     assert_eq!(text, "0 0; bad; 2 1");
-    let restored: Vec<[f32; 2]> = text
-        .split(';')
-        .filter_map(|p| seal_world::phys2d::parse_pair(p.trim()))
-        .collect();
+    let restored: Vec<[f32; 2]> =
+        text.split(';').filter_map(|p| seal_world::phys2d::parse_pair(p.trim())).collect();
     assert_eq!(restored, vec![[0.0, 0.0], [2.0, 1.0]]);
 }

@@ -43,7 +43,7 @@ fn export_writes_ktx2_for_windows_and_mobile_presets() {
         "schema_version = 1\nname = \"Game\"\nid = \"00000000-0000-7000-8000-000000000001\"\ncreated = 1\neditor_version = \"0.2\"\nmodules = []\nsettings = {}\n",
     )
     .unwrap();
-    let rgba = vec![200u8, 40, 10, 255].repeat(16);
+    let rgba = [200u8, 40, 10, 255].repeat(16);
     write_png(&project.join("art/tile.png"), 4, 4, &rgba);
 
     let win_state = FileImportState {

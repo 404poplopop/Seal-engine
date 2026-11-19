@@ -22,9 +22,7 @@ fn multi_file_apply_is_one_undo_step() {
     fs::write(project.join("sprites/b.png"), b"b").unwrap();
     let path = project.to_string_lossy().to_string();
     let mut session = EditorSession::new(Layout::default());
-    session
-        .dispatch("file.open-project", &CommandArgs::new(&[("path", path.as_str())]))
-        .unwrap();
+    session.dispatch("file.open-project", &CommandArgs::new(&[("path", path.as_str())])).unwrap();
     session
         .dispatch(
             "import.preset.apply",
@@ -65,8 +63,6 @@ fn multi_file_apply_is_one_undo_step() {
     let edited = seal_editor_core::import_presets::picture_look(&project.join("sprites/a.png"));
     assert!(!edited.nearest);
     session.dispatch("edit.undo", &CommandArgs::default()).unwrap();
-    assert!(
-        seal_editor_core::import_presets::picture_look(&project.join("sprites/a.png")).nearest
-    );
+    assert!(seal_editor_core::import_presets::picture_look(&project.join("sprites/a.png")).nearest);
     let _ = fs::remove_dir_all(&dir);
 }

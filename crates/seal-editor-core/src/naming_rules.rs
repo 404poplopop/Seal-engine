@@ -67,10 +67,7 @@ pub fn default_rules() -> Vec<NamingRule> {
 }
 
 pub fn write_template_defaults(root: &Path) -> Result<(), CoreError> {
-    let book = NamingRuleBook {
-        rules: default_rules(),
-        violations: Vec::new(),
-    };
+    let book = NamingRuleBook { rules: default_rules(), violations: Vec::new() };
     save_book(root, &book)
 }
 
@@ -81,15 +78,10 @@ fn rules_path(root: &Path) -> PathBuf {
 pub fn load_book(root: &Path) -> NamingRuleBook {
     let path = rules_path(root);
     let Ok(text) = fs::read_to_string(&path) else {
-        return NamingRuleBook {
-            rules: default_rules(),
-            violations: Vec::new(),
-        };
+        return NamingRuleBook { rules: default_rules(), violations: Vec::new() };
     };
-    parse_book(&text).unwrap_or_else(|_| NamingRuleBook {
-        rules: default_rules(),
-        violations: Vec::new(),
-    })
+    parse_book(&text)
+        .unwrap_or_else(|_| NamingRuleBook { rules: default_rules(), violations: Vec::new() })
 }
 
 fn parse_book(text: &str) -> Result<NamingRuleBook, String> {
@@ -186,12 +178,7 @@ pub fn check_name(book: &NamingRuleBook, rel: &str) -> Option<NamingViolation> {
     }
     let reason = violation_reason(rule, &name)?;
     let suggested = suggested_name(rule, &name, &rel);
-    Some(NamingViolation {
-        path: rel,
-        kind: kind.to_string(),
-        reason,
-        suggested,
-    })
+    Some(NamingViolation { path: rel, kind: kind.to_string(), reason, suggested })
 }
 
 fn violation_reason(rule: &NamingRule, name: &str) -> Option<String> {
@@ -215,9 +202,16 @@ fn violation_reason(rule: &NamingRule, name: &str) -> Option<String> {
     }
     if !rule.pattern.is_empty() {
         match regex::Regex::new(&rule.pattern) {
-            Ok(re) if !re.is_match(name) => return Some(format!("name must match {}", rule.pattern)),
+            Ok(re) if !re.is_match(name) => {
+                return Some(format!("name must match {}", rule.pattern))
+            }
             Ok(_) => {}
-            Err(_) => return Some(format!("the rule pattern {} is not a valid regular expression", rule.pattern)),
+            Err(_) => {
+                return Some(format!(
+                    "the rule pattern {} is not a valid regular expression",
+                    rule.pattern
+                ))
+            }
         }
     }
     None
@@ -225,9 +219,7 @@ fn violation_reason(rule: &NamingRule, name: &str) -> Option<String> {
 
 fn is_snake_case(name: &str) -> bool {
     !name.is_empty()
-        && name
-            .chars()
-            .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '_')
+        && name.chars().all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '_')
 }
 
 pub fn suggested_name(rule: &NamingRule, name: &str, rel: &str) -> String {
@@ -271,10 +263,7 @@ fn to_snake_case(name: &str) -> String {
 }
 
 pub fn scan_project(session: &mut EditorSession) -> Result<(), CoreError> {
-    let project = session
-        .project
-        .clone()
-        .ok_or_else(|| CoreError::new("no project is open"))?;
+    let project = session.project.clone().ok_or_else(|| CoreError::new("no project is open"))?;
     let ignore = project.ignore.clone();
     let mut paths = Vec::new();
     crate::asset_index::walk_for_scan(&project.root, &project.root, &ignore, &mut paths)?;
@@ -290,10 +279,7 @@ pub fn scan_project(session: &mut EditorSession) -> Result<(), CoreError> {
         session.notify(
             session.messages.format(
                 "naming-violation-line",
-                &[
-                    ("path", v.path.as_str()),
-                    ("reason", v.reason.as_str()),
-                ],
+                &[("path", v.path.as_str()), ("reason", v.reason.as_str())],
             ),
             false,
         );
@@ -315,10 +301,7 @@ pub fn note_violation(session: &mut EditorSession, rel: &str) {
         session.notify(
             session.messages.format(
                 "naming-violation-line",
-                &[
-                    ("path", v.path.as_str()),
-                    ("reason", v.reason.as_str()),
-                ],
+                &[("path", v.path.as_str()), ("reason", v.reason.as_str())],
             ),
             true,
         );
@@ -328,7 +311,8 @@ pub fn note_violation(session: &mut EditorSession, rel: &str) {
 pub fn fix_violation(session: &mut EditorSession, rel: &str) -> Result<(), CoreError> {
     let rel = normalize_rel(rel);
     let book = session.models.naming_rules.clone();
-    let violation = check_name(&book, &rel).ok_or_else(|| CoreError::new("this name already matches the rules"))?;
+    let violation = check_name(&book, &rel)
+        .ok_or_else(|| CoreError::new("this name already matches the rules"))?;
     let from = violation.path.clone();
     let to = violation.suggested.clone();
     begin_content_path_change(session, "rename", &from, &to)?;
@@ -337,10 +321,7 @@ pub fn fix_violation(session: &mut EditorSession, rel: &str) -> Result<(), CoreE
 }
 
 pub fn upsert_rule(session: &mut EditorSession, rule: NamingRule) -> Result<(), CoreError> {
-    let project = session
-        .project
-        .clone()
-        .ok_or_else(|| CoreError::new("no project is open"))?;
+    let project = session.project.clone().ok_or_else(|| CoreError::new("no project is open"))?;
     session.models.naming_rules.rules.retain(|r| r.kind != rule.kind);
     session.models.naming_rules.rules.push(rule);
     save_book(&project.root, &session.models.naming_rules)
@@ -370,10 +351,7 @@ mod tests {
 
     #[test]
     fn damaged_rules_file_falls_back_to_defaults() {
-        let dir = std::env::temp_dir().join(format!(
-            "seal-naming-rules-{}",
-            std::process::id()
-        ));
+        let dir = std::env::temp_dir().join(format!("seal-naming-rules-{}", std::process::id()));
         let _ = fs::remove_dir_all(&dir);
         fs::create_dir_all(&dir).unwrap();
         fs::write(dir.join(RULES_FILE), "rules = not-array\n").unwrap();

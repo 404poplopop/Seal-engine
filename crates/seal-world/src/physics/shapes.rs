@@ -52,7 +52,7 @@ pub fn ray(geom: &Geom, at: [f32; 3], origin: [f32; 3], dir: [f32; 3], max_t: f3
             let mut best = None;
             for hull in parts {
                 if let Some(t) = ray_mesh(&hull.points, &indexed(&hull.faces), local, dir, max_t) {
-                    if best.map_or(true, |b: f32| t < b) {
+                    if best.is_none_or(|b: f32| t < b) {
                         best = Some(t);
                     }
                 }
@@ -95,7 +95,7 @@ pub fn ray_cylinder(
     let half_h = half_h.max(0.0);
     let mut best: Option<f32> = None;
     let mut keep = |t: f32| {
-        if t >= 0.0 && t <= max_t + 1e-5 && best.map_or(true, |b| t < b) {
+        if t >= 0.0 && t <= max_t + 1e-5 && best.is_none_or(|b| t < b) {
             best = Some(t);
         }
     };
@@ -162,7 +162,7 @@ fn ray_mesh(
         let Some(b) = vert(vertices, tri[1]) else { continue };
         let Some(c) = vert(vertices, tri[2]) else { continue };
         if let Some(t) = ray_triangle(origin, dir, a, b, c) {
-            if t <= max_t && best.map_or(true, |b: f32| t < b) {
+            if t <= max_t && best.is_none_or(|b: f32| t < b) {
                 best = Some(t);
             }
         }
@@ -220,7 +220,7 @@ fn ray_field(
     let mut best = None;
     for_field_tris(columns, rows, heights, size, |a, b, c| {
         if let Some(t) = ray_triangle(origin, dir, a, b, c) {
-            if t <= max_t && best.map_or(true, |old: f32| t < old) {
+            if t <= max_t && best.is_none_or(|old: f32| t < old) {
                 best = Some(t);
             }
         }
@@ -455,7 +455,7 @@ fn widest(groups: &[Vec<[u32; 3]>], vertices: &[[f32; 3]]) -> Option<(usize, usi
         let (min, max) = bounds(group, vertices)?;
         for axis in 0..3 {
             let span = max[axis] - min[axis];
-            if best.map_or(true, |b| span > b.2) {
+            if best.is_none_or(|b| span > b.2) {
                 best = Some((i, axis, span));
             }
         }

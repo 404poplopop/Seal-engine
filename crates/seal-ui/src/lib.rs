@@ -9,12 +9,11 @@ mod curve_property;
 mod dock;
 mod flags_field;
 pub mod game_fonts;
+pub mod gpu_mesh_pass;
 pub mod gpu_sprite_blend;
+pub mod gpu_sprite_wgpu;
 pub mod gpu_textures;
 pub mod gpu_viewport;
-mod sprite_blend;
-pub mod gpu_mesh_pass;
-pub mod gpu_sprite_wgpu;
 pub mod gpu_viewport_wgpu;
 mod gpu_wgpu_choice;
 mod gradient_property;
@@ -32,9 +31,10 @@ mod outliner_table;
 mod poly_edit;
 pub mod session_end;
 mod snapshot;
+mod sprite_blend;
+mod sprite_load;
 pub mod sprite_mask;
 mod sprite_shape;
-mod sprite_load;
 pub mod sprites;
 pub mod state_machine_canvas;
 mod viewport_gizmo;
@@ -53,6 +53,7 @@ pub use dock::{
     tab_title, DockHost, TabMenuResult,
 };
 pub use flags_field::paint_flags_value;
+pub use gpu_textures::{MeshSurface, CPU_FALLBACK};
 pub use gradient_property::{gradient_row, GradientFieldEdit, GradientUiText};
 pub use icons::{
     asset_tint, icon_font_ready, install_icon_font, outliner_entity_icon, outliner_entity_tint,
@@ -75,24 +76,21 @@ pub use outliner_table::{
 pub use poly_edit::{PolyEdit, PolyGrab};
 pub use seal_editor_core::panel_base;
 pub use snapshot::{accesskit_tree_text, panel_accesskit_snapshot, snapshot_header};
+pub use sprite_blend::texture_key as sprite_blend_texture_key;
 pub use sprite_shape::{SplineControl, SplineEdit, SplineGrab, SpriteShapeMark};
 pub use viewport_gizmo::{
     parse_move_handle, parse_rotate_handle, parse_scale_handle, rotate_axis_index, MoveHandle,
     RotateHandle, ScaleHandle,
 };
-pub use gpu_textures::{MeshSurface, CPU_FALLBACK};
-pub use sprite_blend::texture_key as sprite_blend_texture_key;
 pub use viewport_mesh::{
-    scene_light_gain,
-    look_through, mesh_for_place_kind, project_scene_point, set_look_through, LookThrough,
-    MeshPrimitive,
+    look_through, mesh_for_place_kind, project_scene_point, scene_light_gain, set_look_through,
+    LookThrough, MeshPrimitive,
 };
 pub use widgets::{
-    property_name,
     asset_kind_color, paint_folder_tile, paint_game_screens, paint_viewport_pane_border,
-    panel_body_rect, viewport_tile_rects, FileHit, FileTile, GridHit, GridMark, GridMenus,
-    GridViewOptions, LogLineView, LogListHit, MeasurePointer, NumberDragSignals, PanelFrame,
-    PropertyCheckbox, ShapeMark, TreeClick, TreeRow, VectorRowMode, VectorRowStyle,
+    panel_body_rect, property_name, viewport_tile_rects, FileHit, FileTile, GridHit, GridMark,
+    GridMenus, GridViewOptions, LogLineView, LogListHit, MeasurePointer, NumberDragSignals,
+    PanelFrame, PropertyCheckbox, ShapeMark, TreeClick, TreeRow, VectorRowMode, VectorRowStyle,
     ViewportBarState, ViewportBarTooltips, ViewportCamera, ViewportHamburgerMenu,
     ViewportOnScreenWarning, ViewportShowMenu, ViewportToolbarHit, GAME_SCREEN_RECT,
 };

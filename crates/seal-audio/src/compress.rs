@@ -81,11 +81,10 @@ fn encode_vorbis_ogg(sound: &Sound, _quality: u8) -> Vec<u8> {
 
 const IMA_STEPS: [i32; 89] = [
     7, 8, 9, 10, 11, 12, 13, 14, 16, 17, 19, 21, 23, 25, 28, 31, 34, 37, 41, 45, 50, 55, 60, 66,
-    73, 80, 88, 97, 107, 118, 130, 143, 157, 173, 190, 209, 230, 253, 279, 307, 337, 371, 408,
-    449, 494, 544, 598, 658, 724, 796, 876, 963, 1060, 1166, 1282, 1411, 1552, 1707, 1878, 2066,
-    2272, 2499, 2749, 3024, 3327, 3660, 4026, 4428, 4871, 5358, 5894, 6484, 7132, 7845, 8630,
-    9493, 10442, 11487, 12635, 13899, 15289, 16818, 18500, 20350, 22385, 24623, 27086, 29794,
-    32767,
+    73, 80, 88, 97, 107, 118, 130, 143, 157, 173, 190, 209, 230, 253, 279, 307, 337, 371, 408, 449,
+    494, 544, 598, 658, 724, 796, 876, 963, 1060, 1166, 1282, 1411, 1552, 1707, 1878, 2066, 2272,
+    2499, 2749, 3024, 3327, 3660, 4026, 4428, 4871, 5358, 5894, 6484, 7132, 7845, 8630, 9493,
+    10442, 11487, 12635, 13899, 15289, 16818, 18500, 20350, 22385, 24623, 27086, 29794, 32767,
 ];
 const IMA_INDEX: [i32; 16] = [-1, -1, -1, -1, 2, 4, 6, 8, -1, -1, -1, -1, 2, 4, 6, 8];
 /// Bytes per channel in one block (header included); 256 is the usual size.
@@ -255,7 +254,13 @@ fn decode_wav_with_adpcm(bytes: &[u8]) -> Result<Sound, AudioError> {
             let (tag, channels, sample_rate, block_align) =
                 format.ok_or_else(|| bad("data before fmt"))?;
             if tag == ADPCM_TAG {
-                return decode_ima_adpcm(&bytes[body..end], channels, sample_rate, block_align, fact_frames);
+                return decode_ima_adpcm(
+                    &bytes[body..end],
+                    channels,
+                    sample_rate,
+                    block_align,
+                    fact_frames,
+                );
             }
             return Sound::from_wav(bytes);
         }
@@ -273,7 +278,7 @@ fn decode_ima_adpcm(
 ) -> Result<Sound, AudioError> {
     let channels = channels.max(1) as usize;
     let block = block_align as usize;
-    if block < 4 * channels || (block - 4 * channels) % (4 * channels) != 0 {
+    if block < 4 * channels || !(block - 4 * channels).is_multiple_of(4 * channels) {
         return Err(AudioError::BadWav("bad ADPCM block size".into()));
     }
     let per_block = 1 + (block - 4 * channels) * 2 / channels;
@@ -287,7 +292,10 @@ fn decode_ima_adpcm(
         for ch in 0..channels {
             let h = &chunk[ch * 4..ch * 4 + 4];
             let first = i16::from_le_bytes([h[0], h[1]]);
-            states.push(ImaState { predictor: i32::from(first), index: i32::from(h[2]).clamp(0, 88) });
+            states.push(ImaState {
+                predictor: i32::from(first),
+                index: i32::from(h[2]).clamp(0, 88),
+            });
             frames[ch][0] = first;
         }
         let body = &chunk[4 * channels..];
@@ -305,8 +313,8 @@ fn decode_ima_adpcm(
         }
         let usable = filled.iter().copied().min().unwrap_or(0);
         for i in 0..usable {
-            for ch in 0..channels {
-                samples.push(f32::from(frames[ch][i]) / 32767.0);
+            for frame in frames.iter().take(channels) {
+                samples.push(f32::from(frame[i]) / 32767.0);
             }
         }
     }

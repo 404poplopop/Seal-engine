@@ -313,24 +313,25 @@ fn open_script(
     let playback = Rc::clone(shared);
     let closure = Closure::<dyn FnMut(AudioProcessingEvent)>::own_aborting(
         move |event: AudioProcessingEvent| {
-        if !playback.script_on.get() || playback.worklet_on.get() {
-            return;
-        }
-        let Ok(buffer) = event.output_buffer() else {
-            return;
-        };
-        let frames = buffer.length() as usize;
-        let mut left = vec![0.0; frames];
-        let mut right = vec![0.0; frames];
-        playback.ring.pop_planar(&mut left, &mut right);
-        playback.played.set(playback.played.get() + frames as u64);
-        let loudest = left.iter().chain(right.iter()).fold(0.0f32, |m, s| m.max(s.abs()));
-        playback.peak.set(playback.peak.get().max(loudest));
-        let _ = buffer.copy_to_channel(&left, 0);
-        if buffer.number_of_channels() > 1 {
-            let _ = buffer.copy_to_channel(&right, 1);
-        }
-    });
+            if !playback.script_on.get() || playback.worklet_on.get() {
+                return;
+            }
+            let Ok(buffer) = event.output_buffer() else {
+                return;
+            };
+            let frames = buffer.length() as usize;
+            let mut left = vec![0.0; frames];
+            let mut right = vec![0.0; frames];
+            playback.ring.pop_planar(&mut left, &mut right);
+            playback.played.set(playback.played.get() + frames as u64);
+            let loudest = left.iter().chain(right.iter()).fold(0.0f32, |m, s| m.max(s.abs()));
+            playback.peak.set(playback.peak.get().max(loudest));
+            let _ = buffer.copy_to_channel(&left, 0);
+            if buffer.number_of_channels() > 1 {
+                let _ = buffer.copy_to_channel(&right, 1);
+            }
+        },
+    );
     let function: &js_sys::Function = closure.as_js_value().unchecked_ref();
     node.set_onaudioprocess(Some(function));
     let destination = shared.context.destination();

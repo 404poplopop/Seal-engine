@@ -106,7 +106,12 @@ fn picture_alpha_and_a_union_and_a_layer_limit() {
     w.spawn((at(0.0, 0.0), solid("inside", 0, 0)));
     w.spawn((
         turned(0.0, 0.0, 0.0, [4.0, 4.0]),
-        SpriteMask { shape: "alpha".into(), image: "hole".into(), cutoff: 0.5, ..Default::default() },
+        SpriteMask {
+            shape: "alpha".into(),
+            image: "hole".into(),
+            cutoff: 0.5,
+            ..Default::default()
+        },
     ));
     let mut device = SoftDevice::new();
     let mut renderer = Renderer2D::new();
@@ -151,7 +156,12 @@ fn a_turned_picture_mask_follows_the_transform() {
     w.spawn((at(0.0, 0.0), solid("inside", 0, 0)));
     w.spawn((
         turned(0.0, 0.0, 90.0, [4.0, 4.0]),
-        SpriteMask { shape: "alpha".into(), image: "half".into(), cutoff: 0.5, ..Default::default() },
+        SpriteMask {
+            shape: "alpha".into(),
+            image: "half".into(),
+            cutoff: 0.5,
+            ..Default::default()
+        },
     ));
     let mut device = SoftDevice::new();
     let mut renderer = Renderer2D::new();

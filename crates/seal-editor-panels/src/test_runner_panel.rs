@@ -2,7 +2,7 @@
 
 use seal_editor_core::functional_tests::{self, ListedTest, SuiteReport, TestScript};
 use seal_editor_core::EditorSession;
-use seal_ui::{PropertyCheckbox, PanelFrame};
+use seal_ui::{PanelFrame, PropertyCheckbox};
 
 use crate::{command, PanelEvent};
 
@@ -21,11 +21,17 @@ pub fn paint(frame: &mut PanelFrame, session: &mut EditorSession) -> PanelEvent 
                 frame.muted(&session.messages.get("test-runner-no-project"));
                 return;
             };
-            let mut filter = session.models.panel_states.get(FILTER_KEY).cloned().unwrap_or_default();
-            if frame.property_validated(&session.messages.get("test-runner-filter"), &mut filter, None) {
+            let mut filter =
+                session.models.panel_states.get(FILTER_KEY).cloned().unwrap_or_default();
+            if frame.property_validated(
+                &session.messages.get("test-runner-filter"),
+                &mut filter,
+                None,
+            ) {
                 session.models.panel_states.insert(FILTER_KEY.into(), filter.clone());
             }
-            let mut write = session.models.panel_states.get(WRITE_KEY).is_some_and(|value| value == "1");
+            let mut write =
+                session.models.panel_states.get(WRITE_KEY).is_some_and(|value| value == "1");
             let mut menu_pick = None;
             let write_label = session.messages.get("test-runner-write-report");
             if let Some(next) = frame.property_checkbox_row(
@@ -43,9 +49,13 @@ pub fn paint(frame: &mut PanelFrame, session: &mut EditorSession) -> PanelEvent 
                     .panel_states
                     .insert(WRITE_KEY.into(), if write { "1".into() } else { "0".into() });
             }
-            let mut report = session.models.panel_states.get(REPORT_KEY).cloned().unwrap_or_default();
-            if frame.property_validated(&session.messages.get("test-runner-report"), &mut report, None)
-            {
+            let mut report =
+                session.models.panel_states.get(REPORT_KEY).cloned().unwrap_or_default();
+            if frame.property_validated(
+                &session.messages.get("test-runner-report"),
+                &mut report,
+                None,
+            ) {
                 session.models.panel_states.insert(REPORT_KEY.into(), report.clone());
             }
             if write && report.trim().is_empty() {
@@ -73,9 +83,9 @@ pub fn paint(frame: &mut PanelFrame, session: &mut EditorSession) -> PanelEvent 
                 .get(RESULTS_KEY)
                 .and_then(|text| SuiteReport::from_state(text).ok());
             for item in shown {
-                let case = stored.as_ref().and_then(|report| {
-                    report.cases.iter().find(|case| case.path == item.path)
-                });
+                let case = stored
+                    .as_ref()
+                    .and_then(|report| report.cases.iter().find(|case| case.path == item.path));
                 let status = match case {
                     Some(case) if case.passed => session.messages.get("test-runner-pass"),
                     Some(_) => session.messages.get("test-runner-fail"),
@@ -129,7 +139,9 @@ pub(crate) fn test_asset_editor(
         Err(err) => {
             frame.padded(|frame| {
                 frame.muted(
-                    &session.messages.format("asset-test-damaged", &[("error", err.to_string().as_str())]),
+                    &session
+                        .messages
+                        .format("asset-test-damaged", &[("error", err.to_string().as_str())]),
                 );
             });
             return PanelEvent::None;
@@ -139,7 +151,9 @@ pub(crate) fn test_asset_editor(
         Ok(script) => script,
         Err(err) => {
             frame.padded(|frame| {
-                frame.muted(&session.messages.format("asset-test-damaged", &[("error", err.as_str())]));
+                frame.muted(
+                    &session.messages.format("asset-test-damaged", &[("error", err.as_str())]),
+                );
             });
             return PanelEvent::None;
         }
@@ -163,11 +177,18 @@ fn paint_script(
     frame.scroll(|frame| {
         frame.padded(|frame| {
             let mut name = script.name.clone();
-            if frame.property_validated(&text("asset-test-name"), &mut name, None) && name != script.name {
-                event = command("tests.set", &[("path", path.as_str()), ("field", "name"), ("value", name.as_str())]);
+            if frame.property_validated(&text("asset-test-name"), &mut name, None)
+                && name != script.name
+            {
+                event = command(
+                    "tests.set",
+                    &[("path", path.as_str()), ("field", "name"), ("value", name.as_str())],
+                );
             }
             let mut scene = script.scene.clone();
-            if frame.property_validated(&text("asset-test-scene"), &mut scene, None) && scene != script.scene {
+            if frame.property_validated(&text("asset-test-scene"), &mut scene, None)
+                && scene != script.scene
+            {
                 event = command(
                     "tests.set",
                     &[("path", path.as_str()), ("field", "scene"), ("value", scene.as_str())],
@@ -190,61 +211,66 @@ fn paint_script(
                 let index_text = index.to_string();
                 frame.ui_mut().push_id(index, |ui| {
                     let mut frame = PanelFrame::new(ui);
-                let mut object = node.object.clone();
-                if frame.property_validated(&text("asset-test-object"), &mut object, None) && object != node.object
-                {
-                    event = command(
-                        "tests.set",
-                        &[
-                            ("path", path.as_str()),
-                            ("index", index_text.as_str()),
-                            ("field", "object"),
-                            ("value", object.as_str()),
-                        ],
-                    );
-                }
-                if let Some(picked) = frame.choice(&text("asset-test-property"), &node.property, &props) {
-                    event = command(
-                        "tests.set",
-                        &[
-                            ("path", path.as_str()),
-                            ("index", index_text.as_str()),
-                            ("field", "property"),
-                            ("value", picked.as_str()),
-                        ],
-                    );
-                }
-                if let Some(picked) = frame.choice(&text("asset-test-op"), node.op.as_str(), &ops) {
-                    event = command(
-                        "tests.set",
-                        &[
-                            ("path", path.as_str()),
-                            ("index", index_text.as_str()),
-                            ("field", "op"),
-                            ("value", picked.as_str()),
-                        ],
-                    );
-                }
-                let mut expected = node.expected.clone();
-                if frame.property_validated(&text("asset-test-value"), &mut expected, None)
-                    && expected != node.expected
-                {
-                    event = command(
-                        "tests.set",
-                        &[
-                            ("path", path.as_str()),
-                            ("index", index_text.as_str()),
-                            ("field", "value"),
-                            ("value", expected.as_str()),
-                        ],
-                    );
-                }
-                if frame.button(&text("asset-test-remove")) {
-                    event = command(
-                        "tests.assert_remove",
-                        &[("path", path.as_str()), ("index", index_text.as_str())],
-                    );
-                }
+                    let mut object = node.object.clone();
+                    if frame.property_validated(&text("asset-test-object"), &mut object, None)
+                        && object != node.object
+                    {
+                        event = command(
+                            "tests.set",
+                            &[
+                                ("path", path.as_str()),
+                                ("index", index_text.as_str()),
+                                ("field", "object"),
+                                ("value", object.as_str()),
+                            ],
+                        );
+                    }
+                    if let Some(picked) =
+                        frame.choice(&text("asset-test-property"), &node.property, &props)
+                    {
+                        event = command(
+                            "tests.set",
+                            &[
+                                ("path", path.as_str()),
+                                ("index", index_text.as_str()),
+                                ("field", "property"),
+                                ("value", picked.as_str()),
+                            ],
+                        );
+                    }
+                    if let Some(picked) =
+                        frame.choice(&text("asset-test-op"), node.op.as_str(), &ops)
+                    {
+                        event = command(
+                            "tests.set",
+                            &[
+                                ("path", path.as_str()),
+                                ("index", index_text.as_str()),
+                                ("field", "op"),
+                                ("value", picked.as_str()),
+                            ],
+                        );
+                    }
+                    let mut expected = node.expected.clone();
+                    if frame.property_validated(&text("asset-test-value"), &mut expected, None)
+                        && expected != node.expected
+                    {
+                        event = command(
+                            "tests.set",
+                            &[
+                                ("path", path.as_str()),
+                                ("index", index_text.as_str()),
+                                ("field", "value"),
+                                ("value", expected.as_str()),
+                            ],
+                        );
+                    }
+                    if frame.button(&text("asset-test-remove")) {
+                        event = command(
+                            "tests.assert_remove",
+                            &[("path", path.as_str()), ("index", index_text.as_str())],
+                        );
+                    }
                 });
             }
         });

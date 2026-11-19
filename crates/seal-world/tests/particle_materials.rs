@@ -17,7 +17,7 @@ fn sphere_emit_volume_and_surface() {
     };
     for shape in [vol.clone(), surf.clone()] {
         for _ in 0..40 {
-            let o = sample_emit_offset(&shape, || rand());
+            let o = sample_emit_offset(&shape, &mut rand);
             assert!(offset_inside_shape(&shape, o), "{shape:?} {o:?}");
         }
     }
@@ -35,7 +35,7 @@ fn mesh_emit_on_cube_surface() {
         (seed % 10000) as f32 / 10000.0
     };
     for _ in 0..30 {
-        let o = sample_emit_offset(&shape, || rand());
+        let o = sample_emit_offset(&shape, &mut rand);
         assert!(offset_inside_shape(&shape, o));
     }
 }

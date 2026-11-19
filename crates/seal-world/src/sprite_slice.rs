@@ -14,7 +14,7 @@ pub fn slice_size_text(size: [f32; 2]) -> String {
 
 pub fn parse_slice_size(text: &str) -> Option<[f32; 2]> {
     let parts: Vec<f32> = text
-        .split(|c| c == ',' || c == ' ')
+        .split([',', ' '])
         .filter_map(|p| p.trim().parse::<f32>().ok())
         .filter(|v: &f32| v.is_finite() && *v >= 0.0)
         .collect();

@@ -350,10 +350,9 @@ fn settings_menu(ui: &mut egui::Ui, session: &mut EditorSession, actions: &mut T
             .find(|row| row.id == seal_editor_core::QUALITY_LEVEL)
             .map(|row| row.value().to_string())
             .unwrap_or_else(|| "high".into());
-        let preview_label = session.messages.format(
-            "toolbar-settings-preview-quality",
-            &[("level", preview.as_str())],
-        );
+        let preview_label = session
+            .messages
+            .format("toolbar-settings-preview-quality", &[("level", preview.as_str())]);
         if ui.button(preview_label).clicked() {
             queue_command(actions, "settings.open");
             ui.close();

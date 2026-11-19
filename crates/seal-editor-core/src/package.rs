@@ -267,7 +267,11 @@ pub fn package_filtered_with(
     };
     // Single archive: build the data folder in a staging place, then pack it into data.pack.
     let data = if single_archive {
-        std::env::temp_dir().join(format!("seal-pack-staging-{}-{}", std::process::id(), safe_name(name)))
+        std::env::temp_dir().join(format!(
+            "seal-pack-staging-{}-{}",
+            std::process::id(),
+            safe_name(name)
+        ))
     } else {
         out.join("data")
     };
@@ -290,7 +294,7 @@ pub fn package_filtered_with(
             files += atlas.pages.len() + 1;
         }
     }
-  crate::picture_pack::apply_package(&data)?;
+    crate::picture_pack::apply_package(&data)?;
     let platform = export_platform
         .map(|(platform, _)| platform)
         .unwrap_or(crate::import_platform::ImportPlatform::Windows);

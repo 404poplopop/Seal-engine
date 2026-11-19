@@ -53,7 +53,14 @@ pub fn asset_field(field: &str) -> bool {
     asset_matches_field(field, "file.png")
         || matches!(
             field,
-            "script" | "particles" | "mat_shader" | "font" | "theme" | "sound" | "music" | "mesh_texture"
+            "script"
+                | "particles"
+                | "mat_shader"
+                | "font"
+                | "theme"
+                | "sound"
+                | "music"
+                | "mesh_texture"
                 | "sky_cubemap"
         )
 }
@@ -768,17 +775,11 @@ pub struct SearchItem {
     pub tags: Vec<String>,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 struct Provider {
     fingerprint: u64,
     generation: u64,
     items: Vec<SearchItem>,
-}
-
-impl Default for Provider {
-    fn default() -> Self {
-        Self { fingerprint: 0, generation: 0, items: Vec::new() }
-    }
 }
 
 /// In-memory index. A provider is rebuilt only when its items change.

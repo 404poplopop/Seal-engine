@@ -35,7 +35,13 @@ fn entity_of(collider: &Collider) -> Entity {
 
 impl Physics2D {
     /// Every collider the ray meets, nearest first. `mask` 0 or less is every layer.
-    pub fn raycast_all(&self, origin: [f32; 2], dir: [f32; 2], max_distance: f32, mask: i64) -> Vec<QueryHit> {
+    pub fn raycast_all(
+        &self,
+        origin: [f32; 2],
+        dir: [f32; 2],
+        max_distance: f32,
+        mask: i64,
+    ) -> Vec<QueryHit> {
         let d = Vector::new(dir[0], dir[1]);
         let len = d.length();
         if len == 0.0 || max_distance < 0.0 {
@@ -86,12 +92,15 @@ impl Physics2D {
             return None;
         };
         let pose = Pose::new(Vector::new(from[0], from[1]), 0.0);
-        let options = ShapeCastOptions {
-            max_time_of_impact: max_distance,
-            ..ShapeCastOptions::default()
-        };
-        let (handle, hit) =
-            self.sim.cast_shape(&pose, unit, cast.as_ref(), options, groups(mask).exclude_sensors())?;
+        let options =
+            ShapeCastOptions { max_time_of_impact: max_distance, ..ShapeCastOptions::default() };
+        let (handle, hit) = self.sim.cast_shape(
+            &pose,
+            unit,
+            cast.as_ref(),
+            options,
+            groups(mask).exclude_sensors(),
+        )?;
         let collider = self.sim.colliders.get(handle)?;
         Some(QueryHit {
             entity: entity_of(collider),
@@ -193,7 +202,9 @@ impl Physics2D {
                 let Some(collider) = self.sim.colliders.get(handle) else { continue };
                 (*collider.position(), collider.shared_shape().clone())
             };
-            let Some((hit_handle, hit)) = self.sim.cast_shape(&pose, vel, shape.as_ref(), options, filter) else {
+            let Some((hit_handle, hit)) =
+                self.sim.cast_shape(&pose, vel, shape.as_ref(), options, filter)
+            else {
                 continue;
             };
             let Some(other) = self.sim.colliders.get(hit_handle) else { continue };

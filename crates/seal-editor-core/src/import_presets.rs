@@ -201,16 +201,16 @@ pub struct ImportPresetBook {
     pub presets: Vec<ImportPreset>,
     pub defaults: BTreeMap<String, String>,
     pub folder_rules: Vec<FolderRule>,
-    pub atlas_platform_overrides:
-        BTreeMap<crate::import_platform::ImportPlatform, crate::import_platform::AtlasPlatformOverride>,
+    pub atlas_platform_overrides: BTreeMap<
+        crate::import_platform::ImportPlatform,
+        crate::import_platform::AtlasPlatformOverride,
+    >,
     pub load_warnings: Vec<String>,
 }
 
 impl ImportPresetBook {
     pub fn with_builtins() -> Self {
-        let mut book = Self::default();
-        book.presets = builtin_presets();
-        book
+        Self { presets: builtin_presets(), ..Self::default() }
     }
 
     pub fn preset_by_name(&self, name: &str) -> Option<&ImportPreset> {
@@ -254,13 +254,19 @@ pub fn builtin_presets() -> Vec<ImportPreset> {
             name: "Music".into(),
             kind: ImportKind::Sound,
             builtin: true,
-            settings: ImportSettings::Sound(SoundSettings { normalize: false, ..Default::default() }),
+            settings: ImportSettings::Sound(SoundSettings {
+                normalize: false,
+                ..Default::default()
+            }),
         },
         ImportPreset {
             name: "Effect".into(),
             kind: ImportKind::Sound,
             builtin: true,
-            settings: ImportSettings::Sound(SoundSettings { normalize: true, ..Default::default() }),
+            settings: ImportSettings::Sound(SoundSettings {
+                normalize: true,
+                ..Default::default()
+            }),
         },
     ]
 }
@@ -378,7 +384,9 @@ pub fn save_book(root: &Path, book: &ImportPresetBook) -> Result<(), CoreError> 
     if !book.atlas_platform_overrides.is_empty() {
         map.push((
             "atlas_platform_overrides".into(),
-            crate::import_platform::atlas_platform_overrides_to_value(&book.atlas_platform_overrides),
+            crate::import_platform::atlas_platform_overrides_to_value(
+                &book.atlas_platform_overrides,
+            ),
         ));
     }
     atomic_write(&book_path(root), SealValue::Map(map.into()).to_text().as_bytes())
@@ -952,11 +960,7 @@ fn restore_snapshots(
 ) {
     for (rel, before, after) in snapshots {
         let pick = if use_after { after.as_ref() } else { before.as_ref() };
-        let path = if rel == BOOK_FILE {
-            book_path(root)
-        } else {
-            sidecar_path(root, rel)
-        };
+        let path = if rel == BOOK_FILE { book_path(root) } else { sidecar_path(root, rel) };
         match pick {
             Some(text) => {
                 let _ = atomic_write(&path, text.as_bytes());
@@ -1124,7 +1128,9 @@ fn cmd_platform_field(session: &mut EditorSession, args: &CommandArgs) -> Result
         .ok_or_else(|| CoreError::new("no file is open"))?
         .to_string();
     let platform = crate::import_platform::ImportPlatform::from_id(required(args, "platform")?)
-        .ok_or_else(|| CoreError::new("platform must be windows, linux, macos, web, android or ios"))?;
+        .ok_or_else(|| {
+            CoreError::new("platform must be windows, linux, macos, web, android or ios")
+        })?;
     let field = required(args, "field")?;
     let value = required(args, "value")?;
     let kind = ImportKind::from_asset_path(&rel)
@@ -1152,9 +1158,14 @@ fn cmd_platform_field(session: &mut EditorSession, args: &CommandArgs) -> Result
     Ok(())
 }
 
-fn cmd_atlas_platform_field(session: &mut EditorSession, args: &CommandArgs) -> Result<(), CoreError> {
+fn cmd_atlas_platform_field(
+    session: &mut EditorSession,
+    args: &CommandArgs,
+) -> Result<(), CoreError> {
     let platform = crate::import_platform::ImportPlatform::from_id(required(args, "platform")?)
-        .ok_or_else(|| CoreError::new("platform must be windows, linux, macos, web, android or ios"))?;
+        .ok_or_else(|| {
+            CoreError::new("platform must be windows, linux, macos, web, android or ios")
+        })?;
     let field = required(args, "field")?;
     let value = required(args, "value")?;
     let root = project_root(session)?;
@@ -1265,7 +1276,9 @@ fn apply_field(settings: &mut ImportSettings, field: &str, value: &str) -> Resul
         },
         ImportSettings::Sound(s) => match field {
             "normalize" => s.normalize = value == "true",
-            "compression" if matches!(value, "pcm" | "adpcm" | "vorbis") => s.compression = value.into(),
+            "compression" if matches!(value, "pcm" | "adpcm" | "vorbis") => {
+                s.compression = value.into()
+            }
             "vorbis_quality" => {
                 s.vorbis_quality = value
                     .parse::<u8>()
@@ -1543,7 +1556,10 @@ mod tests {
             name: "Loud".into(),
             kind: ImportKind::Sound,
             builtin: false,
-            settings: ImportSettings::Sound(SoundSettings { normalize: false, ..Default::default() }),
+            settings: ImportSettings::Sound(SoundSettings {
+                normalize: false,
+                ..Default::default()
+            }),
         });
         save_book(&dir, &book).unwrap();
         let loaded = load_book(&dir);
@@ -1618,7 +1634,10 @@ mod tests {
         let peak = |s: &seal_audio::Sound| s.samples.iter().map(|v| v.abs()).fold(0.0f32, f32::max);
         assert!(peak(&plain) < 0.5);
         let state = FileImportState {
-            settings: ImportSettings::Sound(SoundSettings { normalize: true, ..Default::default() }),
+            settings: ImportSettings::Sound(SoundSettings {
+                normalize: true,
+                ..Default::default()
+            }),
             customized: true,
             platform_overrides: Default::default(),
         };

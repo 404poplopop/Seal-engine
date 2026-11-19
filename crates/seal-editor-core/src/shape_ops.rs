@@ -82,11 +82,10 @@ fn clear_shape(session: &mut EditorSession, id: &str) {
     }
 }
 
-fn boolean(
-    session: &mut EditorSession,
-    op: fn(&[[f32; 2]], &[[f32; 2]]) -> Vec<[f32; 2]>,
-    must_cover: bool,
-) -> Result<(), CoreError> {
+/// Combines two polygons into one.
+type PolygonOp = fn(&[[f32; 2]], &[[f32; 2]]) -> Vec<[f32; 2]>;
+
+fn boolean(session: &mut EditorSession, op: PolygonOp, must_cover: bool) -> Result<(), CoreError> {
     editing(session)?;
     let ids = polygons(session);
     if ids.len() < 2 {
@@ -207,10 +206,13 @@ fn collider_from_sprite(session: &mut EditorSession, _args: &CommandArgs) -> Res
     Ok(())
 }
 
+/// Size, outline, hull, picture path and UV rectangle of a sprite.
+type SpriteOutline = ([f32; 2], Vec<[f32; 2]>, Vec<[f32; 2]>, std::path::PathBuf, [f32; 4]);
+
 fn sprite_outline(
     entity: &seal_world::Entity,
     root: &std::path::Path,
-) -> Result<([f32; 2], Vec<[f32; 2]>, Vec<[f32; 2]>, std::path::PathBuf, [f32; 4]), CoreError> {
+) -> Result<SpriteOutline, CoreError> {
     let raw = std::path::Path::new(&entity.sprite);
     let full = if raw.is_relative() { root.join(raw) } else { raw.to_path_buf() };
     if frames::is_frames_path(&entity.sprite) {

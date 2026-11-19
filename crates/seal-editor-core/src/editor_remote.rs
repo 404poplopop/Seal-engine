@@ -3,11 +3,11 @@
 use crate::command::CommandArgs;
 use crate::session::EditorSession;
 use serde_json::{json, Value};
+use std::io::ErrorKind;
 use std::io::{BufRead, BufReader, Read, Write};
 use std::net::{TcpListener, TcpStream};
 use std::path::{Component, Path, PathBuf};
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
-use std::io::ErrorKind;
 use std::sync::mpsc::{channel, Receiver, Sender};
 use std::sync::{Arc, Mutex};
 use std::thread;
@@ -88,14 +88,7 @@ impl RemoteControl {
         thread::Builder::new()
             .name("seal-remote-ws".into())
             .spawn(move || ws_accept_loop(ws_listener, w, c, s))?;
-        Ok(Self {
-            port,
-            ws_port,
-            clients,
-            stop,
-            http_rx,
-            ws_out,
-        })
+        Ok(Self { port, ws_port, clients, stop, http_rx, ws_out })
     }
 
     pub fn clients(&self) -> usize {
@@ -193,12 +186,7 @@ fn read_request(stream: &TcpStream) -> std::io::Result<ParsedHead> {
         }
     }
     let body = read_body(&mut reader, content_length)?;
-    Ok(ParsedHead {
-        method,
-        path,
-        body,
-        token,
-    })
+    Ok(ParsedHead { method, path, body, token })
 }
 
 fn read_body(reader: &mut BufReader<TcpStream>, len: usize) -> std::io::Result<String> {
@@ -251,19 +239,24 @@ fn ws_read_timed_out(err: &tungstenite::Error) -> bool {
     )
 }
 
-fn ws_session(stream: TcpStream, events: Receiver<String>, clients: Arc<AtomicUsize>, stop: Arc<AtomicBool>) {
+fn ws_session(
+    stream: TcpStream,
+    events: Receiver<String>,
+    clients: Arc<AtomicUsize>,
+    stop: Arc<AtomicBool>,
+) {
     clients.fetch_add(1, Ordering::Relaxed);
     let _ = stream.set_read_timeout(Some(Duration::from_millis(50)));
     let _ = stream.set_write_timeout(Some(Duration::from_secs(5)));
     if let Ok(mut ws) = tungstenite::accept(stream) {
         let hello = json!({"type":"hello","text":"connected"}).to_string();
-        let _ = ws.send(tungstenite::Message::Text(hello.into()));
+        let _ = ws.send(tungstenite::Message::Text(hello));
         loop {
             if stop.load(Ordering::Relaxed) {
                 break;
             }
             while let Ok(text) = events.try_recv() {
-                if ws.send(tungstenite::Message::Text(text.into())).is_err() {
+                if ws.send(tungstenite::Message::Text(text)).is_err() {
                     clients.fetch_sub(1, Ordering::Relaxed);
                     return;
                 }
@@ -295,11 +288,8 @@ pub fn poll(session: &mut EditorSession) {
             Err(e) => session.remote_error = Some(format!("port {}: {e}", port(session))),
         }
     }
-    let works: Vec<HttpWork> = session
-        .remote_control
-        .as_ref()
-        .map(|c| c.http_rx.try_iter().collect())
-        .unwrap_or_default();
+    let works: Vec<HttpWork> =
+        session.remote_control.as_ref().map(|c| c.http_rx.try_iter().collect()).unwrap_or_default();
     for work in works {
         answer_http(session, work);
     }
@@ -318,7 +308,7 @@ pub fn poll(session: &mut EditorSession) {
     let Some(ctrl) = session.remote_control.as_ref() else {
         return;
     };
-    let batch: Vec<String> = session.remote_ws_queue.drain(..).collect();
+    let batch: Vec<String> = std::mem::take(&mut session.remote_ws_queue);
     if let Ok(mut clients) = ctrl.ws_out.lock() {
         clients.retain(|client| batch.iter().all(|msg| client.tx.send(msg.clone()).is_ok()));
     }
@@ -336,11 +326,9 @@ fn answer_http(session: &mut EditorSession, work: HttpWork) {
     }
     let project = session.project.as_ref().map(|p| p.root.clone());
     let response = match (work.method.as_str(), work.path.as_str()) {
-        ("GET", "/") | ("GET", "/panel") => (
-            200,
-            WEB_PANEL.as_bytes().to_vec(),
-            "text/html; charset=utf-8",
-        ),
+        ("GET", "/") | ("GET", "/panel") => {
+            (200, WEB_PANEL.as_bytes().to_vec(), "text/html; charset=utf-8")
+        }
         ("GET", path) if path.starts_with("/panels/") => serve_user_panel(path, project.as_deref()),
         ("GET", "/api/selection") => (
             200,
@@ -415,11 +403,8 @@ fn properties_json(session: &EditorSession) -> Value {
     let Some(node) = session.models.nodes.iter().find(|n| n.id == id) else {
         return json!({"object": id, "fields": []});
     };
-    let fields: Vec<Value> = node
-        .fields
-        .iter()
-        .map(|(k, v)| json!({"name": k, "value": v}))
-        .collect();
+    let fields: Vec<Value> =
+        node.fields.iter().map(|(k, v)| json!({"name": k, "value": v})).collect();
     json!({"object": id, "fields": fields})
 }
 
@@ -451,34 +436,21 @@ pub fn set_remote_frame(session: &mut EditorSession, rgba: &[u8], width: u32, he
     session.remote_screenshot_wanted = false;
 }
 
-
 fn run_remote_command(session: &mut EditorSession, body: &str) -> (u16, Vec<u8>, &'static str) {
     let value: Value = match serde_json::from_str(body) {
         Ok(v) => v,
         Err(e) => {
-            return (
-                400,
-                format!(r#"{{"error":"{e}"}}"#).into_bytes(),
-                "application/json",
-            );
+            return (400, format!(r#"{{"error":"{e}"}}"#).into_bytes(), "application/json");
         }
     };
     let Some(id) = value.get("id").and_then(Value::as_str) else {
-        return (
-            400,
-            br#"{"error":"missing id"}"#.to_vec(),
-            "application/json",
-        );
+        return (400, br#"{"error":"missing id"}"#.to_vec(), "application/json");
     };
     let args_json = value.get("args").map_or_else(|| "{}".to_string(), Value::to_string);
     let args = match CommandArgs::from_json_object(&args_json) {
         Ok(a) => a,
         Err(e) => {
-            return (
-                400,
-                format!(r#"{{"error":"{e}"}}"#).into_bytes(),
-                "application/json",
-            );
+            return (400, format!(r#"{{"error":"{e}"}}"#).into_bytes(), "application/json");
         }
     };
     match session.dispatch(id, &args) {
@@ -488,12 +460,22 @@ fn run_remote_command(session: &mut EditorSession, body: &str) -> (u16, Vec<u8>,
                 .push(json!({"type":"command","id": id, "ok": true}).to_string());
             (200, br#"{"ok":true}"#.to_vec(), "application/json")
         }
-        Err(e) => (
-            400,
-            format!(r#"{{"error":"{e}"}}"#).into_bytes(),
-            "application/json",
-        ),
+        Err(e) => (400, format!(r#"{{"error":"{e}"}}"#).into_bytes(), "application/json"),
     }
+}
+
+pub fn push_selection_event(session: &mut EditorSession) {
+    if !enabled(session) {
+        return;
+    }
+    session.remote_ws_queue.push(
+        json!({
+            "type": "selection",
+            "ids": session.foundation.selection,
+            "primary": session.models.selection,
+        })
+        .to_string(),
+    );
 }
 
 #[cfg(test)]
@@ -506,11 +488,7 @@ mod unit_tests {
 
     fn session() -> EditorSession {
         let mut session = EditorSession::new(Layout::default());
-        session
-            .foundation
-            .settings
-            .set_user("editor.remote.token", "tok")
-            .unwrap();
+        session.foundation.settings.set_user("editor.remote.token", "tok").unwrap();
         session
     }
 
@@ -552,7 +530,8 @@ mod unit_tests {
         );
         let (code, body, ty) = reply_rx.recv().unwrap();
         assert_eq!(
-            code, 200,
+            code,
+            200,
             "expected HTTP 200, got {code}, body={:?}, type={ty}",
             String::from_utf8_lossy(&body)
         );
@@ -562,16 +541,8 @@ mod unit_tests {
     fn websocket_gets_an_event() {
         let deadline = Instant::now() + NETWORK_DEADLINE;
         let mut session = session();
-        session
-            .foundation
-            .settings
-            .set_user("editor.remote.enabled", "true")
-            .unwrap();
-        session
-            .foundation
-            .settings
-            .set_user("editor.remote.port", "0")
-            .unwrap();
+        session.foundation.settings.set_user("editor.remote.enabled", "true").unwrap();
+        session.foundation.settings.set_user("editor.remote.port", "0").unwrap();
         poll(&mut session);
         let ws_port = session.remote_control.as_ref().unwrap().ws_port;
         let (connect_tx, connect_rx) = channel();
@@ -595,9 +566,7 @@ mod unit_tests {
         if let tungstenite::stream::MaybeTlsStream::Plain(tcp) = socket.get_mut() {
             let _ = tcp.set_read_timeout(Some(Duration::from_millis(50)));
         }
-        session
-            .remote_ws_queue
-            .push(r#"{"type":"test","ok":true}"#.into());
+        session.remote_ws_queue.push(r#"{"type":"test","ok":true}"#.into());
         let mut saw = false;
         while Instant::now() < deadline {
             poll(&mut session);
@@ -680,18 +649,4 @@ mod unit_tests {
         assert_eq!(ty, "text/html; charset=utf-8");
         assert!(body.windows(4).any(|w| w == b"<html" || w == b"<!DO"));
     }
-}
-
-pub fn push_selection_event(session: &mut EditorSession) {
-    if !enabled(session) {
-        return;
-    }
-    session.remote_ws_queue.push(
-        json!({
-            "type": "selection",
-            "ids": session.foundation.selection,
-            "primary": session.models.selection,
-        })
-        .to_string(),
-    );
 }

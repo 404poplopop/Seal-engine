@@ -6,18 +6,14 @@ use super::particle_flipbook::{frame_count, frame_picture};
 use super::particle_types::{FlipbookMode, RendererMode};
 use super::Emitter;
 
-fn anim_frame_index(cols: u32, rows: u32, life_u: f32, r#loop: bool) -> u32 {
+fn anim_frame_index(cols: u32, rows: u32, life_u: f32, _looping: bool) -> u32 {
     let total = cols.max(1) * rows.max(1);
     if total <= 1 {
         return 0;
     }
     let u = life_u.clamp(0.0, 1.0);
     let idx = (u * total as f32).floor() as u32;
-    if r#loop {
-        idx.min(total - 1)
-    } else {
-        idx.min(total - 1)
-    }
+    idx.min(total - 1)
 }
 
 fn sheet_uv(cols: u32, rows: u32, index: u32) -> [f32; 4] {
@@ -122,12 +118,7 @@ pub fn collect_draws_depth(
                         lit,
                     });
                 } else {
-                    out.push(ParticleDraw::Billboard {
-                        pos: p.pos,
-                        half,
-                        color,
-                        lit,
-                    });
+                    out.push(ParticleDraw::Billboard { pos: p.pos, half, color, lit });
                 }
             }
             RendererMode::Stretched(factor) => {

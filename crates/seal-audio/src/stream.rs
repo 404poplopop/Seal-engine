@@ -196,7 +196,11 @@ impl WavReader {
     }
 
     /// Decode the next `frames` source frames and append the interleaved samples.
-    pub(crate) fn read_into(&mut self, frames: usize, out: &mut Vec<f32>) -> Result<(), AudioError> {
+    pub(crate) fn read_into(
+        &mut self,
+        frames: usize,
+        out: &mut Vec<f32>,
+    ) -> Result<(), AudioError> {
         let mut left = frames;
         while left > 0 {
             let n = left.min(READ_FRAMES);

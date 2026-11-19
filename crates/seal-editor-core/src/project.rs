@@ -44,10 +44,8 @@ pub fn create_project_with_options(
     options: &CreateProjectOptions,
 ) -> Result<OpenProject, CoreError> {
     let name = validate_project_name(name)?;
-    if folder.exists() {
-        if folder_has_files(folder) && !options.confirm_nonempty {
-            return Err(CoreError::new("project folder is not empty"));
-        }
+    if folder.exists() && folder_has_files(folder) && !options.confirm_nonempty {
+        return Err(CoreError::new("project folder is not empty"));
     }
     fs::create_dir_all(folder)?;
     let created = SystemTime::now()

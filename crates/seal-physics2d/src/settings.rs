@@ -48,10 +48,7 @@ impl Physics2DSettings {
     }
 
     pub fn apply_integration(&self, params: &mut IntegrationParameters) {
-        let total = self
-            .velocity_iterations
-            .saturating_add(self.position_iterations)
-            .max(1);
+        let total = self.velocity_iterations.saturating_add(self.position_iterations).max(1);
         params.num_solver_iterations = total as usize;
     }
 
@@ -84,8 +81,14 @@ impl Physics2DSettings {
             gravity_scale: f32("physics2d.gravity_scale", d.gravity_scale),
             render_interpolation: on("physics2d.render_interpolation", d.render_interpolation),
             sleeping: on("physics2d.sleeping", d.sleeping),
-            sleep_linear_threshold: f32("physics2d.sleep_linear_threshold", d.sleep_linear_threshold),
-            sleep_angular_threshold: f32("physics2d.sleep_angular_threshold", d.sleep_angular_threshold),
+            sleep_linear_threshold: f32(
+                "physics2d.sleep_linear_threshold",
+                d.sleep_linear_threshold,
+            ),
+            sleep_angular_threshold: f32(
+                "physics2d.sleep_angular_threshold",
+                d.sleep_angular_threshold,
+            ),
         }
     }
 }

@@ -11,7 +11,7 @@ pub fn build_platform() -> &'static str {
     }
     #[cfg(target_os = "windows")]
     {
-        return "windows";
+        "windows"
     }
     #[cfg(target_os = "macos")]
     {
@@ -19,9 +19,14 @@ pub fn build_platform() -> &'static str {
     }
     #[cfg(target_os = "linux")]
     {
-        return "linux";
+        "linux"
     }
-    #[cfg(not(any(target_arch = "wasm32", target_os = "windows", target_os = "macos", target_os = "linux")))]
+    #[cfg(not(any(
+        target_arch = "wasm32",
+        target_os = "windows",
+        target_os = "macos",
+        target_os = "linux"
+    )))]
     {
         "other"
     }

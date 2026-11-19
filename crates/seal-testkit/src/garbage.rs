@@ -4,14 +4,14 @@ use std::panic::{catch_unwind, AssertUnwindSafe};
 
 pub struct Rng(u64);
 impl Rng {
-    pub fn next(&mut self) -> u64 {
+    pub fn next_u64(&mut self) -> u64 {
         self.0 ^= self.0 << 13;
         self.0 ^= self.0 >> 7;
         self.0 ^= self.0 << 17;
         self.0
     }
     pub fn below(&mut self, n: usize) -> usize {
-        (self.next() % n.max(1) as u64) as usize
+        (self.next_u64() % n.max(1) as u64) as usize
     }
 }
 
@@ -60,7 +60,7 @@ pub fn mutants(sample: &[u8], seed: u64, count: usize) -> Vec<Vec<u8>> {
             match rng.below(4) {
                 0 if !bytes.is_empty() => {
                     let at = rng.below(bytes.len());
-                    bytes[at] = rng.next() as u8;
+                    bytes[at] = rng.next_u64() as u8;
                 }
                 1 if !bytes.is_empty() => {
                     let at = rng.below(bytes.len());

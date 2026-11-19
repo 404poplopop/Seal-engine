@@ -220,7 +220,7 @@ mod tests {
     #[test]
     fn a_damaged_buffer_and_a_blank_picture_are_refused() {
         assert!(trace_alpha(&[0, 0, 0, 255], 2, 2).is_err());
-        assert!(trace_alpha(&vec![0; 16], 2, 2).is_err());
+        assert!(trace_alpha(&[0; 16], 2, 2).is_err());
     }
 
     #[test]

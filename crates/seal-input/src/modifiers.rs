@@ -6,9 +6,10 @@
 use super::InputError;
 
 /// How one button binding turns into an action.
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq, Default)]
 pub enum BindMod {
     /// Down while the button is down.
+    #[default]
     None,
     /// Down only after the button has been held for this many seconds.
     Hold(f32),
@@ -17,12 +18,6 @@ pub enum BindMod {
     Double(f32),
     /// Each press flips the action on or off. Releasing the button does not.
     Toggle,
-}
-
-impl Default for BindMod {
-    fn default() -> Self {
-        Self::None
-    }
 }
 
 /// Read `key.space`, `key.space hold 0.4`, `mouse.left double 0.25`, or `key.c toggle`.

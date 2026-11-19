@@ -120,7 +120,7 @@ mod tests {
 
     #[test]
     fn bloom_spreads_a_bright_pixel_and_a_zero_radius_is_a_copy() {
-        let mut px = vec![0u8; 3 * 1 * 4];
+        let mut px = vec![0u8; 3 * 4];
         px[4..8].copy_from_slice(&[255, 255, 255, 255]);
         assert_eq!(apply(&px, 3, 1, 0.5, 1.0, 0.0), px);
         let glowed = apply(&px, 3, 1, 0.5, 1.0, 1.0);

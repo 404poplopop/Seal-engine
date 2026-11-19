@@ -1,9 +1,7 @@
 use seal_editor_core::{CommandArgs, EditorSession, Layout};
 
 fn add_cube(session: &mut EditorSession) {
-    session
-        .dispatch("scene.add", &CommandArgs::new(&[("kind", "cube")]))
-        .unwrap();
+    session.dispatch("scene.add", &CommandArgs::new(&[("kind", "cube")])).unwrap();
 }
 
 #[test]
@@ -58,10 +56,7 @@ fn rename_steps_use_the_new_name() {
     add_cube(&mut session);
     let id = session.world.entities.last().unwrap().id.clone();
     session
-        .dispatch(
-            "outliner.rename",
-            &CommandArgs::new(&[("id", id.as_str()), ("name", "Lamp")]),
-        )
+        .dispatch("outliner.rename", &CommandArgs::new(&[("id", id.as_str()), ("name", "Lamp")]))
         .unwrap();
     let label = session.past_action_label(session.past.last().unwrap());
     assert!(label.contains("Lamp"));

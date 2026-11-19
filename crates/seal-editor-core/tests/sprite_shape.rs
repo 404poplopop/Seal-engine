@@ -13,9 +13,7 @@ fn args(pairs: &[(&str, &str)]) -> CommandArgs {
 #[test]
 fn create_edit_undo_and_refuse_a_damaged_list() {
     let mut session = session();
-    session
-        .dispatch("scene.add", &args(&[("kind", "sprite_shape")]))
-        .unwrap();
+    session.dispatch("scene.add", &args(&[("kind", "sprite_shape")])).unwrap();
     let id = session.models.selection.clone().unwrap();
     let entity = session.world.entity(&id).unwrap();
     assert!(entity.sprite_shape.on);

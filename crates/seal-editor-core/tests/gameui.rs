@@ -246,11 +246,8 @@ fn themes_load_and_style_controls() {
     let dir = std::env::temp_dir().join(format!("seal-gameui-theme-{}", std::process::id()));
     std::fs::create_dir_all(dir.join("ui")).unwrap();
     std::fs::write(dir.join("ui/red.sealtheme"), &text).unwrap();
-    std::fs::write(
-        dir.join("ui/menu.sealui"),
-        format!("seal ui 1\ntheme ui/red.sealtheme\nbutton Go\n"),
-    )
-    .unwrap();
+    std::fs::write(dir.join("ui/menu.sealui"), "seal ui 1\ntheme ui/red.sealtheme\nbutton Go\n")
+        .unwrap();
     let live = gameui::load(&dir, "ui/menu.sealui").unwrap();
     assert_eq!(live.theme.font_size, 28.0);
     let draws = gameui::draw(&live, 0.0);

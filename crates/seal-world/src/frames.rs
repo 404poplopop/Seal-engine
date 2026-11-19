@@ -208,10 +208,10 @@ impl SpriteFrames {
                     for key in keys {
                         let (name, value) = key.split_once('=').unwrap();
                         match name {
-                            "pivot" => frame.pivot = pair2(value).map_err(|m| err(m))?,
-                            "border" => frame.border = pair4(value).map_err(|m| err(m))?,
-                            "outline" => frame.outline = pair_list(value).map_err(|m| err(m))?,
-                            "phys" => frame.physics = pair_list(value).map_err(|m| err(m))?,
+                            "pivot" => frame.pivot = pair2(value).map_err(err)?,
+                            "border" => frame.border = pair4(value).map_err(err)?,
+                            "outline" => frame.outline = pair_list(value).map_err(err)?,
+                            "phys" => frame.physics = pair_list(value).map_err(err)?,
                             _ => return Err(err(&format!("unknown frame field `{name}`"))),
                         }
                     }

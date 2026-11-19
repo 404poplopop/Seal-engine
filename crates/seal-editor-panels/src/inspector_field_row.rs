@@ -116,7 +116,7 @@ pub(crate) fn paint_metadata_number(
     if let Some(max) = widget.max {
         value = value.min(max);
     }
-    let unit_suffix = unit_message_key(widget.unit).map(|id| text(id));
+    let unit_suffix = unit_message_key(widget.unit).map(text);
     let spec = NumberFieldSpec {
         min: widget.min,
         max: widget.max,

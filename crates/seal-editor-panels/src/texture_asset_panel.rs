@@ -47,10 +47,7 @@ pub(crate) fn texture_composite_editor(
         frame.muted(&text("asset-texture-unreadable"));
         return event;
     };
-    let slice: usize = session
-        .draft(TEXTURE_SLICE_DRAFT)
-        .and_then(|s| s.parse().ok())
-        .unwrap_or(0);
+    let slice: usize = session.draft(TEXTURE_SLICE_DRAFT).and_then(|s| s.parse().ok()).unwrap_or(0);
     let layer_count = asset.layer_count().max(1) as usize;
     let slice = slice.min(layer_count - 1);
 
@@ -83,11 +80,7 @@ pub(crate) fn texture_composite_editor(
         event = command("asset.texture_set", &[("gpu_format", name.as_str())]);
     }
 
-    let stream = if asset.streaming {
-        PropertyCheckbox::On
-    } else {
-        PropertyCheckbox::Off
-    };
+    let stream = if asset.streaming { PropertyCheckbox::On } else { PropertyCheckbox::Off };
     if let Some(next) = frame.property_checkbox_row(
         &text("asset-texture-streaming"),
         stream,
@@ -127,12 +120,11 @@ pub(crate) fn texture_composite_editor(
         ui.horizontal(|ui| {
             seal_ui::property_name(ui, &slice_label, false, None);
             let mut slice_i = slice as i32;
-            if ui
-                .add(egui::Slider::new(&mut slice_i, 0..=layer_count as i32 - 1))
-                .changed()
-            {
-                event =
-                    PanelEvent::Commands(vec![draft_cmd(TEXTURE_SLICE_DRAFT, &slice_i.to_string())]);
+            if ui.add(egui::Slider::new(&mut slice_i, 0..=layer_count as i32 - 1)).changed() {
+                event = PanelEvent::Commands(vec![draft_cmd(
+                    TEXTURE_SLICE_DRAFT,
+                    &slice_i.to_string(),
+                )]);
             }
         });
     }
@@ -145,7 +137,9 @@ pub(crate) fn texture_composite_editor(
     let empty = String::new();
     for i in 0..rows {
         let pic = asset.pictures.get(i).unwrap_or(&empty);
-        let label = session.messages.format("asset-texture-picture-row", &[("index", &(i + 1).to_string())]);
+        let label = session
+            .messages
+            .format("asset-texture-picture-row", &[("index", &(i + 1).to_string())]);
         let mut path = pic.clone();
         let (changed, _, commit) = frame.property_validated_row(
             &label,
@@ -166,19 +160,12 @@ pub(crate) fn texture_composite_editor(
         }
     }
 
-    let quality_opts = [
-        ("fast", "Fast"),
-        ("balanced", "Balanced"),
-        ("maximum", "Maximum"),
-    ];
+    let quality_opts = [("fast", "Fast"), ("balanced", "Balanced"), ("maximum", "Maximum")];
     let mut encode_quality = String::from("balanced");
     let (picked_q, _) = frame.choice_row(
         &text("asset-texture-encode-quality"),
         encode_quality.as_str(),
-        &quality_opts
-            .iter()
-            .map(|(id, label)| (*id, label.to_string()))
-            .collect::<Vec<_>>(),
+        &quality_opts.iter().map(|(id, label)| (*id, label.to_string())).collect::<Vec<_>>(),
         false,
         None,
         None,
@@ -197,10 +184,11 @@ pub(crate) fn texture_composite_editor(
     }
     if let Some(bytes) = session.draft(TEXTURE_ENCODE_BYTES) {
         let psnr = session.draft(TEXTURE_ENCODE_PSNR).unwrap_or_default();
-        frame.muted(&session.messages.format(
-            "asset-texture-encode-stats",
-            &[("bytes", &bytes), ("psnr", &psnr)],
-        ));
+        frame.muted(
+            &session
+                .messages
+                .format("asset-texture-encode-stats", &[("bytes", &bytes), ("psnr", &psnr)]),
+        );
     }
 
     let root = session.project.as_ref().map(|p| p.root.clone());
@@ -213,12 +201,17 @@ pub(crate) fn texture_composite_editor(
     {
         let ctx = frame.ui_mut().ctx().clone();
         let path_s = path.to_string_lossy().to_string();
-        seal_ui::sprites::set_texture_picture_policy(&path_s, asset.streaming, asset.memory_budget_mb);
+        seal_ui::sprites::set_texture_picture_policy(
+            &path_s,
+            asset.streaming,
+            asset.memory_budget_mb,
+        );
         let decoded = seal_editor_core::picture::decode_path(&path).ok();
         if seal_ui::gpu_viewport::enabled() {
             if let Some(pic) = decoded {
                 let ui = frame.ui_mut();
-                let size = egui::Vec2::new(pic.width as f32, pic.height as f32).min(egui::Vec2::splat(256.0));
+                let size = egui::Vec2::new(pic.width as f32, pic.height as f32)
+                    .min(egui::Vec2::splat(256.0));
                 let (rect, _) = ui.allocate_exact_size(size, Sense::hover());
                 ui.painter().add(seal_ui::gpu_textures::preview_callback(
                     rect,
@@ -232,18 +225,14 @@ pub(crate) fn texture_composite_editor(
         } else if let Some(texture) = seal_ui::sprites::texture(&ctx, &path_s) {
             frame.muted(&text("asset-texture-preview-cpu"));
             let ui = frame.ui_mut();
-            let sz = seal_ui::sprites::texture_size(&ctx, &path_s).unwrap_or([asset.width as f32, asset.height as f32]);
+            let sz = seal_ui::sprites::texture_size(&ctx, &path_s)
+                .unwrap_or([asset.width as f32, asset.height as f32]);
             let size = egui::Vec2::new(sz[0], sz[1]).min(egui::Vec2::splat(256.0));
             let (rect, _) = ui.allocate_exact_size(size, Sense::hover());
             seal_ui::sprites::paint_quad(
                 &ui.painter_at(rect),
                 texture,
-                [
-                    rect.left_top(),
-                    rect.right_top(),
-                    rect.right_bottom(),
-                    rect.left_bottom(),
-                ],
+                [rect.left_top(), rect.right_top(), rect.right_bottom(), rect.left_bottom()],
             );
         }
     } else {

@@ -56,11 +56,8 @@ impl BackgroundTextureLoader {
     }
 
     pub fn poll_ready(&mut self) -> usize {
-        let n = self
-            .pending
-            .iter()
-            .filter(|p| p.slot.load.state() == TextureLoadState::Ready)
-            .count();
+        let n =
+            self.pending.iter().filter(|p| p.slot.load.state() == TextureLoadState::Ready).count();
         self.pending.retain(|p| p.slot.load.state() != TextureLoadState::Ready);
         n
     }
@@ -88,7 +85,9 @@ mod tests {
             let img = image::RgbaImage::from_pixel(2, 2, image::Rgba([10, 20, 30, 255]));
             let mut f = std::fs::File::create(&path).unwrap();
             let mut buf = Vec::new();
-            image::DynamicImage::ImageRgba8(img).write_to(&mut std::io::Cursor::new(&mut buf), image::ImageFormat::Png).unwrap();
+            image::DynamicImage::ImageRgba8(img)
+                .write_to(&mut std::io::Cursor::new(&mut buf), image::ImageFormat::Png)
+                .unwrap();
             f.write_all(&buf).unwrap();
         }
         let pool = Arc::new(JobPool::new(1));

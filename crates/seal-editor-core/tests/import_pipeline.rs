@@ -14,7 +14,8 @@ fn scratch(label: &str) -> PathBuf {
     static N: AtomicU64 = AtomicU64::new(0);
     let n = N.fetch_add(1, Ordering::Relaxed);
     let nanos = SystemTime::now().duration_since(UNIX_EPOCH).map(|d| d.as_nanos()).unwrap_or(0);
-    let dir = std::env::temp_dir().join(format!("seal-imp-{label}-{}-{n}-{nanos}", std::process::id()));
+    let dir =
+        std::env::temp_dir().join(format!("seal-imp-{label}-{}-{n}-{nanos}", std::process::id()));
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).unwrap();
     dir
@@ -140,35 +141,22 @@ links = [
     )
     .unwrap();
     let mut book = PipelineBook::default();
-    book.importers.push(CustomImporter {
-        extension: "xyz".into(),
-        graph: "logic/xyz.graph".into(),
-    });
+    book.importers
+        .push(CustomImporter { extension: "xyz".into(), graph: "logic/xyz.graph".into() });
     save_book(&folder, &book).unwrap();
     let data = dir.join("pack.xyz");
     fs::write(&data, b"raw").unwrap();
     let png = dir.join("plain.png");
     fs::write(&png, b"png").unwrap();
     let both = format!("{}\n{}", data.display(), png.display());
-    session
-        .dispatch("asset.import", &CommandArgs::new(&[("path", both.as_str())]))
-        .unwrap();
+    session.dispatch("asset.import", &CommandArgs::new(&[("path", both.as_str())])).unwrap();
     import_pipeline::pump_all(&mut session).unwrap();
     assert_eq!(fs::read(folder.join("pack.xyz")).unwrap(), b"IMPORTED");
     assert_eq!(tags_of(&folder, "pack.xyz"), vec!["custom".to_string()]);
-    let custom = session
-        .models
-        .import_activity
-        .iter()
-        .find(|row| row.file == "pack.xyz")
-        .unwrap();
+    let custom = session.models.import_activity.iter().find(|row| row.file == "pack.xyz").unwrap();
     assert_eq!(custom.importer, "custom:xyz");
-    let picture = session
-        .models
-        .import_activity
-        .iter()
-        .find(|row| row.file.ends_with("plain.png"))
-        .unwrap();
+    let picture =
+        session.models.import_activity.iter().find(|row| row.file.ends_with("plain.png")).unwrap();
     assert_eq!(picture.importer, "import");
 }
 
@@ -206,10 +194,8 @@ links = [ "1.then -> 2.in" ]
     )
     .unwrap();
     let mut book = PipelineBook::default();
-    book.importers.push(CustomImporter {
-        extension: "zzg10".into(),
-        graph: "logic/zz.graph".into(),
-    });
+    book.importers
+        .push(CustomImporter { extension: "zzg10".into(), graph: "logic/zz.graph".into() });
     save_book(&root, &book).unwrap();
     let source2 = dir.join("b.zzg10");
     fs::write(&source2, b"raw").unwrap();
@@ -287,7 +273,11 @@ fn damaged_book_and_damaged_script_do_not_write_a_partial_file() {
     assert!(book.scripts.is_empty());
 
     let (mut session, folder) = open_project(&dir);
-    fs::write(folder.join("import-pipeline.seal"), "scripts = [ { kind = \"picture\", graph = \"logic/bad.graph\" } ]\n").unwrap();
+    fs::write(
+        folder.join("import-pipeline.seal"),
+        "scripts = [ { kind = \"picture\", graph = \"logic/bad.graph\" } ]\n",
+    )
+    .unwrap();
     fs::create_dir_all(folder.join("logic")).unwrap();
     fs::write(folder.join("logic/bad.graph"), "this is not a graph {").unwrap();
     let art = dir.join("bad.png");

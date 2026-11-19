@@ -32,20 +32,12 @@ fn lit(v: &Value) -> String {
         Value::Str(s) => format!("String::from({s:?})"),
         Value::Entity(e) => format!("{e}u64"),
         Value::Vec3(v) => format!("V3 {{ x: {}, y: {}, z: {} }}", f(v.x), f(v.y), f(v.z)),
-        Value::Quat(v) => format!(
-            "Quat {{ x: {}, y: {}, z: {}, w: {} }}",
-            f(v.x),
-            f(v.y),
-            f(v.z),
-            f(v.w)
-        ),
-        Value::Plane(v) => format!(
-            "Plane {{ nx: {}, ny: {}, nz: {}, d: {} }}",
-            f(v.nx),
-            f(v.ny),
-            f(v.nz),
-            f(v.d)
-        ),
+        Value::Quat(v) => {
+            format!("Quat {{ x: {}, y: {}, z: {}, w: {} }}", f(v.x), f(v.y), f(v.z), f(v.w))
+        }
+        Value::Plane(v) => {
+            format!("Plane {{ nx: {}, ny: {}, nz: {}, d: {} }}", f(v.nx), f(v.ny), f(v.nz), f(v.d))
+        }
         Value::List(e, items) => {
             let items: Vec<String> = items.iter().map(|x| wrap(e.ty(), &lit(x))).collect();
             format!("vec![{}]", items.join(", "))
@@ -400,7 +392,7 @@ impl Gen<'_> {
                 format!("seal_graph::poly2d::{f}({}, {})", a(0), a(1))
             }
             Op::ScriptCore(op) => {
-                let args: Vec<String> = (0..n.inputs.len()).map(|i| a(i)).collect();
+                let args: Vec<String> = (0..n.inputs.len()).map(a).collect();
                 format!(
                     "{{ let args = vec![{}]; seal_graph::script_core::eval_core(seal_graph::script_core::ScriptCoreOp::{op:?}, &args, host) }}",
                     args.join(", ")
@@ -1076,15 +1068,9 @@ impl Gen<'_> {
                         crate::ServerCall::Body => {
                             &[Ty::Str, Ty::Float, Ty::Float, Ty::Float, Ty::Bool]
                         }
-                        crate::ServerCall::Shape => &[
-                            Ty::Str,
-                            Ty::Float,
-                            Ty::Str,
-                            Ty::Float,
-                            Ty::Float,
-                            Ty::Float,
-                            Ty::Str,
-                        ],
+                        crate::ServerCall::Shape => {
+                            &[Ty::Str, Ty::Float, Ty::Str, Ty::Float, Ty::Float, Ty::Float, Ty::Str]
+                        }
                         crate::ServerCall::Joint => {
                             &[Ty::Str, Ty::Str, Ty::Float, Ty::Float, Ty::Float]
                         }

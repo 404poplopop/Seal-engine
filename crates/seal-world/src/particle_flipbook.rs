@@ -25,7 +25,8 @@ fn sheet_cells(full: &Path) -> Option<u32> {
     use std::sync::Mutex;
     use std::time::SystemTime;
     // Drawing asks once per particle per frame: remember the answer until the file changes.
-    static CACHE: Mutex<Option<HashMap<PathBuf, (SystemTime, Option<u32>)>>> = Mutex::new(None);
+    type CellCache = HashMap<PathBuf, (SystemTime, Option<u32>)>;
+    static CACHE: Mutex<Option<CellCache>> = Mutex::new(None);
     let stamp = std::fs::metadata(full).and_then(|m| m.modified()).ok()?;
     let mut cache = CACHE.lock().unwrap_or_else(|e| e.into_inner());
     let map = cache.get_or_insert_with(HashMap::new);

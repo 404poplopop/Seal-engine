@@ -127,7 +127,10 @@ fn picture_from_png(bytes: &[u8]) -> Result<Picture, String> {
         .take((width * height) as usize)
         .map(|px| match px.len() {
             1 | 2 => f32::from(px[0]) / 255.0,
-            _ => (0.299 * f32::from(px[0]) + 0.587 * f32::from(px[1]) + 0.114 * f32::from(px[2])) / 255.0,
+            _ => {
+                (0.299 * f32::from(px[0]) + 0.587 * f32::from(px[1]) + 0.114 * f32::from(px[2]))
+                    / 255.0
+            }
         })
         .collect();
     Ok(Picture { width, height, luma })

@@ -561,7 +561,7 @@ pub fn sanitize_enum_field(key: &str, raw: &str) -> (String, Option<&'static str
     if trimmed.is_empty() && spec.enum_values.contains(&"") {
         return (String::new(), None);
     }
-    if spec.enum_values.iter().any(|v| *v == trimmed) {
+    if spec.enum_values.contains(&trimmed) {
         return (trimmed.to_string(), None);
     }
     let default = inspector_field_default(key);

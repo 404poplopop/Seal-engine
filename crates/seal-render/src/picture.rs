@@ -94,9 +94,7 @@ pub fn is_extension(ext: &str) -> bool {
 }
 
 pub fn is_path(path: &Path) -> bool {
-    path.extension()
-        .and_then(|e| e.to_str())
-        .is_some_and(is_extension)
+    path.extension().and_then(|e| e.to_str()).is_some_and(is_extension)
 }
 
 fn format_of(ext: &str) -> Option<ImageFormat> {
@@ -260,7 +258,7 @@ fn picture_from_image(image: DynamicImage) -> Result<Picture, PictureError> {
 /// result is the sample itself, so an existing HDR file keeps its byte copy.
 fn rgba_from_linear(raw: &[f32]) -> Vec<u8> {
     let mut peak = 1.0f32;
-    for pixel in raw.chunks_exact(4) {
+    for pixel in raw.as_chunks::<4>().0 {
         for channel in &pixel[..3] {
             if channel.is_finite() {
                 peak = peak.max(*channel);
@@ -269,7 +267,7 @@ fn rgba_from_linear(raw: &[f32]) -> Vec<u8> {
     }
     let white2 = peak * peak;
     let mut out = Vec::with_capacity(raw.len());
-    for pixel in raw.chunks_exact(4) {
+    for pixel in raw.as_chunks::<4>().0 {
         out.extend_from_slice(&[
             byte_of(tone(pixel[0], white2)),
             byte_of(tone(pixel[1], white2)),
@@ -350,13 +348,13 @@ pub fn write_rgba8(
     if width == 0 || height == 0 || rgba.len() != (width * height * 4) as usize {
         return Err(PictureError::new("picture size does not match the pixel buffer"));
     }
-    let ext = path
-        .extension()
-        .and_then(|e| e.to_str())
-        .unwrap_or("png")
-        .to_ascii_lowercase();
+    let ext = path.extension().and_then(|e| e.to_str()).unwrap_or("png").to_ascii_lowercase();
     let format_key = if format == "keep" {
-        if ext == "jpg" { "jpeg" } else { ext.as_str() }
+        if ext == "jpg" {
+            "jpeg"
+        } else {
+            ext.as_str()
+        }
     } else {
         format
     };
@@ -364,7 +362,9 @@ pub fn write_rgba8(
         "png" => ImageFormat::Png,
         "jpeg" => ImageFormat::Jpeg,
         "webp" => ImageFormat::WebP,
-        other => return Err(PictureError::new(format!("format {other} is not supported for export"))),
+        other => {
+            return Err(PictureError::new(format!("format {other} is not supported for export")))
+        }
     };
     let image = image::RgbaImage::from_raw(width, height, rgba.to_vec())
         .ok_or_else(|| PictureError::new("picture pixels could not be turned into an image"))?;
@@ -392,7 +392,7 @@ pub fn linear_channel_to_display(channel: u8) -> u8 {
 
 pub fn display_linear_rgba(rgba: &[u8]) -> Vec<u8> {
     let mut out = Vec::with_capacity(rgba.len());
-    for pixel in rgba.chunks_exact(4) {
+    for pixel in rgba.as_chunks::<4>().0 {
         out.extend_from_slice(&[
             linear_channel_to_display(pixel[0]),
             linear_channel_to_display(pixel[1]),
@@ -431,7 +431,7 @@ pub fn use_mip(mipmaps: bool, texture_width: f32, uv_span: f32, pixel_span: f32)
 /// Square cells in a row, when the width is a whole number of heights.
 /// That is the sheet layout a sprite already uses for frames laid out left to right.
 pub fn sheet_frames(width: u32, height: u32) -> u32 {
-    if height >= 1 && width > height && width % height == 0 {
+    if height >= 1 && width > height && width.is_multiple_of(height) {
         (width / height).min(256)
     } else {
         1
@@ -621,7 +621,7 @@ mod tests {
         header.push(0);
         let row_bytes = width as usize * 4 * 4;
         let table_at = header.len();
-        header.extend(std::iter::repeat(0u8).take(height as usize * 8));
+        header.extend(std::iter::repeat_n(0u8, height as usize * 8));
         let mut offsets = Vec::new();
         for y in 0..height {
             offsets.push(header.len() as u64);

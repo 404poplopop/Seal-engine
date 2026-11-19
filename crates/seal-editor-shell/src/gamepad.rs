@@ -52,7 +52,6 @@ impl Pads {
         #[cfg(any(windows, target_os = "linux"))]
         {
             self.sensors.sync(None);
-            return;
         }
         #[cfg(not(any(windows, target_os = "linux")))]
         self.sensors.sync(Some(&[]));

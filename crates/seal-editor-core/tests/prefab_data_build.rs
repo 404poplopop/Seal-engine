@@ -1,9 +1,9 @@
 //! Prefab variants, data assets, build list, templates.
 
 use seal_editor_core::{
-    create_project, create_project_with_options, package, save_project_as_template,
-    apply_user_template, user_template_by_id, write_build_scenes, Layout, EditorSession,
-    CommandArgs, CreateProjectOptions,
+    apply_user_template, create_project, create_project_with_options, package,
+    save_project_as_template, user_template_by_id, write_build_scenes, CommandArgs,
+    CreateProjectOptions, EditorSession, Layout,
 };
 use std::fs;
 
@@ -33,11 +33,7 @@ fn user_template_save_and_apply() {
     let _ = fs::remove_dir_all(&src);
     let _ = fs::remove_dir_all(&dst);
     create_project(&src, "Source").unwrap();
-    fs::write(
-        src.join("scene.seal"),
-        seal_world::World::empty_scene_text("Source"),
-    )
-    .unwrap();
+    fs::write(src.join("scene.seal"), seal_world::World::empty_scene_text("Source")).unwrap();
     save_project_as_template(&src, "Platform Kit", "A saved project", None).unwrap();
     assert!(user_template_by_id("platform_kit").is_some());
     create_project_with_options(&dst, "Clone", &CreateProjectOptions::default()).unwrap();
@@ -71,10 +67,7 @@ fn data_assets_round_trip() {
         )
         .unwrap();
     session
-        .dispatch(
-            "asset.data_set",
-            &CommandArgs::new(&[("field", "value"), ("value", "7")]),
-        )
+        .dispatch("asset.data_set", &CommandArgs::new(&[("field", "value"), ("value", "7")]))
         .unwrap();
     let text = fs::read_to_string(dir.join("data/hero.data")).unwrap();
     assert!(text.contains("value value = 7"));

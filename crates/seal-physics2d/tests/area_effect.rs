@@ -29,12 +29,7 @@ fn zone(w: &mut World, pos: [f32; 2], size: [f32; 2], effect: AreaEffect) -> sea
 }
 
 fn body_at(w: &mut World, x: f32, y: f32) -> seal_ecs::Entity {
-    w.spawn((
-        at(x, y),
-        Body2D::default(),
-        Collider2D::default(),
-        Velocity2D::default(),
-    ))
+    w.spawn((at(x, y), Body2D::default(), Collider2D::default(), Velocity2D::default()))
 }
 
 fn vel(w: &World, id: seal_ecs::Entity) -> [f32; 2] {
@@ -304,12 +299,8 @@ fn a_moving_surface_carries_a_resting_box() {
         SurfaceEffect { speed: 2.0 },
     ));
     let _ = belt;
-    let b = w.spawn((
-        at(0.0, 1.0),
-        Body2D::default(),
-        Collider2D::default(),
-        Velocity2D::default(),
-    ));
+    let b =
+        w.spawn((at(0.0, 1.0), Body2D::default(), Collider2D::default(), Velocity2D::default()));
     let mut p = Physics2D::new();
     step(&mut w, &mut p, 90);
     let x0 = w.get::<Transform>(b).unwrap().translation[0];

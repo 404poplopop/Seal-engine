@@ -149,7 +149,7 @@ pub fn read_back(gpu: &WgpuDevice, cull: &GpuCull) -> Culled {
     device.poll(wgpu::PollType::wait_indefinitely()).expect("poll");
     let read = |b: &wgpu::Buffer| -> Vec<u32> {
         let m = b.get_mapped_range(..).expect("mapped");
-        m.chunks_exact(4).map(|w| u32::from_le_bytes([w[0], w[1], w[2], w[3]])).collect()
+        m.as_chunks::<4>().0.iter().map(|w| u32::from_le_bytes([w[0], w[1], w[2], w[3]])).collect()
     };
     let flat = read(&a);
     let mut visible = read(&v);

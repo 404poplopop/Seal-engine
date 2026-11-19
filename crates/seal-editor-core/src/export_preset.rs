@@ -53,16 +53,10 @@ pub enum ExportStep {
 }
 
 /// The presets saved with a project, and which one Export uses.
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Default)]
 pub struct ExportBook {
     pub selected: String,
     pub presets: Vec<ExportPreset>,
-}
-
-impl Default for ExportBook {
-    fn default() -> Self {
-        Self { selected: String::new(), presets: Vec::new() }
-    }
 }
 
 impl ExportBook {
@@ -710,9 +704,16 @@ pub fn export_preset(
     if preset.package_target == "msix" {
         let exe_name = report.exe.file_name().and_then(|name| name.to_str()).unwrap_or("Game.exe");
         let layout = out.join("msix_layout");
-        let publisher = if preset.msix_publisher.trim().is_empty() { MSIX_PUBLISHER } else { preset.msix_publisher.trim() };
-        let version =
-            if valid_msix_version(&preset.msix_version) { preset.msix_version.as_str() } else { MSIX_VERSION };
+        let publisher = if preset.msix_publisher.trim().is_empty() {
+            MSIX_PUBLISHER
+        } else {
+            preset.msix_publisher.trim()
+        };
+        let version = if valid_msix_version(&preset.msix_version) {
+            preset.msix_version.as_str()
+        } else {
+            MSIX_VERSION
+        };
         crate::msix_pack::write_layout(&layout, project_name, publisher, version, exe_name)?;
         std::fs::copy(&report.exe, layout.join(exe_name))?;
         if out.join("data").is_dir() {
@@ -1012,13 +1013,13 @@ fn export_and_maybe_run(
     }
     let render = crate::render_quality::for_export(session, platform);
     let render_text = crate::render_quality::runner_text(&render);
-    let report = export_preset(&project.root, &project.name, &exe, &preset, &window_text, &render_text).map_err(
-        |err| {
-            CoreError::new(
-                session.messages.format("package-failed", &[("error", &err.to_string())]),
-            )
-        },
-    )?;
+    let report =
+        export_preset(&project.root, &project.name, &exe, &preset, &window_text, &render_text)
+            .map_err(|err| {
+                CoreError::new(
+                    session.messages.format("package-failed", &[("error", &err.to_string())]),
+                )
+            })?;
     if run {
         launch_game(&report.exe).map_err(|err| {
             CoreError::new(

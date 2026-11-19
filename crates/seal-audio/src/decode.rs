@@ -83,9 +83,8 @@ pub(crate) fn decode_ogg(bytes: &[u8]) -> Result<Sound, AudioError> {
     }
     let sample_rate = reader.ident_hdr.audio_sample_rate;
     let mut samples = Vec::new();
-    while let Some(packet) = reader
-        .read_dec_packet_itl()
-        .map_err(|e| bad(format!("Vorbis: {e}")))?
+    while let Some(packet) =
+        reader.read_dec_packet_itl().map_err(|e| bad(format!("Vorbis: {e}")))?
     {
         for s in packet {
             samples.push(s as f32 / 32768.0);

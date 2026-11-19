@@ -766,11 +766,7 @@ fn validate(id: &str, value: &str) -> Result<(), CoreError> {
         }
         id if id == crate::project_audio::OUTPUT_BUFFER || id.ends_with(".output_buffer") => {
             if !value.trim().is_empty()
-                && value
-                    .parse::<u32>()
-                    .ok()
-                    .filter(|n| (32..=4096).contains(n))
-                    .is_none()
+                && value.parse::<u32>().ok().filter(|n| (32..=4096).contains(n)).is_none()
             {
                 return Err(CoreError::new("output buffer must be empty or 32–4096 frames"));
             }
@@ -791,8 +787,11 @@ fn validate(id: &str, value: &str) -> Result<(), CoreError> {
             crate::render_quality::validate_field(id, value)?;
         }
         id if id == crate::texture_memory::TEXTURE_MEMORY_BUDGET_MB => {
-            let mb: u32 = value.trim().parse().map_err(|_| CoreError::new("texture memory budget must be a number"))?;
-            if mb < 1 || mb > 65_536 {
+            let mb: u32 = value
+                .trim()
+                .parse()
+                .map_err(|_| CoreError::new("texture memory budget must be a number"))?;
+            if !(1..=65_536).contains(&mb) {
                 return Err(CoreError::new("texture memory budget must be 1–65536 MB"));
             }
         }

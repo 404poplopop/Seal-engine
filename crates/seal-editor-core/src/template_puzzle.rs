@@ -7,7 +7,7 @@ use crate::project::CreateProjectOptions;
 use seal_world::World;
 
 /// Wizard preview (8×8 flat colours suggesting a lit grid).
-pub const PREVIEW: (&'static [u8], u32, u32) = (&PREVIEW_PX, 8, 8);
+pub const PREVIEW: (&[u8], u32, u32) = (&PREVIEW_PX, 8, 8);
 
 const PREVIEW_PX: [u8; 256] = {
     let mut px = [0u8; 256];
@@ -182,7 +182,7 @@ fn write_png(path: &Path, w: u32, h: u32, rgba: &[u8]) -> std::io::Result<()> {
     let mut enc = png::Encoder::new(file, w, h);
     enc.set_color(png::ColorType::Rgba);
     enc.set_depth(png::BitDepth::Eight);
-    enc.write_header()?.write_image_data(rgba).map_err(|e| std::io::Error::other(e))
+    enc.write_header()?.write_image_data(rgba).map_err(std::io::Error::other)
 }
 
 /// Four-second loop of soft notes for the scene's music (16 notes, quarter seconds each).

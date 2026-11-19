@@ -1030,7 +1030,10 @@ impl GraphDoc {
     }
 
     /// Store or replace one field rule in the layout and save the graph.
-    pub fn apply_inspector_rule(&mut self, rule: seal_graph::inspector_layout::InspectorFieldRule) -> bool {
+    pub fn apply_inspector_rule(
+        &mut self,
+        rule: seal_graph::inspector_layout::InspectorFieldRule,
+    ) -> bool {
         if rule.field.trim().is_empty() {
             return false;
         }

@@ -14,15 +14,18 @@ mod particle_spawn;
 mod particle_types;
 
 pub use particle_draw::{collect_draws, collect_draws_depth, ParticleDraw};
-pub use particle_emit_mesh::{load_emit_mesh, mesh_renderer_primitive, parse_mesh_text, primitive_mesh};
+pub use particle_emit_mesh::{
+    load_emit_mesh, mesh_renderer_primitive, parse_mesh_text, primitive_mesh,
+};
 pub use particle_flipbook::{frame_count, frame_picture};
 pub use particle_soft::soft_fade_factor;
-pub use particle_spawn::{bursts_due, offset_inside_shape, sample_emit_offset, sample_emit_offset_project};
-pub use particle_types::{
-    BillboardAnimMaterial, Burst, EmitShape, FlipbookMode, MeshSampleMode, ParticleExtras, RendererMode,
-    SphereVolume,
+pub use particle_spawn::{
+    bursts_due, offset_inside_shape, sample_emit_offset, sample_emit_offset_project,
 };
-
+pub use particle_types::{
+    BillboardAnimMaterial, Burst, EmitShape, FlipbookMode, MeshSampleMode, ParticleExtras,
+    RendererMode, SphereVolume,
+};
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct EmitterDef {
@@ -132,9 +135,7 @@ impl EmitterDef {
                     }
                     nums
                 };
-                if let Err(e) = d.extras.parse_optional_line(key, &nums, rest, n + 1) {
-                    return Err(e);
-                }
+                d.extras.parse_optional_line(key, &nums, rest, n + 1)?;
                 continue;
             }
             let nums: Result<Vec<f32>, _> = parts.map(str::parse::<f32>).collect();
@@ -463,8 +464,8 @@ impl Emitter {
                 }
             }
             let noise = Self::noise_accel(&d, p, p.age);
-            for i in 0..3 {
-                p.base_vel[i] += (d.gravity[i] + noise[i]) * dt;
+            for (i, n) in noise.iter().enumerate() {
+                p.base_vel[i] += (d.gravity[i] + n) * dt;
                 p.vel[i] = p.base_vel[i] * v_mul;
             }
             if d.extras.orbital.abs() > 1e-6 {

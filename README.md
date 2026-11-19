@@ -4,7 +4,7 @@
 
 **A game engine made for people first, with AI built in.**
 
-Seal is a 2D and 3D game engine and editor, written from scratch in Rust. You can build a whole game in editor: pick a template, place objects, set their values in the Inspector, and wire up behaviour with visual graphs. When you want help, AI tools can work inside the same editor. Every change they make goes through the same undo history as yours, and you approve it before it happens.
+Seal is a 2D and 3D game engine and editor, written from scratch in Rust. You can build a whole game by clicking: pick a template, place objects, set their values in the Inspector, and wire up behaviour with visual graphs. When you want help, AI tools can work inside the same editor. Every change they make goes through the same undo history as yours, and you approve it before it happens.
 
 Current release: **0.2**, the complete 2D feature set. See [CHANGELOG.md](CHANGELOG.md).
 
@@ -117,13 +117,13 @@ Each release has an exit test: a real game or task that has to work before the r
 | 0.7 | Platforms | The same game shipped to Windows, Linux, macOS, Android, iOS and the web | Planned |
 | 0.8 | Multiplayer and online services | A 16-player dedicated-server shooter | Planned |
 | 0.9 | Open worlds and high-end rendering | A 16 km² streamed world with virtualised geometry and dynamic GI | Planned |
-| 1.0 | Polish | Planned |
+| 1.0 | Production pipeline | A team of five on version control, CI builds, profiling, localisation, store-ready | Planned |
 
 ## Goals
 
 - A complete, fast and deterministic engine that people enjoy using.
 - AI that helps without taking over: every assistant change is visible, approved and undoable.
-- A strong modding foundation. But if a user obfuscates or protects his code, its modding tools may be restricted or removed.
+- A strong modding foundation. If a product obfuscates or protects its code, its modding tools may be restricted or removed.
 - Accessibility in the editor and the game UI from the start.
 - Clean-room legality from day one: all engine code is original work.
 - Full documentation in the manual under `docs/book`.

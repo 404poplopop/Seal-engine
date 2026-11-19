@@ -626,9 +626,9 @@ fn write_png(path: &Path, rgba: &[u8], w: u32, h: u32) -> std::io::Result<()> {
     enc.set_color(png::ColorType::Rgba);
     enc.set_depth(png::BitDepth::Eight);
     enc.write_header()
-        .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?
+        .map_err(std::io::Error::other)?
         .write_image_data(rgba)
-        .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))
+        .map_err(std::io::Error::other)
 }
 
 fn art_images() -> Vec<(&'static str, u32, u32, Vec<u8>)> {
@@ -1209,7 +1209,8 @@ mod tests {
         w.controls.raw.clear_device("pad");
         w.read_controls();
         w.step(1.0 / 60.0);
-        for expect in ["Restart"] {
+        {
+            let expect = "Restart";
             pad(&mut w, "pad.dpad_down");
             w.step(1.0 / 60.0);
             if expect == "Restart" {

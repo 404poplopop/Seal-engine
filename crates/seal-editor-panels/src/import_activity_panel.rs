@@ -28,10 +28,11 @@ pub fn paint(frame: &mut PanelFrame, session: &EditorSession) -> PanelEvent {
                 );
                 frame.muted(&headline);
                 if !row.output_hash.is_empty() {
-                    frame.muted(&session.messages.format(
-                        "import-activity-hash",
-                        &[("hash", row.output_hash.as_str())],
-                    ));
+                    frame.muted(
+                        &session
+                            .messages
+                            .format("import-activity-hash", &[("hash", row.output_hash.as_str())]),
+                    );
                 }
             }
         });

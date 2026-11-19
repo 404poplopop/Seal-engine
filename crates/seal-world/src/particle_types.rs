@@ -24,8 +24,9 @@ pub enum MeshSampleMode {
     Vertices,
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Default)]
 pub enum EmitShape {
+    #[default]
     Point,
     Circle(f32),
     Ring(f32, f32),
@@ -33,13 +34,10 @@ pub enum EmitShape {
     Edge([f32; 4]),
     Cone(f32, f32),
     Sphere(f32, SphereVolume),
-    Mesh { path: String, mode: MeshSampleMode },
-}
-
-impl Default for EmitShape {
-    fn default() -> Self {
-        EmitShape::Point
-    }
+    Mesh {
+        path: String,
+        mode: MeshSampleMode,
+    },
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -48,13 +46,22 @@ pub enum FlipbookMode {
     Random,
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Default)]
 pub enum RendererMode {
+    #[default]
     Billboard,
     Stretched(f32),
-    Flipbook { path: String, mode: FlipbookMode },
-    Trail { points: usize, width_end: f32 },
-    Mesh { path: String },
+    Flipbook {
+        path: String,
+        mode: FlipbookMode,
+    },
+    Trail {
+        points: usize,
+        width_end: f32,
+    },
+    Mesh {
+        path: String,
+    },
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -63,12 +70,6 @@ pub struct BillboardAnimMaterial {
     pub cols: u32,
     pub rows: u32,
     pub r#loop: bool,
-}
-
-impl Default for RendererMode {
-    fn default() -> Self {
-        RendererMode::Billboard
-    }
 }
 
 /// Advanced fields stored on an effect; defaults match the original billboard point emitter.
@@ -214,7 +215,13 @@ impl ParticleExtras {
         }
         if let Some(m) = &self.billboard_material {
             let tag = if m.r#loop { "loop" } else { "once" };
-            let _ = writeln!(out, "billboard_material {} {} {} {tag}", m.sheet, m.cols.max(1), m.rows.max(1));
+            let _ = writeln!(
+                out,
+                "billboard_material {} {} {} {tag}",
+                m.sheet,
+                m.cols.max(1),
+                m.rows.max(1)
+            );
         }
     }
 
@@ -355,9 +362,7 @@ impl ParticleExtras {
                         points: tail[0].parse::<usize>().unwrap_or(8).max(2),
                         width_end: tail[1].parse::<f32>().unwrap_or(0.2).max(0.0),
                     },
-                    "mesh" if !tail.is_empty() => RendererMode::Mesh {
-                        path: tail.join(" "),
-                    },
+                    "mesh" if !tail.is_empty() => RendererMode::Mesh { path: tail.join(" ") },
                     "mesh" if tail.is_empty() => RendererMode::Mesh { path: "cube".into() },
                     _ => {
                         self.mark_damaged("renderer");

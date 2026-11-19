@@ -1,4 +1,4 @@
-use seal_ecs::core::{Transform, SceneSettings};
+use seal_ecs::core::{SceneSettings, Transform};
 use seal_ecs::World;
 use seal_physics2d::*;
 
@@ -11,10 +11,12 @@ fn world() -> World {
 
 #[test]
 fn project_settings_reach_the_simulation() {
-    let mut settings = Physics2DSettings::default();
-    settings.velocity_iterations = 12;
-    settings.position_iterations = 6;
-    settings.gravity_scale = 0.5;
+    let settings = Physics2DSettings {
+        velocity_iterations: 12,
+        position_iterations: 6,
+        gravity_scale: 0.5,
+        ..Default::default()
+    };
     let mut w = world();
     w.insert_resource(SceneSettings { gravity: 20.0, time_scale: 1.0, music: String::new() });
     let _ground = w.spawn((
@@ -22,12 +24,8 @@ fn project_settings_reach_the_simulation() {
         Body2D::fixed(),
         Collider2D { size: [40.0, 1.0], ..Default::default() },
     ));
-    let b = w.spawn((
-        at(0.0, 5.0),
-        Body2D::default(),
-        Collider2D::default(),
-        Velocity2D::default(),
-    ));
+    let b =
+        w.spawn((at(0.0, 5.0), Body2D::default(), Collider2D::default(), Velocity2D::default()));
     let mut p = Physics2D::new();
     p.settings = settings.clone();
     p.step(&mut w, 1.0 / 60.0).unwrap();

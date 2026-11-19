@@ -523,13 +523,12 @@ pub fn lit_mesh(tris: &[LitTriangle]) -> egui::Mesh {
     mesh
 }
 
+/// Triangle corners and their UVs after clipping.
+type ClippedTri = ([[f32; 3]; 3], [[f32; 2]; 3]);
+
 /// The part of a triangle at or beyond the near distance, as one or two triangles
 /// (same winding). `depths` are the corners' view depths; at least one is in front.
-fn clip_near(
-    corners: [[f32; 3]; 3],
-    depths: [f32; 3],
-    uvs: [[f32; 2]; 3],
-) -> Vec<([[f32; 3]; 3], [[f32; 2]; 3])> {
+fn clip_near(corners: [[f32; 3]; 3], depths: [f32; 3], uvs: [[f32; 2]; 3]) -> Vec<ClippedTri> {
     let mut poly: Vec<([f32; 3], [f32; 2])> = Vec::with_capacity(4);
     for i in 0..3 {
         let (p, dp, uv) = (corners[i], depths[i], uvs[i]);
@@ -551,6 +550,7 @@ fn clip_near(
         .collect()
 }
 
+#[allow(clippy::too_many_arguments)]
 fn push_tri(
     out: &mut Vec<LitTriangle>,
     ctx: &MeshPaintCtx,
@@ -693,15 +693,15 @@ fn push_tri(
         tex_layer: surface.layer,
         tex_slice: surface.slice,
         tex_path: surface.path.to_string(),
-            tex_kind: surface.kind,
-            normal: {
-                let len = (normal[0] * normal[0] + normal[1] * normal[1] + normal[2] * normal[2])
-                    .sqrt()
-                    .max(f32::EPSILON);
-                [normal[0] / len, normal[1] / len, normal[2] / len]
-            },
-            light: 1.0,
-        });
+        tex_kind: surface.kind,
+        normal: {
+            let len = (normal[0] * normal[0] + normal[1] * normal[1] + normal[2] * normal[2])
+                .sqrt()
+                .max(f32::EPSILON);
+            [normal[0] / len, normal[1] / len, normal[2] / len]
+        },
+        light: 1.0,
+    });
 }
 
 fn box_faces(
@@ -930,7 +930,7 @@ fn sphere_tris(
                 c,
                 n0,
                 base,
-                [uv(seg as u32, ring as u32), uv(seg as u32 + 1, ring as u32), uv(seg as u32 + 1, ring as u32 + 1)],
+                [uv(seg, ring), uv(seg + 1, ring), uv(seg + 1, ring + 1)],
                 surface,
             );
             push_tri(
@@ -941,7 +941,7 @@ fn sphere_tris(
                 d,
                 n1,
                 base,
-                [uv(seg as u32, ring as u32), uv(seg as u32 + 1, ring as u32 + 1), uv(seg as u32, ring as u32 + 1)],
+                [uv(seg, ring), uv(seg + 1, ring + 1), uv(seg, ring + 1)],
                 surface,
             );
         }
@@ -973,16 +973,81 @@ fn cylinder_tris(
             crate::gpu_textures::tile_uv([seg as f32 / segments as f32, v], surface.tile)
         };
         let cap = |p: [f32; 3]| {
-            crate::gpu_textures::planar_xz_uv(p[0] - center[0], p[2] - center[2], radius, surface.tile)
+            crate::gpu_textures::planar_xz_uv(
+                p[0] - center[0],
+                p[2] - center[2],
+                radius,
+                surface.tile,
+            )
         };
-        push_tri(out, ctx, p0, p1, p2, side_n, base, [side(seg as u32, 0.5), side(seg as u32 + 1, 0.5), side(seg as u32 + 1, 1.0)], surface);
-        push_tri(out, ctx, p0, p2, p3, side_n, base, [side(seg as u32, 0.5), side(seg as u32 + 1, 1.0), side(seg as u32, 1.0)], surface);
-        push_tri(out, ctx, p4, p5, p1, side_n, base, [side(seg as u32, 0.0), side(seg as u32 + 1, 0.0), side(seg as u32 + 1, 0.5)], surface);
-        push_tri(out, ctx, p4, p1, p0, side_n, base, [side(seg as u32, 0.0), side(seg as u32 + 1, 0.5), side(seg as u32, 0.5)], surface);
+        push_tri(
+            out,
+            ctx,
+            p0,
+            p1,
+            p2,
+            side_n,
+            base,
+            [side(seg as u32, 0.5), side(seg as u32 + 1, 0.5), side(seg as u32 + 1, 1.0)],
+            surface,
+        );
+        push_tri(
+            out,
+            ctx,
+            p0,
+            p2,
+            p3,
+            side_n,
+            base,
+            [side(seg as u32, 0.5), side(seg as u32 + 1, 1.0), side(seg as u32, 1.0)],
+            surface,
+        );
+        push_tri(
+            out,
+            ctx,
+            p4,
+            p5,
+            p1,
+            side_n,
+            base,
+            [side(seg as u32, 0.0), side(seg as u32 + 1, 0.0), side(seg as u32 + 1, 0.5)],
+            surface,
+        );
+        push_tri(
+            out,
+            ctx,
+            p4,
+            p1,
+            p0,
+            side_n,
+            base,
+            [side(seg as u32, 0.0), side(seg as u32 + 1, 0.5), side(seg as u32, 0.5)],
+            surface,
+        );
         let top = [center[0], center[1] + half_h, center[2]];
         let bottom = [center[0], center[1] - half_h, center[2]];
-        push_tri(out, ctx, top, p3, p2, [0.0, 1.0, 0.0], base, [cap(top), cap(p3), cap(p2)], surface);
-        push_tri(out, ctx, bottom, p5, p4, [0.0, -1.0, 0.0], base, [cap(bottom), cap(p5), cap(p4)], surface);
+        push_tri(
+            out,
+            ctx,
+            top,
+            p3,
+            p2,
+            [0.0, 1.0, 0.0],
+            base,
+            [cap(top), cap(p3), cap(p2)],
+            surface,
+        );
+        push_tri(
+            out,
+            ctx,
+            bottom,
+            p5,
+            p4,
+            [0.0, -1.0, 0.0],
+            base,
+            [cap(bottom), cap(p5), cap(p4)],
+            surface,
+        );
     }
 }
 
@@ -1021,9 +1086,24 @@ fn cone_tris(
         );
         let hub = [center[0], center[1], center[2]];
         let cap = |p: [f32; 3]| {
-            crate::gpu_textures::planar_xz_uv(p[0] - center[0], p[2] - center[2], radius, surface.tile)
+            crate::gpu_textures::planar_xz_uv(
+                p[0] - center[0],
+                p[2] - center[2],
+                radius,
+                surface.tile,
+            )
         };
-        push_tri(out, ctx, b0, b1, hub, [0.0, -1.0, 0.0], base, [cap(b0), cap(b1), cap(hub)], surface);
+        push_tri(
+            out,
+            ctx,
+            b0,
+            b1,
+            hub,
+            [0.0, -1.0, 0.0],
+            base,
+            [cap(b0), cap(b1), cap(hub)],
+            surface,
+        );
     }
 }
 
@@ -1054,7 +1134,19 @@ pub fn collect_lit_triangles(
     shadows: bool,
     fill: &[seal_editor_core::probes::Light],
 ) -> Vec<LitTriangle> {
-    collect_lit_scene(marks, yaw_deg, pitch_deg, origin, cell, light_dir, shadows, DEFAULT_SHADOW_MAP_SIZE, fill, false).tris
+    collect_lit_scene(
+        marks,
+        yaw_deg,
+        pitch_deg,
+        origin,
+        cell,
+        light_dir,
+        shadows,
+        DEFAULT_SHADOW_MAP_SIZE,
+        fill,
+        false,
+    )
+    .tris
 }
 
 /// Like `collect_lit_triangles`; with `gpu` the shadows are left to the
@@ -1073,7 +1165,17 @@ pub fn collect_lit_scene(
     gpu: bool,
 ) -> LitScene {
     collect_lit_scene_gi(
-        marks, yaw_deg, pitch_deg, origin, cell, light_dir, shadows, shadow_map_size, fill, gpu, false,
+        marks,
+        yaw_deg,
+        pitch_deg,
+        origin,
+        cell,
+        light_dir,
+        shadows,
+        shadow_map_size,
+        fill,
+        gpu,
+        false,
         1.0,
     )
 }
@@ -1095,11 +1197,7 @@ pub fn collect_lit_scene_gi(
     brightness: f32,
 ) -> LitScene {
     let mut out = Vec::new();
-    let map = if shadows {
-        shadow_map_for(marks, light_dir, shadow_map_size)
-    } else {
-        None
-    };
+    let map = if shadows { shadow_map_for(marks, light_dir, shadow_map_size) } else { None };
     let grid =
         if gi { gi_probe_grid_for(marks, fill, light_dir) } else { probe_grid_for(marks, fill) };
     let ctx = MeshPaintCtx {
@@ -1157,7 +1255,15 @@ fn emit_marks(out: &mut Vec<LitTriangle>, ctx: &MeshPaintCtx, marks: &[GridMark<
                 cone_tris(out, ctx, center, half[0].max(half[2]), half[1] * 2.0, base, &surface);
             }
             MeshPrimitive::Capsule => {
-                capsule_tris(out, ctx, center, half[0].max(half[2]), half[1].max(0.1), base, &surface);
+                capsule_tris(
+                    out,
+                    ctx,
+                    center,
+                    half[0].max(half[2]),
+                    half[1].max(0.1),
+                    base,
+                    &surface,
+                );
             }
         }
     }
@@ -1345,7 +1451,8 @@ mod shadow_tests {
         assert_eq!(ground(3.0, 3.0), 1.0, "open ground is lit");
         assert_eq!(map.lit([0.0, 2.6, 0.0], bias, 1), 1.0, "the box top is lit");
         // Light from the side moves the shadow away from the side the light comes from.
-        let slanted = shadow_map_for(&scene(), [1.0, 1.0, 0.0], DEFAULT_SHADOW_MAP_SIZE).expect("map");
+        let slanted =
+            shadow_map_for(&scene(), [1.0, 1.0, 0.0], DEFAULT_SHADOW_MAP_SIZE).expect("map");
         let b = 1.5 / slanted.size as f32;
         assert!(slanted.lit([-2.0, 0.1, 0.0], b, 1) < 0.5, "shadow falls on the far side");
         assert_eq!(slanted.lit([2.0, 0.1, 0.0], b, 1), 1.0, "near side stays lit");

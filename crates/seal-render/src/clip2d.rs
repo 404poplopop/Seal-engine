@@ -233,6 +233,7 @@ pub struct Baked {
     pub rgba: Vec<u8>,
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn bake(
     target_w: u32,
     target_h: u32,

@@ -229,7 +229,9 @@ pub fn check(key: &str, value: &str) -> Option<&'static str> {
         | "joint_break_torque" | "joint_max_force" | "joint_max_torque" => {
             v.parse::<f32>().is_ok_and(|n| n.is_finite() && n >= 0.0)
         }
-        "joint_correction" => v.parse::<f32>().is_ok_and(|n| n.is_finite() && (0.0..=1.0).contains(&n)),
+        "joint_correction" => {
+            v.parse::<f32>().is_ok_and(|n| n.is_finite() && (0.0..=1.0).contains(&n))
+        }
         "joint_offset" | "joint_target" => parse_pair(v).is_some(),
         _ => return Some("unknown"),
     };
@@ -360,7 +362,6 @@ impl Bodies {
                 constant_force: p.constant_force,
                 constant_torque: p.constant_torque,
                 additional_mass: p.mass,
-                ..Default::default()
             };
             let collider = Collider2D {
                 shape: p.shape.clone(),

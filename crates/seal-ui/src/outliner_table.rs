@@ -4,9 +4,7 @@ use egui::{
     pos2, text::LayoutJob, Align2, Color32, CursorIcon, FontId, Rect, RichText, Sense, Stroke,
     StrokeKind, TextFormat, TextStyle, Ui, WidgetInfo, WidgetType,
 };
-use seal_editor_core::{
-    outliner_drop_verdict, EditorModels, Messages, OutlinerDropMode,
-};
+use seal_editor_core::{outliner_drop_verdict, EditorModels, Messages, OutlinerDropMode};
 
 use crate::look::{ICON_PX, ROW_PX, SMALL_PX, TREE_INDENT_PX};
 use crate::widgets::{filtered_menu, help_focus_ring, row_fill};
@@ -678,14 +676,5 @@ pub fn paint_outliner_row(
     models: &EditorModels,
     messages: &Messages,
 ) -> TreeClick {
-    outliner_row(
-        ui,
-        table,
-        row,
-        extra,
-        panel_focused,
-        scroll_into_view,
-        models,
-        messages,
-    )
+    outliner_row(ui, table, row, extra, panel_focused, scroll_into_view, models, messages)
 }

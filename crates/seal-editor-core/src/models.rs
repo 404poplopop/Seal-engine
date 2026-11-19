@@ -4915,7 +4915,6 @@ fn import_asset(session: &mut EditorSession, args: &CommandArgs) -> Result<(), C
     crate::import_pipeline::begin_import_from_arg(session, raw, args)
 }
 
-
 fn add_entity(session: &mut EditorSession, args: &CommandArgs) -> Result<(), CoreError> {
     editing(session)?;
     let kind = args.get("kind").unwrap_or("empty");
@@ -5114,7 +5113,10 @@ fn set_quality_level_cmd(session: &mut EditorSession, args: &CommandArgs) -> Res
     crate::render_quality::apply_level_to_session(session, &level)
 }
 
-fn set_platform_override_cmd(session: &mut EditorSession, args: &CommandArgs) -> Result<(), CoreError> {
+fn set_platform_override_cmd(
+    session: &mut EditorSession,
+    args: &CommandArgs,
+) -> Result<(), CoreError> {
     let id = required(args, "id")?;
     let platform = required(args, "platform")?;
     if !crate::platform_overrides::platform_id_valid(&platform) {
@@ -5145,7 +5147,10 @@ fn set_platform_override_cmd(session: &mut EditorSession, args: &CommandArgs) ->
     Ok(())
 }
 
-fn set_preview_platform_cmd(session: &mut EditorSession, args: &CommandArgs) -> Result<(), CoreError> {
+fn set_preview_platform_cmd(
+    session: &mut EditorSession,
+    args: &CommandArgs,
+) -> Result<(), CoreError> {
     let platform = required(args, "platform")?;
     if !crate::platform_overrides::platform_id_valid(&platform) {
         return Err(CoreError::new("unknown platform"));
@@ -5558,11 +5563,7 @@ pub(crate) fn past_weight(item: &Past) -> usize {
             change.keeper.len()
                 + change.index_before.len()
                 + change.index_after.len()
-                + change
-                    .removed
-                    .iter()
-                    .map(|(p, b)| p.len() + b.len())
-                    .sum::<usize>()
+                + change.removed.iter().map(|(p, b)| p.len() + b.len()).sum::<usize>()
                 + change
                     .file_snapshots
                     .iter()
@@ -5710,7 +5711,8 @@ fn take_past(bytes: &[u8], offset: &mut usize) -> Option<Past> {
             if *offset + 4 > bytes.len() {
                 return None;
             }
-            let removed_count = u32::from_le_bytes(bytes[*offset..*offset + 4].try_into().ok()?) as usize;
+            let removed_count =
+                u32::from_le_bytes(bytes[*offset..*offset + 4].try_into().ok()?) as usize;
             *offset += 4;
             let mut removed = Vec::with_capacity(removed_count);
             for _ in 0..removed_count {
@@ -5731,7 +5733,8 @@ fn take_past(bytes: &[u8], offset: &mut usize) -> Option<Past> {
             if *offset + 4 > bytes.len() {
                 return None;
             }
-            let file_count = u32::from_le_bytes(bytes[*offset..*offset + 4].try_into().ok()?) as usize;
+            let file_count =
+                u32::from_le_bytes(bytes[*offset..*offset + 4].try_into().ok()?) as usize;
             *offset += 4;
             let mut file_snapshots = Vec::with_capacity(file_count);
             for _ in 0..file_count {
@@ -5811,7 +5814,9 @@ pub fn undo_model(session: &mut EditorSession, past: Past) {
             let _ = session.clear_draft(crate::fx_curve::FX_FIELD_EDIT);
         }
         Past::ImportBatch { .. } => crate::import_presets::undo_import_batch(session, &past),
-        Past::ContentPathChange { .. } => crate::asset_index::undo_content_path_change(session, &past),
+        Past::ContentPathChange { .. } => {
+            crate::asset_index::undo_content_path_change(session, &past)
+        }
         Past::MergeDuplicates { change } => crate::asset_database_ops::undo_merge(session, change),
     }
     session.future.push(past);
@@ -5851,7 +5856,9 @@ pub fn redo_model(session: &mut EditorSession, past: Past) {
             let _ = session.clear_draft(crate::fx_curve::FX_FIELD_EDIT);
         }
         Past::ImportBatch { .. } => crate::import_presets::redo_import_batch(session, &past),
-        Past::ContentPathChange { .. } => crate::asset_index::redo_content_path_change(session, &past),
+        Past::ContentPathChange { .. } => {
+            crate::asset_index::redo_content_path_change(session, &past)
+        }
         Past::MergeDuplicates { change } => crate::asset_database_ops::redo_merge(session, change),
     }
     session.push_past(past);

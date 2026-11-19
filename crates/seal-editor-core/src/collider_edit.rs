@@ -91,8 +91,8 @@ pub(crate) fn outline_cmd(
     let path = root.join(sprite.trim_start_matches(['/', '\\']));
     let (pixels, width, height) =
         decode_picture(&path).ok_or_else(|| CoreError::new("the picture could not be read"))?;
-    let points = seal_world::collider_edit::trace_alpha(&pixels, width, height)
-        .map_err(|m| CoreError::new(m))?;
+    let points =
+        seal_world::collider_edit::trace_alpha(&pixels, width, height).map_err(CoreError::new)?;
     let previous = session.world.to_text();
     let label = session.undo_step_label_now();
     session.push_past(Past::Scene { previous: previous.clone(), next: previous, label });

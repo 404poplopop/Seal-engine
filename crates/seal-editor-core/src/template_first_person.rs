@@ -34,8 +34,9 @@ mod tests {
         let dir = scratch("move");
         crate::project::create_project(&dir, "FPS").unwrap();
         write(&dir, "FPS").unwrap();
-        let mut w = seal_world::World::from_text(&std::fs::read_to_string(dir.join("scene.seal")).unwrap())
-            .unwrap();
+        let mut w =
+            seal_world::World::from_text(&std::fs::read_to_string(dir.join("scene.seal")).unwrap())
+                .unwrap();
         w.project_dir = Some(dir.clone());
         w.play();
         assert_eq!(w.mode, PlayMode::Playing);
@@ -46,7 +47,10 @@ mod tests {
             w.play_keys.push(("SpaceBar".into(), true));
             assert!(w.step(1.0 / 60.0), "{:?}", w.play_log);
             let p = w.entities.iter().find(|e| e.tag == "player").unwrap();
-            if p.translation[2] < 1.5 || p.translation[1] > 1.2 || (p.translation[0] - x0).abs() > 0.2 {
+            if p.translation[2] < 1.5
+                || p.translation[1] > 1.2
+                || (p.translation[0] - x0).abs() > 0.2
+            {
                 moved = true;
             }
         }
@@ -59,8 +63,9 @@ mod tests {
         let dir = scratch("eyes");
         crate::project::create_project(&dir, "FPS").unwrap();
         write(&dir, "FPS").unwrap();
-        let mut w = seal_world::World::from_text(&std::fs::read_to_string(dir.join("scene.seal")).unwrap())
-            .unwrap();
+        let mut w =
+            seal_world::World::from_text(&std::fs::read_to_string(dir.join("scene.seal")).unwrap())
+                .unwrap();
         w.project_dir = Some(dir.clone());
         w.play();
         // Mouse look runs while the right mouse button is held.
@@ -82,8 +87,14 @@ mod tests {
         assert!(player.rotation[1] > 1.0, "player rotation {:?}", player.rotation);
         assert!((cam.rotation[1] - player.rotation[1]).abs() < 5.0, "{:?}", cam.rotation);
         let lift = cam.translation[1] - player.translation[1];
-        let flat = (cam.translation[0] - player.translation[0]).hypot(cam.translation[2] - player.translation[2]);
-        assert!((lift - 0.6).abs() < 0.2 && flat < 0.3, "camera {:?} player {:?}", cam.translation, player.translation);
+        let flat = (cam.translation[0] - player.translation[0])
+            .hypot(cam.translation[2] - player.translation[2]);
+        assert!(
+            (lift - 0.6).abs() < 0.2 && flat < 0.3,
+            "camera {:?} player {:?}",
+            cam.translation,
+            player.translation
+        );
         let _ = std::fs::remove_dir_all(&dir);
     }
 
@@ -98,10 +109,7 @@ mod tests {
         write_shipped(&dir, "first_person").unwrap();
         let mut session = EditorSession::new(Layout::default());
         session
-            .dispatch(
-                "file.open-project",
-                &CommandArgs::new(&[("path", dir.to_str().unwrap())]),
-            )
+            .dispatch("file.open-project", &CommandArgs::new(&[("path", dir.to_str().unwrap())]))
             .unwrap();
         session.world.play();
         session.world.controls.mouse_delta = [40.0, 0.0];

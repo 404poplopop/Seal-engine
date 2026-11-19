@@ -80,7 +80,12 @@ pub fn store(root: &Path, book: &PlatformOverrides) -> Result<(), CoreError> {
     crate::project::set_setting(root, STORE_KEY, SealValue::String(text))
 }
 
-pub fn effective_value(base: &str, book: &PlatformOverrides, setting_id: &str, platform: &str) -> String {
+pub fn effective_value(
+    base: &str,
+    book: &PlatformOverrides,
+    setting_id: &str,
+    platform: &str,
+) -> String {
     book.get(setting_id, platform).unwrap_or(base).to_string()
 }
 
@@ -150,14 +155,8 @@ mod tests {
         let text = to_blob(&book);
         let again = parse_blob(&text).unwrap();
         assert_eq!(again.get("display.width", "android"), Some("720"));
-        assert_eq!(
-            effective_value("1280", &again, "display.width", "android"),
-            "720".to_string()
-        );
-        assert_eq!(
-            effective_value("1280", &again, "display.width", "linux"),
-            "1280".to_string()
-        );
+        assert_eq!(effective_value("1280", &again, "display.width", "android"), "720".to_string());
+        assert_eq!(effective_value("1280", &again, "display.width", "linux"), "1280".to_string());
     }
 
     #[test]

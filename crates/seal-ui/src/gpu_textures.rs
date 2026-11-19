@@ -147,10 +147,9 @@ pub fn format_supported(
 ) -> bool {
     match format {
         GpuBlockFormat::Rgba8 => true,
-        GpuBlockFormat::Bc1 => has_any(
-            extensions,
-            &["EXT_texture_compression_s3tc", "EXT_texture_compression_dxt1"],
-        ),
+        GpuBlockFormat::Bc1 => {
+            has_any(extensions, &["EXT_texture_compression_s3tc", "EXT_texture_compression_dxt1"])
+        }
         GpuBlockFormat::Bc2 | GpuBlockFormat::Bc3 => {
             has_any(extensions, &["EXT_texture_compression_s3tc"])
         }
@@ -163,9 +162,11 @@ pub fn format_supported(
         GpuBlockFormat::Etc2 => {
             let gl43 = !es && (major > 4 || (major == 4 && minor >= 3));
             let es3 = es && major >= 3;
-            gl43
-                || es3
-                || has_any(extensions, &["ARB_ES3_compatibility", "OES_compressed_ETC2_RGB8_texture"])
+            gl43 || es3
+                || has_any(
+                    extensions,
+                    &["ARB_ES3_compatibility", "OES_compressed_ETC2_RGB8_texture"],
+                )
         }
         GpuBlockFormat::Astc4x4 => has_any(
             extensions,
@@ -261,11 +262,7 @@ pub fn anisotropy_level(requested: u32, max_supported: f32, extension: bool) -> 
     if !extension {
         return 1.0;
     }
-    let max = if max_supported.is_finite() && max_supported >= 1.0 {
-        max_supported
-    } else {
-        1.0
-    };
+    let max = if max_supported.is_finite() && max_supported >= 1.0 { max_supported } else { 1.0 };
     (requested.clamp(1, 16) as f32).min(max).max(1.0)
 }
 
@@ -285,13 +282,7 @@ pub fn quad_uvs(tile: [f32; 2]) -> [[f32; 2]; 4] {
 
 /// Longitude / latitude on a sphere, cylinder side or cone (`seg` around, `ring` down).
 pub fn lat_long_uv(seg: u32, segments: u32, ring: u32, rings: u32, tile: [f32; 2]) -> [f32; 2] {
-    tile_uv(
-        [
-            seg as f32 / segments.max(1) as f32,
-            ring as f32 / rings.max(1) as f32,
-        ],
-        tile,
-    )
+    tile_uv([seg as f32 / segments.max(1) as f32, ring as f32 / rings.max(1) as f32], tile)
 }
 
 /// Disc coordinate for a cylinder cap or cone base, `x` and `z` relative to the centre.
@@ -341,17 +332,18 @@ pub fn volume_w(slice: f32, depth: u32) -> f32 {
 /// Shading language 3 and GLES 3 can sample arrays, volumes and cubemaps.
 /// Version 1.x and GLES 2 cannot, so those textures use a flat copy of one layer.
 pub fn real_texture_samplers(shading_language: &str) -> bool {
-    let start = shading_language.find(|c: char| c.is_ascii_digit()).unwrap_or(shading_language.len());
-    let es = shading_language[..start].contains("ES");
+    let start =
+        shading_language.find(|c: char| c.is_ascii_digit()).unwrap_or(shading_language.len());
     let ver = shading_language[start..].split([' ', '\0']).next().unwrap_or("0");
     let major: u32 = ver.split('.').next().unwrap_or("0").parse().unwrap_or(0);
     // Version 1.x and GLES 2 stay on a flat copy. Language 3 and GLES 3 sample the real objects.
-    if es { major >= 3 } else { major >= 3 }
+    major >= 3
 }
 
 /// Vertex and fragment source for one mesh sampler. Tests read this text; the card compiles the same strings.
 pub fn mesh_shader_source(kind: SampleKind, new_interface: bool) -> (String, String) {
-    let (attr, vout, fin) = if new_interface { ("in", "out", "in") } else { ("attribute", "varying", "varying") };
+    let (attr, vout, fin) =
+        if new_interface { ("in", "out", "in") } else { ("attribute", "varying", "varying") };
     let version = if new_interface { "#version 140\n" } else { "#version 120\n" };
     let sample_2d = if new_interface { "texture" } else { "texture2D" };
     let vertex = format!(
@@ -360,10 +352,9 @@ pub fn mesh_shader_source(kind: SampleKind, new_interface: bool) -> (String, Str
          void main() {{ v_color = a_color; v_dark = a_dark; v_shadow = a_shadow; v_tex = a_tex; v_normal = a_normal; gl_Position = vec4(a_pos, 1.0); }}\n"
     );
     let (albedo_uniform, albedo_sample) = match kind {
-        SampleKind::Array => (
-            "uniform sampler2DArray u_albedo;\n",
-            "texture(u_albedo, vec3(v_tex.xy, v_tex.z))",
-        ),
+        SampleKind::Array => {
+            ("uniform sampler2DArray u_albedo;\n", "texture(u_albedo, vec3(v_tex.xy, v_tex.z))")
+        }
         SampleKind::Volume => (
             "uniform sampler3D u_albedo;\nuniform float u_depth;\n",
             "texture(u_albedo, vec3(v_tex.xy, (v_tex.w + 0.5) / u_depth))",
@@ -378,7 +369,11 @@ pub fn mesh_shader_source(kind: SampleKind, new_interface: bool) -> (String, Str
         ),
         SampleKind::None | SampleKind::D2 => (
             "uniform sampler2D u_albedo;\n",
-            if new_interface { "texture(u_albedo, v_tex.xy)" } else { "texture2D(u_albedo, v_tex.xy)" },
+            if new_interface {
+                "texture(u_albedo, v_tex.xy)"
+            } else {
+                "texture2D(u_albedo, v_tex.xy)"
+            },
         ),
     };
     let out_decl = if new_interface { "out vec4 out_color;\n" } else { "" };
@@ -519,7 +514,8 @@ unsafe fn upload_bytes(
     let h = height.max(1) as i32;
     let layers = layers.max(1);
     if format.is_block_compressed() {
-        let internal = compressed_internal_format(format).ok_or("rgba is not a block format")? as i32;
+        let internal =
+            compressed_internal_format(format).ok_or("rgba is not a block format")? as i32;
         if target == glow::TEXTURE_CUBE_MAP {
             let faces = 6usize;
             if layers < 6 {
@@ -719,7 +715,10 @@ fn load_material(root: Option<&Path>, rel: &str) -> Result<Loaded, String> {
                 width = w;
                 height = h;
             } else if w != width || h != height {
-                return Err(format!("texture {rel} picture {} is {w}x{h}, expected {width}x{height}", index + 1));
+                return Err(format!(
+                    "texture {rel} picture {} is {w}x{h}, expected {width}x{height}",
+                    index + 1
+                ));
             }
             rgba.extend(pixels);
         }
@@ -735,16 +734,7 @@ fn load_material(root: Option<&Path>, rel: &str) -> Result<Loaded, String> {
         let blocks = (asset.gpu_format != GpuBlockFormat::Rgba8)
             .then(|| encoded_layers(&full, &files, asset.gpu_format, width, height))
             .flatten();
-        Ok(Loaded {
-            kind,
-            format: asset.gpu_format,
-            width,
-            height,
-            layers,
-            rgba,
-            mtime,
-            blocks,
-        })
+        Ok(Loaded { kind, format: asset.gpu_format, width, height, layers, rgba, mtime, blocks })
     } else {
         let (width, height, rgba) = load_picture(&full)?;
         Ok(Loaded {
@@ -769,7 +759,8 @@ fn pack_for_card(
 ) -> (GpuBlockFormat, Vec<u8>) {
     let path = upload_path(loaded.format, extensions, major, minor, es);
     if path == UploadPath::Compressed && loaded.format != GpuBlockFormat::Rgba8 {
-        let want = level_byte_size(loaded.format, loaded.width, loaded.height) * loaded.layers.max(1) as usize;
+        let want = level_byte_size(loaded.format, loaded.width, loaded.height)
+            * loaded.layers.max(1) as usize;
         // Prefer the blocks Encode for export wrote; otherwise encode once here (fast quality).
         if let Some(blocks) = loaded.blocks.as_ref().filter(|b| b.len() == want) {
             return (loaded.format, blocks.clone());
@@ -862,13 +853,19 @@ pub fn bind_material(
     // `arrays` keeps a cubemap, array or volume on its real target. Otherwise the
     // chosen layer, slice or face is a 2D image, after the real target is uploaded.
     let view = if loaded.kind == SampleKind::D2
-        || (arrays && matches!(loaded.kind, SampleKind::Array | SampleKind::Volume | SampleKind::Cube))
+        || (arrays
+            && matches!(loaded.kind, SampleKind::Array | SampleKind::Volume | SampleKind::Cube))
     {
         "full"
     } else {
         "layer"
     };
-    let key = slot_key(rel, if view == "full" { 0 } else { layer }, if view == "full" { 0 } else { slice.to_bits() as i32 }, view);
+    let key = slot_key(
+        rel,
+        if view == "full" { 0 } else { layer },
+        if view == "full" { 0 } else { slice.to_bits() as i32 },
+        view,
+    );
     let mut guard = cache().lock().unwrap_or_else(|err| err.into_inner());
     if view == "layer" && guard.iter().all(|slot| slot.key != slot_key(rel, 0, 0, "full")) {
         drop(guard);
@@ -896,7 +893,12 @@ fn upload_slot(
     anisotropy: u32,
     view: &str,
 ) -> Option<BoundTexture> {
-    let key = slot_key(rel, if view == "full" { 0 } else { layer }, if view == "full" { 0 } else { slice.to_bits() as i32 }, view);
+    let key = slot_key(
+        rel,
+        if view == "full" { 0 } else { layer },
+        if view == "full" { 0 } else { slice.to_bits() as i32 },
+        view,
+    );
     let mut guard = cache().lock().unwrap_or_else(|err| err.into_inner());
     if let Some(found) = guard.iter().find(|slot| slot.key == key) {
         return Some(BoundTexture {
@@ -920,7 +922,7 @@ fn upload_slot(
         }
         (GpuBlockFormat::Rgba8, loaded.rgba[start..end].to_vec())
     } else {
-        pack_for_card(&loaded, &extensions, major, minor, es)
+        pack_for_card(loaded, &extensions, major, minor, es)
     };
     let target = if view == "layer" {
         glow::TEXTURE_2D
@@ -935,7 +937,9 @@ fn upload_slot(
     let layers = if view == "layer" { 1 } else { loaded.layers };
     let texture = unsafe { gl.create_texture().ok()? };
     unsafe { gl.bind_texture(target, Some(texture)) };
-    if let Err(err) = upload_compressed(gl, target, format, loaded.width, loaded.height, layers, &bytes) {
+    if let Err(err) =
+        upload_compressed(gl, target, format, loaded.width, loaded.height, layers, &bytes)
+    {
         warn_once(rel, &format!("upload failed: {err}"));
         unsafe {
             gl.bind_texture(target, None);
@@ -953,11 +957,7 @@ fn upload_slot(
     Some(BoundTexture { texture, target, kind, slices })
 }
 
-pub fn bind_sky(
-    gl: &glow::Context,
-    root: Option<&Path>,
-    rel: &str,
-) -> Option<BoundTexture> {
+pub fn bind_sky(gl: &glow::Context, root: Option<&Path>, rel: &str) -> Option<BoundTexture> {
     // The cached texture is reused every frame; pictures are only read when it is missing.
     let bound = bind_material(gl, root, rel, 0, 0.0, 1, true)?;
     if bound.kind != SampleKind::Cube {
@@ -1052,12 +1052,19 @@ fn paint_preview(gl: &glow::Context, rgba: &[u8], width: u32, height: u32, forma
         return;
     }
     let (extensions, major, minor, es) = gl_info_parts(gl);
-    let (upload_format, bytes) = if upload_path(format, &extensions, major, minor, es) == UploadPath::Compressed
+    let (upload_format, bytes) = if upload_path(format, &extensions, major, minor, es)
+        == UploadPath::Compressed
         && format == GpuBlockFormat::Bc1
     {
         (
             GpuBlockFormat::Bc1,
-            encode_export_rgba(GpuBlockFormat::Bc1, &["texture_compression_bc"], width, height, &rgba[..need]),
+            encode_export_rgba(
+                GpuBlockFormat::Bc1,
+                &["texture_compression_bc"],
+                width,
+                height,
+                &rgba[..need],
+            ),
         )
     } else {
         (GpuBlockFormat::Rgba8, rgba[..need].to_vec())
@@ -1069,10 +1076,10 @@ fn paint_preview(gl: &glow::Context, rgba: &[u8], width: u32, height: u32, forma
         gl.use_program(Some(state.program));
         gl.bind_vertex_array(Some(state.vao));
         gl.bind_buffer(glow::ARRAY_BUFFER, Some(state.vbo));
-        let quad: [f32; 16] = [
-            -1.0, -1.0, 0.0, 1.0, 1.0, -1.0, 1.0, 1.0, -1.0, 1.0, 0.0, 0.0, 1.0, 1.0, 1.0, 0.0,
-        ];
-        let bytes = std::slice::from_raw_parts(quad.as_ptr().cast::<u8>(), std::mem::size_of_val(&quad));
+        let quad: [f32; 16] =
+            [-1.0, -1.0, 0.0, 1.0, 1.0, -1.0, 1.0, 1.0, -1.0, 1.0, 0.0, 0.0, 1.0, 1.0, 1.0, 0.0];
+        let bytes =
+            std::slice::from_raw_parts(quad.as_ptr().cast::<u8>(), std::mem::size_of_val(&quad));
         gl.buffer_data_u8_slice(glow::ARRAY_BUFFER, bytes, glow::STREAM_DRAW);
         gl.enable_vertex_attrib_array(0);
         gl.vertex_attrib_pointer_f32(0, 2, glow::FLOAT, false, 16, 0);
@@ -1094,7 +1101,8 @@ fn paint_preview(gl: &glow::Context, rgba: &[u8], width: u32, height: u32, forma
 fn build_preview(gl: &glow::Context) -> Result<PreviewState, String> {
     let version = egui_glow::ShaderVersion::get(gl);
     let new = version.is_new_shader_interface();
-    let (attr, vout, fin) = if new { ("in", "out", "in") } else { ("attribute", "varying", "varying") };
+    let (attr, vout, fin) =
+        if new { ("in", "out", "in") } else { ("attribute", "varying", "varying") };
     let precision = if version.is_embedded() { "precision mediump float;\n" } else { "" };
     let tex = if new { "texture" } else { "texture2D" };
     let vs = format!(
@@ -1181,8 +1189,14 @@ mod tests {
         let es3 = ext(&["ARB_ES3_compatibility"]);
         assert_eq!(upload_path(GpuBlockFormat::Etc2, &es3, 3, 3, false), UploadPath::Compressed);
         let astc = ext(&["KHR_texture_compression_astc_ldr"]);
-        assert_eq!(upload_path(GpuBlockFormat::Astc4x4, &astc, 3, 3, false), UploadPath::Compressed);
-        assert_eq!(upload_path(GpuBlockFormat::Astc4x4, &none, 4, 6, false), UploadPath::DecodeRgba8);
+        assert_eq!(
+            upload_path(GpuBlockFormat::Astc4x4, &astc, 3, 3, false),
+            UploadPath::Compressed
+        );
+        assert_eq!(
+            upload_path(GpuBlockFormat::Astc4x4, &none, 4, 6, false),
+            UploadPath::DecodeRgba8
+        );
     }
 
     #[test]
@@ -1272,7 +1286,11 @@ mod tests {
         let (_vs, flat) = mesh_shader_source(SampleKind::D2, true);
         assert!(flat.contains("uniform sampler2D u_albedo"));
         assert!(flat.contains("texture(u_albedo, v_tex.xy)"));
-        assert!(!flat.contains("sampler2DArray") && !flat.contains("sampler3D") && !flat.contains("samplerCube"));
+        assert!(
+            !flat.contains("sampler2DArray")
+                && !flat.contains("sampler3D")
+                && !flat.contains("samplerCube")
+        );
         let (_vs, array) = mesh_shader_source(SampleKind::Array, true);
         assert!(array.contains("uniform sampler2DArray u_albedo"));
         assert!(array.contains("vec3(v_tex.xy, v_tex.z)"));

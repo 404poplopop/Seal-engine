@@ -88,7 +88,7 @@ fn ds4_cal(wire: Wire, pitch_plus: i16, pitch_minus: i16) -> Vec<u8> {
 }
 
 fn expect_deg(raw: i16, plus: i16, minus: i16) -> f64 {
-    let denom = (i32::from(plus) - 0).abs() + (i32::from(minus) - 0).abs();
+    let denom = i32::from(plus).abs() + i32::from(minus).abs();
     let counts = 200i64 * 1024 * i64::from(raw) / i64::from(denom);
     counts as f64 / 1024.0 * PI / 180.0
 }
@@ -281,10 +281,10 @@ fn notes_name_an_unsupported_pad_and_a_missing_one() {
 #[test]
 fn a_damaged_report_descriptor_is_rejected() {
     let gamepad = [0x05, 0x01, 0x09, 0x05, 0xA1, 0x01, 0xC0];
-    assert_eq!(descriptor_is_gamepad(&gamepad).unwrap(), true);
+    assert!(descriptor_is_gamepad(&gamepad).unwrap());
     let keyboard = [0x05, 0x01, 0x09, 0x06, 0xA1, 0x01, 0xC0];
-    assert_eq!(descriptor_is_gamepad(&keyboard).unwrap(), false);
-    assert_eq!(descriptor_is_gamepad(&[]).unwrap(), false);
+    assert!(!descriptor_is_gamepad(&keyboard).unwrap());
+    assert!(!descriptor_is_gamepad(&[]).unwrap());
     assert!(descriptor_is_gamepad(&[0x05]).is_err());
     assert!(descriptor_is_gamepad(&[0x06, 0x00]).is_err());
 }

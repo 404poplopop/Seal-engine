@@ -4,6 +4,7 @@ description = "Data-parallel kernels: one IR, a CPU backend that runs in blocks 
 version.workspace = true
 edition.workspace = true
 license.workspace = true
+publish.workspace = true
 authors.workspace = true
 
 [dependencies]

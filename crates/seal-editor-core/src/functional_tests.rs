@@ -140,7 +140,8 @@ impl TestScript {
 
 /// Read a test script. Garbage and the wrong schema are errors.
 pub fn load_script(text: &str) -> Result<TestScript, String> {
-    let value = seal_sealtext::parse(text).map_err(|err| format!("line {}: {}", err.line, err.message))?;
+    let value =
+        seal_sealtext::parse(text).map_err(|err| format!("line {}: {}", err.line, err.message))?;
     if value.as_map().is_none() {
         return Err("a test script must be a map".into());
     }
@@ -163,7 +164,9 @@ pub fn load_script(text: &str) -> Result<TestScript, String> {
     let frames = match value.get("frames") {
         None => 1,
         Some(SealValue::Number(text)) => {
-            let frames = text.parse::<u32>().map_err(|_| format!("frames `{text}` is not a whole number"))?;
+            let frames = text
+                .parse::<u32>()
+                .map_err(|_| format!("frames `{text}` is not a whole number"))?;
             if frames == 0 || frames > MAX_FRAMES {
                 return Err(format!("frames must be from 1 to {MAX_FRAMES}"));
             }
@@ -340,13 +343,16 @@ pub struct ListedTest {
 /// Every `.sealtest` file under the project, in path order.
 pub fn list_tests(root: &Path) -> Vec<ListedTest> {
     let mut paths = Vec::new();
-    collect_tests(root, root, &mut paths);
+    collect_tests(root, &mut paths);
     paths.sort();
     paths
         .into_iter()
         .map(|path| {
             let rel = path.strip_prefix(root).unwrap_or(&path).to_string_lossy().replace('\\', "/");
-            match fs::read_to_string(&path).map_err(|err| err.to_string()).and_then(|text| load_script(&text)) {
+            match fs::read_to_string(&path)
+                .map_err(|err| err.to_string())
+                .and_then(|text| load_script(&text))
+            {
                 Ok(script) => {
                     let name = if script.name.is_empty() { rel.clone() } else { script.name };
                     ListedTest { path: rel, name, problem: None }
@@ -357,7 +363,7 @@ pub fn list_tests(root: &Path) -> Vec<ListedTest> {
         .collect()
 }
 
-fn collect_tests(root: &Path, dir: &Path, out: &mut Vec<PathBuf>) {
+fn collect_tests(dir: &Path, out: &mut Vec<PathBuf>) {
     let Ok(entries) = fs::read_dir(dir) else {
         return;
     };
@@ -370,8 +376,11 @@ fn collect_tests(root: &Path, dir: &Path, out: &mut Vec<PathBuf>) {
             continue;
         }
         if path.is_dir() {
-            collect_tests(root, &path, out);
-        } else if path.extension().and_then(|ext| ext.to_str()).is_some_and(|ext| ext.eq_ignore_ascii_case(EXT))
+            collect_tests(&path, out);
+        } else if path
+            .extension()
+            .and_then(|ext| ext.to_str())
+            .is_some_and(|ext| ext.eq_ignore_ascii_case(EXT))
         {
             out.push(path);
         }
@@ -464,8 +473,8 @@ fn check_node(world: &World, node: &AssertNode) -> Result<(), String> {
     let Some(entity) = find_object(world, &node.object) else {
         return Err(format!("{}: no object with that name", node.object));
     };
-    let actual = read_property(entity, &node.property)
-        .map_err(|err| format!("node {}: {err}", node.id))?;
+    let actual =
+        read_property(entity, &node.property).map_err(|err| format!("node {}: {err}", node.id))?;
     let matched = compare_values(node.op, &actual, &node.expected)
         .map_err(|err| format!("{}.{}: {err}", node.object, node.property))?;
     if matched {
@@ -497,7 +506,13 @@ fn read_property(entity: &Entity, property: &str) -> Result<String, String> {
         "z" => format_number(entity.translation[2]),
         "name" => entity.name.clone(),
         "tag" => entity.tag.clone(),
-        "hidden" => if entity.hidden { "true".into() } else { "false".into() },
+        "hidden" => {
+            if entity.hidden {
+                "true".into()
+            } else {
+                "false".into()
+            }
+        }
         other => return Err(format!("unknown property {other}")),
     })
 }
@@ -505,7 +520,11 @@ fn read_property(entity: &Entity, property: &str) -> Result<String, String> {
 fn format_number(value: f32) -> String {
     let text = format!("{value:.4}");
     let trimmed = text.trim_end_matches('0').trim_end_matches('.');
-    if trimmed.is_empty() { "0".into() } else { trimmed.to_string() }
+    if trimmed.is_empty() {
+        "0".into()
+    } else {
+        trimmed.to_string()
+    }
 }
 
 fn compare_values(op: Compare, actual: &str, expected: &str) -> Result<bool, String> {
@@ -616,7 +635,9 @@ fn cmd_set(session: &mut EditorSession, args: &CommandArgs) -> Result<(), CoreEr
             script.scene = value.trim().replace('\\', "/");
         }
         "frames" => {
-            let frames = value.parse::<u32>().map_err(|_| CoreError::new("frames must be a whole number"))?;
+            let frames = value
+                .parse::<u32>()
+                .map_err(|_| CoreError::new("frames must be a whole number"))?;
             if frames == 0 || frames > MAX_FRAMES {
                 return Err(CoreError::new(format!("frames must be from 1 to {MAX_FRAMES}")));
             }
@@ -883,9 +904,7 @@ nodes = [ { id = 1, kind = "nope", object = "A", property = "x", op = "eq", valu
             },
         );
         let mut session = open(root);
-        session
-            .dispatch("tests.run", &CommandArgs::new(&[("junit", "report.xml")]))
-            .unwrap();
+        session.dispatch("tests.run", &CommandArgs::new(&[("junit", "report.xml")])).unwrap();
         let stored = session.models.panel_states.get(RESULTS_KEY).cloned().unwrap();
         let again = SuiteReport::from_state(&stored).unwrap();
         assert!(again.cases.iter().any(|case| case.passed && case.name == "marker moves"));
@@ -894,7 +913,10 @@ nodes = [ { id = 1, kind = "nope", object = "A", property = "x", op = "eq", valu
         session.save_panel_state(&state).unwrap();
         let mut loaded = EditorSession::new(Layout::default());
         loaded.load_panel_state(&state).unwrap();
-        assert_eq!(loaded.models.panel_states.get(RESULTS_KEY).map(String::as_str), Some(stored.as_str()));
+        assert_eq!(
+            loaded.models.panel_states.get(RESULTS_KEY).map(String::as_str),
+            Some(stored.as_str())
+        );
     }
 
     #[test]
@@ -931,8 +953,8 @@ nodes = [ { id = 1, kind = "nope", object = "A", property = "x", op = "eq", valu
             let raw = &text[i + 1..i + end];
             i += end + 1;
             let body = raw.trim();
-            if body.starts_with('/') {
-                let name = body[1..].split_whitespace().next().unwrap_or("");
+            if let Some(rest) = body.strip_prefix('/') {
+                let name = rest.split_whitespace().next().unwrap_or("");
                 if stack.pop().as_deref() != Some(name) {
                     return false;
                 }

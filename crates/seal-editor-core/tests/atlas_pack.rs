@@ -157,7 +157,7 @@ fn turned_sprites_sample_the_picture_and_use_less_page() {
     let turned = pack_turning(&sizes, 100);
     let area = |pages: &[(u32, u32)]| pages.iter().map(|(w, h)| w * h).sum::<u32>();
     assert!(area(&turned.pages) < area(&plain_pages), "{:?} vs {:?}", turned.pages, plain_pages);
-    assert_eq!(turned.spots[0].unwrap().turned, false);
+    assert!(!turned.spots[0].unwrap().turned);
     assert!(turned.spots[1].unwrap().turned);
 
     let root = scratch("turn");

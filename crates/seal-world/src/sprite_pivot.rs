@@ -32,7 +32,7 @@ pub fn parse_pivot(text: &str) -> Option<[f32; 2]> {
         }
     }
     let parts: Vec<f32> = v
-        .split(|c| c == ',' || c == ' ')
+        .split([',', ' '])
         .filter_map(|p| p.trim().parse::<f32>().ok())
         .filter(|n: &f32| n.is_finite())
         .collect();

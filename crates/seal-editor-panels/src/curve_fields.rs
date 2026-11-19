@@ -281,6 +281,7 @@ fn gradient_edit(
     )
 }
 
+#[allow(clippy::too_many_arguments)]
 fn field_edit(
     session: &EditorSession,
     rel: &str,

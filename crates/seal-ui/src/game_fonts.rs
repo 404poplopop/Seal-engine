@@ -9,7 +9,10 @@ use egui::epaint::text::{FontInsert, FontPriority, InsertFontFamily};
 use egui::{FontData, FontFamily};
 
 #[derive(Clone, Default)]
-struct Loaded(Arc<Mutex<HashMap<String, (Option<SystemTime>, Option<String>)>>>);
+struct Loaded(Arc<Mutex<FontSlots>>);
+
+/// Font path to its file time and the family name it was added under.
+type FontSlots = HashMap<String, (Option<SystemTime>, Option<String>)>;
 
 /// The family to draw text in `path` (an absolute font file path) with.
 /// `None` means use the built-in font: the path is empty, missing, not a font

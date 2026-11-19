@@ -156,8 +156,8 @@ fn masked_rgba(
     let expect = (width as usize).saturating_mul(height as usize).saturating_mul(4);
     let raw = data.get(..expect).ok_or_else(|| PictureError::new("the picture is truncated"))?;
     let mut out = Vec::with_capacity(expect);
-    for pixel in raw.chunks_exact(4) {
-        let value = u32::from_le_bytes(pixel.try_into().unwrap());
+    for pixel in raw.as_chunks::<4>().0 {
+        let value = u32::from_le_bytes(*pixel);
         let channel = |mask: u32, missing: u8| -> u8 {
             if mask == 0 {
                 return missing;

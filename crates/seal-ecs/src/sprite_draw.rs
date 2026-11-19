@@ -69,7 +69,7 @@ impl LayerSortMode {
 /// Project setting `sprites.sort_axis`: x and y weights for axis sorting.
 pub fn parse_sort_axis(text: &str) -> [f32; 2] {
     let parts: Vec<f32> = text
-        .split(|c| c == ',' || c == ' ')
+        .split([',', ' '])
         .filter_map(|p| p.trim().parse::<f32>().ok())
         .filter(|v: &f32| v.is_finite())
         .collect();

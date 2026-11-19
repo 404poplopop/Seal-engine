@@ -11,22 +11,6 @@ pub fn write_all(folder: &Path) -> Result<(), CoreError> {
     Ok(())
 }
 
-#[cfg(test)]
-mod tests {
-    use super::GRAPHS;
-
-    #[test]
-    fn every_template_graph_builds() {
-        for (name, body) in GRAPHS {
-            let graph =
-                seal_graph::Graph::from_text(body).unwrap_or_else(|e| panic!("{name}: {e}"));
-            if let Err(errors) = seal_graph::Program::build(&graph) {
-                panic!("{name}: {errors:?}");
-            }
-        }
-    }
-}
-
 const GRAPHS: &[(&str, &str)] = &[
     ("player", PLAYER),
     ("pickup", PICKUP),
@@ -480,3 +464,19 @@ links = [
   "110.then -> 111.in",
 ]
 "#;
+
+#[cfg(test)]
+mod tests {
+    use super::GRAPHS;
+
+    #[test]
+    fn every_template_graph_builds() {
+        for (name, body) in GRAPHS {
+            let graph =
+                seal_graph::Graph::from_text(body).unwrap_or_else(|e| panic!("{name}: {e}"));
+            if let Err(errors) = seal_graph::Program::build(&graph) {
+                panic!("{name}: {errors:?}");
+            }
+        }
+    }
+}

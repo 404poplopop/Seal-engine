@@ -19,7 +19,8 @@ fn scratch() -> PathBuf {
     )
     .unwrap();
     fs::write(dir.join("scene.seal"), "scene\n").unwrap();
-    fs::write(dir.join("marker.scene"), seal_editor_core::World::empty_scene_text("Marker")).unwrap();
+    fs::write(dir.join("marker.scene"), seal_editor_core::World::empty_scene_text("Marker"))
+        .unwrap();
     fs::create_dir_all(dir.join("tests")).unwrap();
     let pass = TestScript {
         name: "marker holds".into(),
@@ -74,9 +75,8 @@ fn apply(session: &mut EditorSession, event: PanelEvent) {
 #[test]
 fn kittest_runs_the_panel_and_shows_the_failure() {
     let dir = scratch();
-    let mut harness = Harness::<EditorSession>::builder()
-        .with_size(egui::vec2(960.0, 1400.0))
-        .build_ui_state(
+    let mut harness =
+        Harness::<EditorSession>::builder().with_size(egui::vec2(960.0, 1400.0)).build_ui_state(
             |ui, session| {
                 let mut frame = seal_ui::PanelFrame::new(ui);
                 let event = seal_editor_panels::show(&mut frame, "test-runner", session);

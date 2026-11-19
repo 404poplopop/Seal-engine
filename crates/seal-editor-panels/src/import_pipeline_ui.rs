@@ -24,11 +24,9 @@ pub fn section(frame: &mut PanelFrame, session: &mut EditorSession) -> PanelEven
         .collect();
     let kind_refs: Vec<(&str, String)> =
         kind_options.iter().map(|(id, label)| (id.as_str(), label.clone())).collect();
-    if let Some(picked) = frame.choice(
-        &session.messages.get("import-pipeline-kind"),
-        &kind,
-        &kind_refs,
-    ) {
+    if let Some(picked) =
+        frame.choice(&session.messages.get("import-pipeline-kind"), &kind, &kind_refs)
+    {
         if picked != kind {
             let _ = session.set_draft("import-pipeline-kind", &picked);
         }
@@ -43,13 +41,14 @@ pub fn section(frame: &mut PanelFrame, session: &mut EditorSession) -> PanelEven
     graph_options.extend(graphs.iter().cloned().map(|path| (path.clone(), path)));
     let graph_refs: Vec<(&str, String)> =
         graph_options.iter().map(|(id, label)| (id.as_str(), label.clone())).collect();
-    if let Some(picked) = frame.choice(
-        &session.messages.get("import-pipeline-graph"),
-        current,
-        &graph_refs,
-    ) {
+    if let Some(picked) =
+        frame.choice(&session.messages.get("import-pipeline-graph"), current, &graph_refs)
+    {
         if picked != current {
-            event = command("import.script.set", &[("kind", kind.as_str()), ("graph", picked.as_str())]);
+            event = command(
+                "import.script.set",
+                &[("kind", kind.as_str()), ("graph", picked.as_str())],
+            );
         }
     }
     if current.is_empty() && frame.button(&session.messages.get("import-pipeline-create")) {
@@ -188,6 +187,10 @@ trait OrKeep {
 
 impl OrKeep for PanelEvent {
     fn or_keep(self, previous: PanelEvent) -> PanelEvent {
-        if matches!(self, PanelEvent::None) { previous } else { self }
+        if matches!(self, PanelEvent::None) {
+            previous
+        } else {
+            self
+        }
     }
 }

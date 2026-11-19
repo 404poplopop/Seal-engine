@@ -11,24 +11,9 @@ use crate::texture_asset_cmd::{
 type CommandFn = fn(&mut EditorSession, &CommandArgs) -> Result<(), CoreError>;
 
 pub const COMMANDS: &[(&str, &str, &str, CommandFn)] = &[
-    (
-        "asset.texture_array_new",
-        "command-asset-texture-array-new",
-        "file",
-        texture_array_new,
-    ),
-    (
-        "asset.texture_volume_new",
-        "command-asset-texture-volume-new",
-        "file",
-        texture_volume_new,
-    ),
-    (
-        "asset.texture_cubemap_new",
-        "command-asset-texture-cubemap-new",
-        "file",
-        texture_cubemap_new,
-    ),
+    ("asset.texture_array_new", "command-asset-texture-array-new", "file", texture_array_new),
+    ("asset.texture_volume_new", "command-asset-texture-volume-new", "file", texture_volume_new),
+    ("asset.texture_cubemap_new", "command-asset-texture-cubemap-new", "file", texture_cubemap_new),
     ("asset.texture_set", "command-asset-texture-set", "edit", texture_set),
     (
         "asset.texture_export_encode",

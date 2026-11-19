@@ -14,15 +14,9 @@ use crate::{Entity, World};
 const MARKER: &str = ".seal-objects";
 
 /// Scene resource. Present only when each top-level object is stored in its own file.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Default)]
 pub struct ObjectFiles {
     pub on: bool,
-}
-
-impl Default for ObjectFiles {
-    fn default() -> Self {
-        Self { on: false }
-    }
 }
 
 seal_ecs::text_component!(ObjectFiles as "object_files" { on });
@@ -135,11 +129,8 @@ fn subtree(entities: &[Entity], root: &str) -> Vec<Entity> {
         }
         i += 1;
     }
-    let mut rows: Vec<Entity> = entities
-        .iter()
-        .filter(|entity| ids.iter().any(|id| id == &entity.id))
-        .cloned()
-        .collect();
+    let mut rows: Vec<Entity> =
+        entities.iter().filter(|entity| ids.iter().any(|id| id == &entity.id)).cloned().collect();
     if rows.iter().any(|entity| entity.parent.as_deref() == Some("root")) {
         if let Some(root_entity) = entities.iter().find(|entity| entity.id == "root") {
             if rows.iter().all(|entity| entity.id != "root") {
@@ -216,8 +207,10 @@ fn join(path: &Path, text: &str) -> Result<String, String> {
             return Err(format!("damaged object file {file}"));
         }
         let full = folder.join(file);
-        let part = std::fs::read_to_string(&full).map_err(|_| format!("damaged object file {file}"))?;
-        let loaded = World::from_text(&part).map_err(|err| format!("damaged object file {file}: {err}"))?;
+        let part =
+            std::fs::read_to_string(&full).map_err(|_| format!("damaged object file {file}"))?;
+        let loaded =
+            World::from_text(&part).map_err(|err| format!("damaged object file {file}: {err}"))?;
         for entity in loaded.entities {
             if !by_id.iter().any(|have| have.id == entity.id) {
                 by_id.push(entity);

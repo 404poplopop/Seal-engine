@@ -1,24 +1,20 @@
 //! Built-in panels. Later milestones fill these in. The ids are stable.
 #![forbid(unsafe_code)]
 
+mod anim_event_ui;
 mod asset_panel;
 mod build_panel;
-mod texture_asset_panel;
-mod mesh_material_ui;
+mod cam_drag_view;
 mod character2d_ui;
-mod remote_transform_ui;
-mod undo_history_panel;
-mod soundset_panel;
-mod strings_panel;
-mod socket_field;
+mod collider_edit;
 mod curve_fields;
+mod data_asset_inspector;
 mod export_panel;
-mod import_preset_ui;
-mod naming_rules_ui;
-mod import_platform_ui;
-mod settings_platform;
-mod import_pipeline_ui;
+mod graph_inspector_layout;
 mod import_activity_panel;
+mod import_pipeline_ui;
+mod import_platform_ui;
+mod import_preset_ui;
 mod input_devices_ui;
 mod inspector_audio_listener;
 mod inspector_component_menu;
@@ -29,27 +25,31 @@ mod inspector_property_menu;
 mod layered_picture_panel;
 mod light2d_view;
 mod measure_tool;
+mod merged_view;
+mod mesh_material_ui;
+mod naming_rules_ui;
 mod outliner_menu;
 mod particle_viewport;
+mod recipes_panel;
 mod reference_viewer_panel;
+mod remote_transform_ui;
+mod settings_platform;
 mod shape_style_ui;
 mod sheet_editor;
+mod socket_field;
+mod soundset_panel;
 mod sprite_shape;
 mod sprite_source_panel;
 mod sprite_viewport;
+mod strings_panel;
+mod test_runner_panel;
+mod texture_asset_panel;
 mod tile_brush;
 mod tile_inspector;
-mod data_asset_inspector;
-mod graph_inspector_layout;
-mod collider_edit;
+mod tutorial_panel;
+mod undo_history_panel;
 mod viewport_menu;
 mod viewport_multi;
-mod test_runner_panel;
-mod merged_view;
-mod anim_event_ui;
-mod cam_drag_view;
-mod recipes_panel;
-mod tutorial_panel;
 
 use seal_editor_core::{
     collect_log_lines, content_tree_rows, panel_base, read_recent, wizard_name, CommandArgs,
@@ -72,11 +72,11 @@ pub const PLACE: &str = "place";
 pub const WORLD: &str = "world";
 pub const STATS: &str = "stats";
 pub const PHYSICS2D_PROFILER: &str = "physics2d-profiler";
-mod physics2d_profiler;
 mod fx_extra_fields;
+mod physics2d_profiler;
+mod physics_panel;
 mod timeline_props;
 mod ui_designer;
-mod physics_panel;
 pub const RECOVERY: &str = "recovery";
 pub const COMMANDS: &str = "commands";
 pub const NOTICES: &str = "notices";
@@ -1282,7 +1282,7 @@ fn outliner(frame: &mut PanelFrame, session: &mut EditorSession, panel_id: &str)
                 false,
                 &session.models,
                 &session.messages,
-                            ) {
+            ) {
                 TreeClick::Select => row_event = command("outliner.select", &args),
                 TreeClick::SelectExtend => row_event = command("outliner.select-extend", &args),
                 TreeClick::SelectRange => row_event = command("outliner.range_select", &args),
@@ -1454,7 +1454,7 @@ fn outliner(frame: &mut PanelFrame, session: &mut EditorSession, panel_id: &str)
             scroll_into_view,
             &session.models,
             &session.messages,
-                    ) {
+        ) {
             TreeClick::Select => row_event = command("outliner.select", &args),
             TreeClick::SelectExtend => row_event = command("outliner.select-extend", &args),
             TreeClick::SelectRange => row_event = command("outliner.range_select", &args),
@@ -1709,9 +1709,9 @@ fn inspector(frame: &mut PanelFrame, session: &EditorSession, panel_id: &str) ->
     });
     let visible = |label_key: &str, fields: &[&str]| {
         inspector_visible(session, label_key, fields, &targets)
-            && fields.iter().all(|field| {
-                !script_layout.as_ref().is_some_and(|layout| layout.is_hidden(field))
-            })
+            && fields
+                .iter()
+                .all(|field| !script_layout.as_ref().is_some_and(|layout| layout.is_hidden(field)))
     };
     let has_shape = targets
         .iter()
@@ -1903,7 +1903,7 @@ fn inspector(frame: &mut PanelFrame, session: &EditorSession, panel_id: &str) ->
                                 let tip_refs =
                                     [tips[0].as_str(), tips[1].as_str(), tips[2].as_str()];
                                 let degree = inspector_field_row::rotation_unit_key("rx")
-                                    .map(|id| text(id))
+                                    .map(text)
                                     .unwrap_or_else(|| text("inspector-unit-degrees"));
                                 let (changed, reset, commit_focus) = frame.rotation_row(
                                     &text("inspector-rotation"),
@@ -2206,11 +2206,7 @@ fn inspector(frame: &mut PanelFrame, session: &EditorSession, panel_id: &str) ->
                                 }
                             }
                             mesh_material_ui::paint(
-                                frame,
-                                session,
-                                &targets,
-                                set_target,
-                                &mut event,
+                                frame, session, &targets, set_target, &mut event,
                             );
                             inspector_panel::inspector_section_advanced(
                                 frame,
@@ -2436,8 +2432,9 @@ fn inspector(frame: &mut PanelFrame, session: &EditorSession, panel_id: &str) ->
                         inspector_section_open(session, "inspector-audio-listener"),
                         |frame| {
                             let ids: Vec<&str> = targets.iter().map(|n| n.id.as_str()).collect();
-                            let picked =
-                                inspector_audio_listener::audio_listener_section(frame, session, &ids);
+                            let picked = inspector_audio_listener::audio_listener_section(
+                                frame, session, &ids,
+                            );
                             if !matches!(picked, PanelEvent::None) {
                                 event = picked;
                             }
@@ -4785,8 +4782,11 @@ fn content_tiles(
                 text("content-menu-find-references"),
                 command("asset.find_references", &[("path", it.rel.as_str())]),
             ));
-            if !seal_editor_core::asset_database_ops::duplicate_paths(&session.models.asset_index, &it.rel)
-                .is_empty()
+            if !seal_editor_core::asset_database_ops::duplicate_paths(
+                &session.models.asset_index,
+                &it.rel,
+            )
+            .is_empty()
             {
                 extra.push((
                     text("content-menu-merge-duplicates"),
@@ -5511,9 +5511,8 @@ fn viewport(frame: &mut PanelFrame, session: &mut EditorSession, panel_id: &str)
         maximize: tip_maximize.as_str(),
     };
     // Play in the Perspective view looks through the scene's play camera, like the game.
-    let look = (models.viewport_view == "perspective")
-        .then(|| session.world.play_look_camera())
-        .flatten();
+    let look =
+        (models.viewport_view == "perspective").then(|| session.world.play_look_camera()).flatten();
     session.world.set_look_camera(look.is_some());
     let game_view = session.game_view || look.is_some();
     let tip_expand = text("viewport-menu-overlay-collapse-toolbar");
@@ -6113,25 +6112,25 @@ fn viewport(frame: &mut PanelFrame, session: &mut EditorSession, panel_id: &str)
     // Live particles from play, drawn as small round dots that cannot be picked.
     let mut marks = marks;
     let post = if flat_side {
-        seal_editor_core::post_volume::resolve(&session.world.entities, view_center, &session.world.glow)
+        seal_editor_core::post_volume::resolve(
+            &session.world.entities,
+            view_center,
+            &session.world.glow,
+        )
     } else {
         seal_editor_core::post_volume::Resolved::off(&session.world.glow)
     };
     if post.active {
         for mark in &mut marks {
             mark.tint = grade_channels(mark.tint, &post);
-            let rgb = grade_channels([mark.sprite_tint[0], mark.sprite_tint[1], mark.sprite_tint[2]], &post);
+            let rgb = grade_channels(
+                [mark.sprite_tint[0], mark.sprite_tint[1], mark.sprite_tint[2]],
+                &post,
+            );
             mark.sprite_tint = [rgb[0], rgb[1], rgb[2], mark.sprite_tint[3]];
         }
     }
-    marks.extend(merged_view::extra_marks(
-        &shown,
-        across,
-        up,
-        depth_axis,
-        flip_across,
-        flip_up,
-    ));
+    marks.extend(merged_view::extra_marks(&shown, across, up, depth_axis, flip_across, flip_up));
     if flat_side {
         let reach = 70.0 / camera.zoom.max(0.25);
         let copies: Vec<GridMark> = shown
@@ -6149,10 +6148,7 @@ fn viewport(frame: &mut PanelFrame, session: &mut EditorSession, panel_id: &str)
         .collect();
     for (id, emitter) in &session.world.emitters {
         let root = session.project.as_ref().map(|p| p.root.as_path());
-        let material = session
-            .world
-            .entity(id)
-            .and_then(|e| material_mark(session, e));
+        let material = session.world.entity(id).and_then(|e| material_mark(session, e));
         marks.extend(particle_viewport::particle_marks(
             emitter,
             across,
@@ -6183,13 +6179,9 @@ fn viewport(frame: &mut PanelFrame, session: &mut EditorSession, panel_id: &str)
                 models.viewport_zoom,
                 entity.camera2d.zoom,
             );
-            if let Some(mark) = cam_drag_view::mark(
-                entity,
-                half,
-                [across, up],
-                [flip_across, flip_up],
-                depth_axis,
-            ) {
+            if let Some(mark) =
+                cam_drag_view::mark(entity, half, [across, up], [flip_across, flip_up], depth_axis)
+            {
                 marks.push(mark);
             }
             for gizmo in seal_editor_core::area_effect::gizmos(entity) {
@@ -6334,7 +6326,7 @@ fn viewport(frame: &mut PanelFrame, session: &mut EditorSession, panel_id: &str)
         seal_ui::GridViewOptions {
             stats_overlay: overlay.as_deref().filter(|_| !game_view),
             stats_overlay_edge: stats_edge,
-            scene_caption: Some(caption.as_str()).filter(|_| !game_view),
+            scene_caption: (!game_view).then_some(caption.as_str()),
             game_view,
             play_badge: play_badge.as_ref().map(|(label, running)| (label.as_str(), *running)),
             game_ui: &game_ui,
@@ -6886,14 +6878,9 @@ fn setting_options(session: &EditorSession, id: &str) -> Vec<(&'static str, Stri
             .collect(),
         id if id == seal_editor_core::QUALITY_LEVEL => ["low", "medium", "high", "ultra"]
             .into_iter()
-            .map(|value| {
-                (
-                    value,
-                    session.messages.get(&format!("quality-level-{value}")),
-                )
-            })
+            .map(|value| (value, session.messages.get(&format!("quality-level-{value}"))))
             .collect(),
-        id if id == "rendering.glow" => ["true", "false"]
+        "rendering.glow" => ["true", "false"]
             .into_iter()
             .map(|value| (value, session.messages.get(&format!("setting-flag-{value}"))))
             .collect(),
@@ -6903,11 +6890,11 @@ fn setting_options(session: &EditorSession, id: &str) -> Vec<(&'static str, Stri
             .collect(),
         id if id == seal_editor_core::EDITOR_LANGUAGE_SETTING => seal_editor_core::EDITOR_LANGUAGES
             .iter()
-            .map(|value| (*value, session.messages.get(&seal_editor_core::catalog_label_key(value))))
+            .map(|value| {
+                (*value, session.messages.get(&seal_editor_core::catalog_label_key(value)))
+            })
             .collect(),
-        id if id == seal_editor_core::OUTPUT_BACKEND
-            || id.ends_with(".output_backend") =>
-        {
+        id if id == seal_editor_core::OUTPUT_BACKEND || id.ends_with(".output_backend") => {
             seal_editor_core::backend_choices()
                 .iter()
                 .map(|b| (*b, seal_editor_core::backend_label(b).to_string()))
@@ -7214,7 +7201,8 @@ fn settings(frame: &mut PanelFrame, session: &mut EditorSession) -> PanelEvent {
             }
             let pipeline_title = session.messages.get("import-pipeline-title").to_lowercase();
             if session.project.is_some()
-                && (query.trim().is_empty() || pipeline_title.contains(&query.trim().to_lowercase()))
+                && (query.trim().is_empty()
+                    || pipeline_title.contains(&query.trim().to_lowercase()))
             {
                 let pipeline = import_pipeline_ui::section(frame, session);
                 if !matches!(pipeline, PanelEvent::None) {
@@ -7988,6 +7976,7 @@ fn list_field_open(session: &EditorSession, field: &str) -> bool {
         .unwrap_or(true)
 }
 
+#[allow(clippy::too_many_arguments)]
 fn inspector_list_row(
     frame: &mut PanelFrame,
     session: &EditorSession,
@@ -9475,9 +9464,14 @@ fn graph_panel(frame: &mut PanelFrame, session: &mut EditorSession) -> PanelEven
             doc.toggle_machine_view();
         }
         let inspector_layout_title = session.messages.get("graph-inspector-layout-tab");
-        if seal_ui::crisp::button(ui, egui::Button::new(&inspector_layout_title), true, doc.show_inspector_layout)
-            .on_hover_text(&session.messages.get("graph-inspector-layout-hint"))
-            .clicked()
+        if seal_ui::crisp::button(
+            ui,
+            egui::Button::new(&inspector_layout_title),
+            true,
+            doc.show_inspector_layout,
+        )
+        .on_hover_text(session.messages.get("graph-inspector-layout-hint"))
+        .clicked()
         {
             doc.toggle_inspector_layout_view();
         }

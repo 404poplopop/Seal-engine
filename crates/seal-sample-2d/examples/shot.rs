@@ -7,15 +7,14 @@ use seal_sample_2d::{config, Autopilot, SealHop, DEFAULT_LEVEL};
 fn main() {
     let out = std::env::args().nth(1).unwrap_or_else(|| "shots".into());
     std::fs::create_dir_all(&out).unwrap();
-    let mut r =
-        Runner::new(
-            SealHop::new(DEFAULT_LEVEL),
-            SoftDevice::new(),
-            config(),
-            None,
-            seal_app::render_config::GameRenderConfig::default(),
-        )
-        .unwrap();
+    let mut r = Runner::new(
+        SealHop::new(DEFAULT_LEVEL),
+        SoftDevice::new(),
+        config(),
+        None,
+        seal_app::render_config::GameRenderConfig::default(),
+    )
+    .unwrap();
     let mut bot = Autopilot::default();
     let frames: u32 = std::env::args().nth(2).and_then(|s| s.parse().ok()).unwrap_or(1200);
     for f in 0..frames {

@@ -431,12 +431,16 @@ fn save_editor(frame: &mut PanelFrame, session: &EditorSession) -> PanelEvent {
                     &mut menu_pick,
                     None,
                 ) {
-                    let value = if next == seal_ui::PropertyCheckbox::On { "true" } else { "false" };
+                    let value =
+                        if next == seal_ui::PropertyCheckbox::On { "true" } else { "false" };
                     out.push(("asset.save_encrypt".into(), CommandArgs::new(&[("value", value)])));
                 }
                 let mut key = view.key.clone();
                 if f.property(&text("asset-save-key"), &mut key) && key != view.key {
-                    out.push(("asset.save_key".into(), CommandArgs::new(&[("value", key.as_str())])));
+                    out.push((
+                        "asset.save_key".into(),
+                        CommandArgs::new(&[("value", key.as_str())]),
+                    ));
                 }
                 f.muted(&text("asset-save-key-hint"));
                 let cloud = if view.cloud {
@@ -453,13 +457,15 @@ fn save_editor(frame: &mut PanelFrame, session: &EditorSession) -> PanelEvent {
                     &mut menu_pick,
                     None,
                 ) {
-                    let value = if next == seal_ui::PropertyCheckbox::On { "true" } else { "false" };
+                    let value =
+                        if next == seal_ui::PropertyCheckbox::On { "true" } else { "false" };
                     out.push(("asset.cloud_save".into(), CommandArgs::new(&[("value", value)])));
                 }
                 let http = text("asset-cloud-http");
                 let script = text("asset-cloud-script");
                 let options = [("http", http), ("script", script)];
-                if let Some(picked) = f.choice(&text("asset-cloud-provider"), &view.provider, &options)
+                if let Some(picked) =
+                    f.choice(&text("asset-cloud-provider"), &view.provider, &options)
                 {
                     if picked != view.provider {
                         out.push((
@@ -470,7 +476,10 @@ fn save_editor(frame: &mut PanelFrame, session: &EditorSession) -> PanelEvent {
                 }
                 let mut url = view.url.clone();
                 if f.property(&text("asset-cloud-url"), &mut url) && url != view.url {
-                    out.push(("asset.cloud_url".into(), CommandArgs::new(&[("value", url.as_str())])));
+                    out.push((
+                        "asset.cloud_url".into(),
+                        CommandArgs::new(&[("value", url.as_str())]),
+                    ));
                 }
                 f.muted(&text("asset-cloud-hint"));
                 f.readout(&text("asset-cloud-queued"), &view.queued.to_string());
@@ -1254,7 +1263,7 @@ fn paint_frame(
         );
         return None;
     };
-    let Some(size) = pixels(ui.ctx(), &path) else { return None };
+    let size = pixels(ui.ctx(), &path)?;
     let (tw, th) = (size.1, size.2);
     let [u0, v0, u1, v1] = f.uv;
     let (w, h) = (((u1 - u0).abs() * tw as f32).max(1.0), ((v1 - v0).abs() * th as f32).max(1.0));

@@ -28,8 +28,9 @@ mod tests {
         let dir = scratch("move");
         crate::project::create_project(&dir, "TPS").unwrap();
         write(&dir, "TPS").unwrap();
-        let mut w = seal_world::World::from_text(&std::fs::read_to_string(dir.join("scene.seal")).unwrap())
-            .unwrap();
+        let mut w =
+            seal_world::World::from_text(&std::fs::read_to_string(dir.join("scene.seal")).unwrap())
+                .unwrap();
         w.project_dir = Some(dir.clone());
         assert!(
             w.entities.iter().find(|e| e.tag == "player").is_some_and(|p| !p.hidden),
@@ -56,7 +57,12 @@ mod tests {
             let player = w.entities.iter().find(|e| e.tag == "player").unwrap();
             let flat = (cam.translation[0] - player.translation[0])
                 .hypot(cam.translation[2] - player.translation[2]);
-            assert!(flat < 5.6, "step {step}: camera {:?} player {:?}", cam.translation, player.translation);
+            assert!(
+                flat < 5.6,
+                "step {step}: camera {:?} player {:?}",
+                cam.translation,
+                player.translation
+            );
         }
         // The camera sits behind and above the player, turned to look at it.
         let cam = w.entities.iter().find(|e| e.tag == "camera").unwrap();

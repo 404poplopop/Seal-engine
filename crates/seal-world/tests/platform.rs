@@ -75,8 +75,7 @@ fn a_save_is_sealed_on_disk_and_a_change_is_refused() {
 
 #[test]
 fn the_dialog_is_themable_and_the_answer_is_an_event() {
-    let mut custom = seal_world::gameui::Theme::default();
-    custom.button = [1.0, 0.0, 0.4, 1.0];
+    let custom = seal_world::gameui::Theme { button: [1.0, 0.0, 0.4, 1.0], ..Default::default() };
     let ask = Ask {
         gen: 2,
         kind: "confirm".into(),

@@ -97,7 +97,7 @@ fn hex(bytes: &[u8]) -> String {
 }
 
 fn parse_hex(text: &str) -> Result<Vec<u8>, String> {
-    if text.len() % 2 != 0 || !text.bytes().all(|b| b.is_ascii_hexdigit()) {
+    if !text.len().is_multiple_of(2) || !text.bytes().all(|b| b.is_ascii_hexdigit()) {
         return Err("the encrypted data has a damaged nonce".into());
     }
     let mut out = Vec::with_capacity(text.len() / 2);
@@ -156,7 +156,7 @@ pub fn decode_b64(text: &str) -> Result<Vec<u8>, String> {
         })
     }
     let bytes: Vec<u8> = text.bytes().filter(|b| !b.is_ascii_whitespace()).collect();
-    if bytes.len() % 4 != 0 {
+    if !bytes.len().is_multiple_of(4) {
         return Err("the encrypted data has a damaged body".into());
     }
     let mut out = Vec::new();

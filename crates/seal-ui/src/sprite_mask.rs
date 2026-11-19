@@ -9,9 +9,12 @@ pub use seal_editor_core::clip2d::Mask as ViewMask;
 
 use crate::sprites::decode_image;
 
-static PIXELS: Mutex<Option<HashMap<String, Option<Arc<(Vec<u8>, u32, u32)>>>>> = Mutex::new(None);
+/// RGBA pixels, width and height of a decoded picture.
+type Pixels = Arc<(Vec<u8>, u32, u32)>;
 
-fn image_pixels(path: &str) -> Option<Arc<(Vec<u8>, u32, u32)>> {
+static PIXELS: Mutex<Option<HashMap<String, Option<Pixels>>>> = Mutex::new(None);
+
+fn image_pixels(path: &str) -> Option<Pixels> {
     let mut guard = PIXELS.lock().ok()?;
     let map = guard.get_or_insert_with(HashMap::new);
     map.entry(path.to_string())
@@ -65,6 +68,7 @@ pub fn view_masks(
     out
 }
 
+#[allow(clippy::too_many_arguments)]
 /// Bake a masked sprite to a texture. Returns the texture id and screen rectangle.
 pub fn clipped_quad(
     ctx: &egui::Context,
@@ -104,25 +108,18 @@ pub fn clipped_quad(
         [baked.width as usize, baked.height as usize],
         &baked.rgba,
     );
-    let handle = ctx.load_texture(
-        format!("seal-sprite-mask:{key}"),
-        pixels,
-        egui::TextureOptions::NEAREST,
-    );
+    let handle =
+        ctx.load_texture(format!("seal-sprite-mask:{key}"), pixels, egui::TextureOptions::NEAREST);
     let min = egui::pos2(clip.min.x + baked.x as f32, clip.min.y + baked.y as f32);
     let max = min + egui::vec2(baked.width as f32, baked.height as f32);
     let rect = egui::Rect::from_min_max(min, max);
     Some((
         handle.id(),
-        [
-            rect.left_top(),
-            rect.right_top(),
-            rect.right_bottom(),
-            rect.left_bottom(),
-        ],
+        [rect.left_top(), rect.right_top(), rect.right_bottom(), rect.left_bottom()],
     ))
 }
 
+#[allow(clippy::too_many_arguments)]
 /// Draw `corners` clipped by `masks`. Returns false when nothing clips this sprite,
 /// so the caller draws it the usual way.
 pub fn paint_clipped(
@@ -155,7 +152,13 @@ pub fn paint_clipped(
     ) else {
         return false;
     };
-    crate::sprites::paint_quad_uv(painter, texture, corners, [0.0, 0.0, 1.0, 1.0], egui::Color32::WHITE);
+    crate::sprites::paint_quad_uv(
+        painter,
+        texture,
+        corners,
+        [0.0, 0.0, 1.0, 1.0],
+        egui::Color32::WHITE,
+    );
     true
 }
 

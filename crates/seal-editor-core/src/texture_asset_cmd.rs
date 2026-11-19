@@ -85,12 +85,10 @@ fn cmd_texture_new(
     if let Some(parent) = full.parent() {
         std::fs::create_dir_all(parent)?;
     }
-    let mut asset = TextureAsset {
-        kind,
-        ..TextureAsset::default()
-    };
+    let mut asset = TextureAsset { kind, ..TextureAsset::default() };
     if let Some(pictures) = args.get("pictures") {
-        asset.pictures = pictures.split(';').map(|p| p.trim().to_string()).filter(|p| !p.is_empty()).collect();
+        asset.pictures =
+            pictures.split(';').map(|p| p.trim().to_string()).filter(|p| !p.is_empty()).collect();
     }
     if let Some(w) = args.get("width").and_then(|v| v.parse::<u32>().ok()) {
         asset.width = w.max(1);
@@ -138,10 +136,7 @@ pub(crate) fn cmd_texture_set(
         asset.gpu_format = GpuBlockFormat::parse(v)
             .ok_or_else(|| CoreError::new(format!("unknown gpu format {v}")))?;
     }
-    if let Some(v) = args
-        .get("memory_budget_mb")
-        .and_then(|v| v.parse::<u32>().ok())
-    {
+    if let Some(v) = args.get("memory_budget_mb").and_then(|v| v.parse::<u32>().ok()) {
         asset.memory_budget_mb = v.max(1);
     }
     if let Some(v) = args.get("streaming") {
@@ -174,7 +169,7 @@ pub(crate) fn cmd_texture_set(
             pictures.split(';').map(|p| p.trim().to_string()).filter(|p| !p.is_empty()).collect();
     }
     write_texture(&full, &asset)?;
-    session.notify(&format!("Saved {rel}"), false);
+    session.notify(format!("Saved {rel}"), false);
     Ok(())
 }
 
@@ -185,10 +180,10 @@ pub(crate) fn cmd_texture_export_encode(
 ) -> Result<(), CoreError> {
     let (rel, full, asset) = open_texture(session)?;
     let root = project_root(session)?;
-  let quality = args
-    .get("quality")
-    .and_then(|v| seal_render::EncodeQuality::parse(v))
-    .unwrap_or(seal_render::EncodeQuality::Normal);
+    let quality = args
+        .get("quality")
+        .and_then(seal_render::EncodeQuality::parse)
+        .unwrap_or(seal_render::EncodeQuality::Normal);
     let format = crate::texture_ktx_export::format_for_texture_asset(asset.gpu_format, quality);
     let mut total_bytes = 0usize;
     let mut worst_psnr = 99.0_f64;
@@ -209,14 +204,11 @@ pub(crate) fn cmd_texture_export_encode(
         let ktx = seal_render::write_ktx2(format, true, w, h, &[encoded])
             .map_err(|e| CoreError::new(e.to_string()))?;
         let stem = full.file_stem().and_then(|s| s.to_str()).unwrap_or("texture");
-        let out = full
-            .parent()
-            .unwrap_or(&root)
-            .join(format!("{stem}.layer{layer}.ktx2"));
+        let out = full.parent().unwrap_or(&root).join(format!("{stem}.layer{layer}.ktx2"));
         crate::persist::atomic_write(&out, &ktx)?;
     }
     session.set_draft(TEXTURE_ENCODE_BYTES, &total_bytes.to_string())?;
     session.set_draft(TEXTURE_ENCODE_PSNR, &format!("{worst_psnr:.1}"))?;
-    session.notify(&format!("Encoded {rel} for export"), false);
+    session.notify(format!("Encoded {rel} for export"), false);
     Ok(())
 }

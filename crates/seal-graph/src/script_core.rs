@@ -1,6 +1,6 @@
 //! Script core nodes: quaternions, planes, text, typed JSON and clocks.
 
-use crate::rt::{Host, Plane, Quat, V3, Value};
+use crate::rt::{Host, Plane, Quat, Value, V3};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ScriptCoreOp {
@@ -53,7 +53,7 @@ pub fn eval_core(op: ScriptCoreOp, args: &[Value], host: &mut dyn Host) -> Value
         ScriptCoreOp::QuatMul => {
             let a = to_math_quat(args[0].quat());
             let b = to_math_quat(args[1].quat());
-            let q = a.mul(b);
+            let q = a * b;
             Value::Quat(from_math_quat(q))
         }
         ScriptCoreOp::QuatSlerp => {
@@ -66,11 +66,7 @@ pub fn eval_core(op: ScriptCoreOp, args: &[Value], host: &mut dyn Host) -> Value
             let q = to_math_quat(args[0].quat());
             let v = args[1].vec3();
             let out = q.rotate_vec([v.x as f32, v.y as f32, v.z as f32]);
-            Value::Vec3(V3 {
-                x: f64::from(out[0]),
-                y: f64::from(out[1]),
-                z: f64::from(out[2]),
-            })
+            Value::Vec3(V3 { x: f64::from(out[0]), y: f64::from(out[1]), z: f64::from(out[2]) })
         }
         ScriptCoreOp::PlanePointNormal => {
             let point = args[0].vec3();
@@ -140,28 +136,15 @@ pub fn eval_core(op: ScriptCoreOp, args: &[Value], host: &mut dyn Host) -> Value
 }
 
 fn to_math_quat(q: Quat) -> seal_math::Quat {
-    seal_math::Quat {
-        x: q.x as f32,
-        y: q.y as f32,
-        z: q.z as f32,
-        w: q.w as f32,
-    }
+    seal_math::Quat { x: q.x as f32, y: q.y as f32, z: q.z as f32, w: q.w as f32 }
 }
 
 fn from_math_quat(q: seal_math::Quat) -> Quat {
-    Quat {
-        x: f64::from(q.x),
-        y: f64::from(q.y),
-        z: f64::from(q.z),
-        w: f64::from(q.w),
-    }
+    Quat { x: f64::from(q.x), y: f64::from(q.y), z: f64::from(q.z), w: f64::from(q.w) }
 }
 
 fn utf8_to_utf16_text(text: &str) -> String {
-    text.encode_utf16()
-        .map(|u| u.to_string())
-        .collect::<Vec<_>>()
-        .join(",")
+    text.encode_utf16().map(|u| u.to_string()).collect::<Vec<_>>().join(",")
 }
 
 fn layout_lines_text(text: &str, width: f32, font_size: f32) -> String {

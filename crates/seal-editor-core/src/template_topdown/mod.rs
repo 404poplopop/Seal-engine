@@ -92,11 +92,8 @@ fn write_art(folder: &Path) -> Result<(), CoreError> {
     write_png(&s.join("hero_sheet.png"), 128, 16, &sheet_pixels(8, [50, 120, 220]))?;
     write_png(&s.join("enemy_sheet.png"), 128, 16, &sheet_pixels(8, [210, 50, 50]))?;
     write_png(&s.join("npc_sheet.png"), 64, 16, &sheet_pixels(4, [180, 120, 200]))?;
-    fs::write(folder.join("anims/hero.frames"), &directional_frames("../sprites/hero_sheet.png"))?;
-    fs::write(
-        folder.join("anims/enemy.frames"),
-        &directional_frames("../sprites/enemy_sheet.png"),
-    )?;
+    fs::write(folder.join("anims/hero.frames"), directional_frames("../sprites/hero_sheet.png"))?;
+    fs::write(folder.join("anims/enemy.frames"), directional_frames("../sprites/enemy_sheet.png"))?;
     fs::write(
         folder.join("anims/npc.frames"),
         "\

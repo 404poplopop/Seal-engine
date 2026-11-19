@@ -14,7 +14,7 @@ pub fn layer_rules(session: &EditorSession) -> HashMap<i32, LayerSortMode> {
         .find(|s| s.id == "sprites.sort_layers")
         .map(|s| s.value())
         .unwrap_or_default();
-    sprite_sort::parse_sort_layers(&text)
+    sprite_sort::parse_sort_layers(text)
 }
 
 pub fn sort_axis(session: &EditorSession) -> [f32; 2] {
@@ -25,7 +25,7 @@ pub fn sort_axis(session: &EditorSession) -> [f32; 2] {
         .find(|s| s.id == "sprites.sort_axis")
         .map(|s| s.value())
         .unwrap_or_default();
-    sprite_sort::parse_sort_axis(&text)
+    sprite_sort::parse_sort_axis(text)
 }
 
 /// Build sort entries aligned with `marks` and `entity_ids` (same length).
@@ -74,7 +74,7 @@ fn group_root_mark(
     id_to_mark: &HashMap<&str, usize>,
     id_to_entity: &HashMap<&str, usize>,
 ) -> Option<usize> {
-    let Some(&self_ix) = id_to_entity.get(entity.id.as_str()) else { return None };
+    let &self_ix = id_to_entity.get(entity.id.as_str())?;
     let parent_of = |ix: usize| {
         entities.get(ix)?.parent.as_deref().and_then(|id| id_to_entity.get(id).copied())
     };

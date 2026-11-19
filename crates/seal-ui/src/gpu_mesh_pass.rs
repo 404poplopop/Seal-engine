@@ -10,7 +10,8 @@ use wgpu::util::DeviceExt as _;
 use crate::gpu_textures::{load_cpu_texture, SampleKind};
 use crate::gpu_viewport::{pack_shadow, vertex_data, AlbedoBatch, GpuFrame, ShadowTexture};
 use crate::gpu_wgpu_choice::{
-    anisotropy_clamp, upload_cpu_texture, upload_white, CompressionSupport, TexShape, UploadedTexture,
+    anisotropy_clamp, upload_cpu_texture, upload_white, CompressionSupport, TexShape,
+    UploadedTexture,
 };
 use crate::viewport_mesh::LitTriangle;
 
@@ -41,11 +42,8 @@ pub fn offscreen_size(width: u32, height: u32, percent: u32) -> Option<(u32, u32
 }
 
 fn viewport_px(rect: Rect, pixels_per_point: f32) -> (u32, u32) {
-    let ppp = if pixels_per_point.is_finite() && pixels_per_point > 0.0 {
-        pixels_per_point
-    } else {
-        1.0
-    };
+    let ppp =
+        if pixels_per_point.is_finite() && pixels_per_point > 0.0 { pixels_per_point } else { 1.0 };
     let width = (rect.width() * ppp).round().max(1.0) as u32;
     let height = (rect.height() * ppp).round().max(1.0) as u32;
     (width, height)
@@ -68,12 +66,9 @@ pub(crate) fn with_light(tris: &[LitTriangle], rect: Rect) -> (Vec<f32>, Vec<Alb
     let (data, batches) = vertex_data(tris, rect);
     let mut order: Vec<usize> = (0..tris.len()).collect();
     order.sort_by(|&a, &b| {
-        (&tris[a].tex_path, tris[a].tex_kind, tris[a].tex_layer, tris[a].tex_slice.to_bits()).cmp(&(
-            &tris[b].tex_path,
-            tris[b].tex_kind,
-            tris[b].tex_layer,
-            tris[b].tex_slice.to_bits(),
-        ))
+        (&tris[a].tex_path, tris[a].tex_kind, tris[a].tex_layer, tris[a].tex_slice.to_bits()).cmp(
+            &(&tris[b].tex_path, tris[b].tex_kind, tris[b].tex_layer, tris[b].tex_slice.to_bits()),
+        )
     });
     let mut ext = Vec::with_capacity(data.len() / BASE_FLOATS * EXT_FLOATS);
     let mut chunks = data.chunks(BASE_FLOATS);
@@ -129,7 +124,8 @@ pub fn paint_callback(
     frame: GpuFrame,
 ) -> egui::PaintCallback {
     let (data, batches) = with_light(tris, rect);
-    let shadow = shadow.map(|map| ShadowTexture { size: map.size, texels: pack_shadow(map.depths()) });
+    let shadow =
+        shadow.map(|map| ShadowTexture { size: map.size, texels: pack_shadow(map.depths()) });
     egui_wgpu::Callback::new_paint_callback(
         rect,
         MeshCallback {
@@ -347,7 +343,8 @@ impl egui_wgpu::CallbackTrait for MeshCallback {
             _ => (1, vec![255, 255, 255, 255]),
         };
         let row = size.saturating_mul(4);
-        let stride = row.div_ceil(wgpu::COPY_BYTES_PER_ROW_ALIGNMENT) * wgpu::COPY_BYTES_PER_ROW_ALIGNMENT;
+        let stride =
+            row.div_ceil(wgpu::COPY_BYTES_PER_ROW_ALIGNMENT) * wgpu::COPY_BYTES_PER_ROW_ALIGNMENT;
         let mut upload = vec![0u8; stride as usize * size.max(1) as usize];
         for y in 0..size.max(1) as usize {
             let src = y * row as usize;
@@ -390,7 +387,8 @@ impl egui_wgpu::CallbackTrait for MeshCallback {
         let _ = gpu.sampler(device, self.frame.anisotropy);
         for batch in self.batches.iter() {
             let (material, slices, shape, kind) = gpu.material(device, queue, &self.frame, batch);
-            let params = f32_bytes(&[1.0 / size as f32, has, hdr, kind, slices.max(1.0), 0.0, 0.0, 0.0]);
+            let params =
+                f32_bytes(&[1.0 / size as f32, has, hdr, kind, slices.max(1.0), 0.0, 0.0, 0.0]);
             let uniform = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
                 label: Some("seal lit mesh params"),
                 contents: &params,
@@ -425,14 +423,26 @@ impl egui_wgpu::CallbackTrait for MeshCallback {
                         resource: wgpu::BindingResource::Sampler(&gpu.shadow_sampler),
                     },
                     wgpu::BindGroupEntry { binding: 2, resource: uniform.as_entire_binding() },
-                    wgpu::BindGroupEntry { binding: 3, resource: wgpu::BindingResource::TextureView(d2v) },
+                    wgpu::BindGroupEntry {
+                        binding: 3,
+                        resource: wgpu::BindingResource::TextureView(d2v),
+                    },
                     wgpu::BindGroupEntry {
                         binding: 4,
                         resource: wgpu::BindingResource::Sampler(albedo_sampler),
                     },
-                    wgpu::BindGroupEntry { binding: 5, resource: wgpu::BindingResource::TextureView(arrv) },
-                    wgpu::BindGroupEntry { binding: 6, resource: wgpu::BindingResource::TextureView(volv) },
-                    wgpu::BindGroupEntry { binding: 7, resource: wgpu::BindingResource::TextureView(cubev) },
+                    wgpu::BindGroupEntry {
+                        binding: 5,
+                        resource: wgpu::BindingResource::TextureView(arrv),
+                    },
+                    wgpu::BindGroupEntry {
+                        binding: 6,
+                        resource: wgpu::BindingResource::TextureView(volv),
+                    },
+                    wgpu::BindGroupEntry {
+                        binding: 7,
+                        resource: wgpu::BindingResource::TextureView(cubev),
+                    },
                 ],
             });
             batches.push(BatchDraw { bind, first: batch.first as u32, count: batch.count as u32 });
@@ -630,8 +640,14 @@ impl egui_wgpu::CallbackTrait for SkyCallback {
             label: Some("seal sky"),
             layout: &gpu.layout,
             entries: &[
-                wgpu::BindGroupEntry { binding: 0, resource: wgpu::BindingResource::TextureView(&view) },
-                wgpu::BindGroupEntry { binding: 1, resource: wgpu::BindingResource::Sampler(&gpu.sampler) },
+                wgpu::BindGroupEntry {
+                    binding: 0,
+                    resource: wgpu::BindingResource::TextureView(&view),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 1,
+                    resource: wgpu::BindingResource::Sampler(&gpu.sampler),
+                },
                 wgpu::BindGroupEntry { binding: 2, resource: uniform.as_entire_binding() },
             ],
         });
@@ -640,7 +656,8 @@ impl egui_wgpu::CallbackTrait for SkyCallback {
             record_sky(device, encoder, size, gpu, &bind);
             *self.prepared.lock().unwrap_or_else(|err| err.into_inner()) = Some(SkyPrep::Scaled);
         } else {
-            *self.prepared.lock().unwrap_or_else(|err| err.into_inner()) = Some(SkyPrep::Direct(bind));
+            *self.prepared.lock().unwrap_or_else(|err| err.into_inner()) =
+                Some(SkyPrep::Direct(bind));
         }
         Vec::new()
     }
@@ -791,7 +808,10 @@ impl egui_wgpu::CallbackTrait for PreviewCallback {
                     binding: 0,
                     resource: wgpu::BindingResource::TextureView(&uploaded.view),
                 },
-                wgpu::BindGroupEntry { binding: 1, resource: wgpu::BindingResource::Sampler(&gpu.sampler) },
+                wgpu::BindGroupEntry {
+                    binding: 1,
+                    resource: wgpu::BindingResource::Sampler(&gpu.sampler),
+                },
             ],
         });
         *self._texture.lock().unwrap_or_else(|err| err.into_inner()) = Some(uploaded.texture);
@@ -848,11 +868,7 @@ impl ScaleState {
     fn new(device: &wgpu::Device, size: (u32, u32)) -> Self {
         let color = device.create_texture(&wgpu::TextureDescriptor {
             label: Some("seal render scale"),
-            size: wgpu::Extent3d {
-                width: size.0,
-                height: size.1,
-                depth_or_array_layers: 1,
-            },
+            size: wgpu::Extent3d { width: size.0, height: size.1, depth_or_array_layers: 1 },
             mip_level_count: 1,
             sample_count: 1,
             dimension: wgpu::TextureDimension::D2,
@@ -862,11 +878,7 @@ impl ScaleState {
         });
         let depth = device.create_texture(&wgpu::TextureDescriptor {
             label: Some("seal render scale depth"),
-            size: wgpu::Extent3d {
-                width: size.0,
-                height: size.1,
-                depth_or_array_layers: 1,
-            },
+            size: wgpu::Extent3d { width: size.0, height: size.1, depth_or_array_layers: 1 },
             mip_level_count: 1,
             sample_count: 1,
             dimension: wgpu::TextureDimension::D2,
@@ -947,7 +959,10 @@ impl ScaleState {
                     binding: 0,
                     resource: wgpu::BindingResource::TextureView(&color_view),
                 },
-                wgpu::BindGroupEntry { binding: 1, resource: wgpu::BindingResource::Sampler(&sampler) },
+                wgpu::BindGroupEntry {
+                    binding: 1,
+                    resource: wgpu::BindingResource::Sampler(&sampler),
+                },
             ],
         });
         Self {
@@ -993,7 +1008,12 @@ fn claim(owner: u8) {
 }
 
 fn scale_owner() -> u8 {
-    SCALE.lock().unwrap_or_else(|err| err.into_inner()).as_ref().map(|state| state.owner).unwrap_or(0)
+    SCALE
+        .lock()
+        .unwrap_or_else(|err| err.into_inner())
+        .as_ref()
+        .map(|state| state.owner)
+        .unwrap_or(0)
 }
 
 fn stretch(pass: &mut wgpu::RenderPass<'static>) {
@@ -1117,8 +1137,14 @@ mod scale_tests {
         assert!(offscreen_size(1280, 720, 100).is_none());
         assert_eq!(offscreen_size(1280, 720, 50), Some((640, 360)));
         assert_eq!(offscreen_size(800, 600, 75), Some((600, 450)));
-        assert_eq!(offscreen_size(800, 600, 25), Some(crate::gpu_viewport::scaled_size(800, 600, 25)));
-        assert_eq!(offscreen_size(100, 80, 10), Some(crate::gpu_viewport::scaled_size(100, 80, 10)));
+        assert_eq!(
+            offscreen_size(800, 600, 25),
+            Some(crate::gpu_viewport::scaled_size(800, 600, 25))
+        );
+        assert_eq!(
+            offscreen_size(100, 80, 10),
+            Some(crate::gpu_viewport::scaled_size(100, 80, 10))
+        );
         assert_eq!(offscreen_size(8, 8, 25), Some((2, 2)));
         assert!(offscreen_size(1, 1, 25).is_none());
         assert!(offscreen_size(1, 1, 100).is_none());
@@ -1136,4 +1162,3 @@ mod scale_tests {
         assert!(names.contains(&"vs") && names.contains(&"fs"));
     }
 }
-

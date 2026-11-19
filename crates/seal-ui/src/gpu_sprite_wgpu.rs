@@ -186,8 +186,14 @@ impl egui_wgpu::CallbackTrait for SpriteCallback {
                 label: Some("seal sprite blend"),
                 layout: &gpu.layout,
                 entries: &[
-                    wgpu::BindGroupEntry { binding: 0, resource: wgpu::BindingResource::TextureView(view) },
-                    wgpu::BindGroupEntry { binding: 1, resource: wgpu::BindingResource::Sampler(&gpu.sampler) },
+                    wgpu::BindGroupEntry {
+                        binding: 0,
+                        resource: wgpu::BindingResource::TextureView(view),
+                    },
+                    wgpu::BindGroupEntry {
+                        binding: 1,
+                        resource: wgpu::BindingResource::Sampler(&gpu.sampler),
+                    },
                 ],
             });
             let _ = gpu.pipeline(device, &batch.key.mode);

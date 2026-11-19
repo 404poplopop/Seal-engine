@@ -42,7 +42,7 @@ fn session(name: &str) -> Recording {
     for _ in 0..600 {
         let r = next();
         let _ = match r % 10 {
-            0 | 1 | 2 if name == "lists" => {
+            0..=2 if name == "lists" => {
                 rec.fire(g.as_mut(), "add", &[Value::Int((r % 9) as i64 - 2)], &mut h)
             }
             3 if name == "lists" => rec.fire(

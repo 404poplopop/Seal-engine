@@ -80,10 +80,11 @@ pub fn object_picker(
         }
         let drop = ui.interact(ui.min_rect(), ui.id().with((salt, "object-drop")), Sense::hover());
         if let Some(payload) = drop.dnd_release_payload::<String>() {
-            if !payload.starts_with("place:") && !payload.starts_with("inspcomp:") {
-                if choices.iter().any(|choice| choice.id == payload.as_str()) {
-                    event = ObjectPickerEvent::Set(payload.to_string());
-                }
+            if !payload.starts_with("place:")
+                && !payload.starts_with("inspcomp:")
+                && choices.iter().any(|choice| choice.id == payload.as_str())
+            {
+                event = ObjectPickerEvent::Set(payload.to_string());
             }
         }
     });

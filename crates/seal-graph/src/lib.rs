@@ -7,22 +7,24 @@
 //! functions in [`rt`] for every operation, so they give identical results.
 
 pub mod codegen;
-mod device_nodes;
 pub mod crypto;
+mod device_nodes;
 pub mod ecs_host;
 pub mod function;
-mod interp;
 pub mod inspector_layout;
+mod interp;
 pub mod kernel;
 pub mod poly2d;
 pub mod query;
 pub mod replay;
 pub mod rt;
-pub mod state_machine;
 pub mod script_core;
+pub mod state_machine;
 
 pub use interp::{Interp, ReloadReport};
-pub use rt::{Elem, GraphError, GraphInstance, Host, MapHost, Plane, Quat, RunState, Ty, Value, V2, V3};
+pub use rt::{
+    Elem, GraphError, GraphInstance, Host, MapHost, Plane, Quat, RunState, Ty, Value, V2, V3,
+};
 
 use seal_sealtext::{SealMap, SealValue};
 use std::collections::{BTreeMap, BTreeSet};
@@ -1616,10 +1618,8 @@ pub fn node_template(graph: &Graph, id: u32, kind: &str) -> Node {
                 ("theme".into(), text("")),
             ])),
         ),
-        "cloud_upload" | "cloud_download" | "cloud_reply" => node.with(
-            "defaults",
-            SealValue::Map(SealMap::new(vec![("slot".into(), text("Slot 1"))])),
-        ),
+        "cloud_upload" | "cloud_download" | "cloud_reply" => node
+            .with("defaults", SealValue::Map(SealMap::new(vec![("slot".into(), text("Slot 1"))]))),
         _ => node,
     }
 }
@@ -1988,10 +1988,9 @@ fn resolve(n: &Node, g: &Graph, events: &[EventInfo]) -> Result<(Op, Sig), Build
             Op::Game(rt::GameKind::ResizeGameWindow),
             flow(&["then"], ins(&[("id", Int), ("width", Int), ("height", Int)]), vec![]),
         ),
-        "close_game_window" => (
-            Op::Game(rt::GameKind::CloseGameWindow),
-            flow(&["then"], ins(&[("id", Int)]), vec![]),
-        ),
+        "close_game_window" => {
+            (Op::Game(rt::GameKind::CloseGameWindow), flow(&["then"], ins(&[("id", Int)]), vec![]))
+        }
         "request_attention" => {
             (Op::Game(rt::GameKind::RequestAttention), flow(&["then"], ins(&[]), vec![]))
         }
@@ -2026,16 +2025,9 @@ fn resolve(n: &Node, g: &Graph, events: &[EventInfo]) -> Result<(Op, Sig), Build
                 vec![],
             ),
         ),
-        "dialog_answer" => (
-            Op::DialogAnswer,
-            many(vec![], vec![("button", Str), ("text", Str)]),
-        ),
-        "cloud_upload" => {
-            (Op::CloudUpload, flow(&["then"], ins(&[("slot", Str)]), vec![]))
-        }
-        "cloud_download" => {
-            (Op::CloudDownload, flow(&["then"], ins(&[("slot", Str)]), vec![]))
-        }
+        "dialog_answer" => (Op::DialogAnswer, many(vec![], vec![("button", Str), ("text", Str)])),
+        "cloud_upload" => (Op::CloudUpload, flow(&["then"], ins(&[("slot", Str)]), vec![])),
+        "cloud_download" => (Op::CloudDownload, flow(&["then"], ins(&[("slot", Str)]), vec![])),
         "cloud_flush" => (Op::CloudFlush, flow(&["then"], vec![], vec![])),
         "cloud_reply" => (
             Op::CloudReply,
@@ -2080,29 +2072,23 @@ fn resolve(n: &Node, g: &Graph, events: &[EventInfo]) -> Result<(Op, Sig), Build
             (Op::LoadData, flow(&["then"], ins(&[("path", Str)]), vec![("path".to_string(), Str)]))
         }
         "get_field" => (Op::DataField, pure(ins(&[("path", Str), ("field", Str)]), Str)),
-        "read_csv_cell" => (
-            Op::ReadCsvCell,
-            pure(ins(&[("path", Str), ("row", Int), ("col", Int)]), Str),
-        ),
-        "read_json_value" => (
-            Op::ReadJsonValue,
-            pure(ins(&[("path", Str), ("json_path", Str)]), Str),
-        ),
+        "read_csv_cell" => {
+            (Op::ReadCsvCell, pure(ins(&[("path", Str), ("row", Int), ("col", Int)]), Str))
+        }
+        "read_json_value" => {
+            (Op::ReadJsonValue, pure(ins(&[("path", Str), ("json_path", Str)]), Str))
+        }
         "quat_euler" => (
             Op::ScriptCore(script_core::ScriptCoreOp::QuatEuler),
-            pure(
-                ins(&[("pitch", Float), ("yaw", Float), ("roll", Float)]),
-                Ty::Quat,
-            ),
+            pure(ins(&[("pitch", Float), ("yaw", Float), ("roll", Float)]), Ty::Quat),
         ),
         "quat_axis_angle" => (
             Op::ScriptCore(script_core::ScriptCoreOp::QuatAxisAngle),
             pure(ins(&[("axis", Vec3), ("angle", Float)]), Ty::Quat),
         ),
-        "quat_mul" => (
-            Op::ScriptCore(script_core::ScriptCoreOp::QuatMul),
-            pure(ab(Ty::Quat), Ty::Quat),
-        ),
+        "quat_mul" => {
+            (Op::ScriptCore(script_core::ScriptCoreOp::QuatMul), pure(ab(Ty::Quat), Ty::Quat))
+        }
         "quat_slerp" => (
             Op::ScriptCore(script_core::ScriptCoreOp::QuatSlerp),
             pure(ins(&[("a", Ty::Quat), ("b", Ty::Quat), ("t", Float)]), Ty::Quat),
@@ -2121,10 +2107,7 @@ fn resolve(n: &Node, g: &Graph, events: &[EventInfo]) -> Result<(Op, Sig), Build
         ),
         "plane_ray_hit" => (
             Op::ScriptCore(script_core::ScriptCoreOp::PlaneRayHit),
-            pure(
-                ins(&[("plane", Ty::Plane), ("origin", Vec3), ("direction", Vec3)]),
-                Float,
-            ),
+            pure(ins(&[("plane", Ty::Plane), ("origin", Vec3), ("direction", Vec3)]), Float),
         ),
         "utf8_to_utf16" => (
             Op::ScriptCore(script_core::ScriptCoreOp::Utf8ToUtf16),
@@ -2146,14 +2129,12 @@ fn resolve(n: &Node, g: &Graph, events: &[EventInfo]) -> Result<(Op, Sig), Build
             Op::ScriptCore(script_core::ScriptCoreOp::WriteTypedJson),
             pure(ins(&[("data_path", Str)]), Str),
         ),
-        "unscaled_time" => (
-            Op::ScriptCore(script_core::ScriptCoreOp::UnscaledTime),
-            pure(vec![], Float),
-        ),
-        "unscaled_dt" => (
-            Op::ScriptCore(script_core::ScriptCoreOp::UnscaledDt),
-            pure(vec![], Float),
-        ),
+        "unscaled_time" => {
+            (Op::ScriptCore(script_core::ScriptCoreOp::UnscaledTime), pure(vec![], Float))
+        }
+        "unscaled_dt" => {
+            (Op::ScriptCore(script_core::ScriptCoreOp::UnscaledDt), pure(vec![], Float))
+        }
         "sim_tick" => (Op::ScriptCore(script_core::ScriptCoreOp::SimTick), pure(vec![], Int)),
         "stop_anim" => (Op::StopAnim, flow(&["then"], ins(&[("entity", Entity)]), vec![])),
         "play_clip" => {
@@ -2265,10 +2246,9 @@ fn resolve(n: &Node, g: &Graph, events: &[EventInfo]) -> Result<(Op, Sig), Build
             Op::Server(ServerCall::Step),
             flow(&["then"], ins(&[("world", Str), ("dt", Float)]), vec![]),
         ),
-        "physics_position" => (
-            Op::Server(ServerCall::Position),
-            pure(ins(&[("world", Str), ("body", Float)]), Vec3),
-        ),
+        "physics_position" => {
+            (Op::Server(ServerCall::Position), pure(ins(&[("world", Str), ("body", Float)]), Vec3))
+        }
         "despawn" => (Op::Despawn, flow(&["then"], ins(&[("entity", Entity)]), vec![])),
         "play_sound" => (
             Op::PlaySound { at: false },
@@ -2508,10 +2488,9 @@ fn resolve(n: &Node, g: &Graph, events: &[EventInfo]) -> Result<(Op, Sig), Build
             };
             (Op::List(op, e), pure(i, out))
         }
-        "import_set_pivot" => (
-            Op::Sequence(1),
-            flow(&["then"], ins(&[("x", Float), ("y", Float)]), vec![]),
-        ),
+        "import_set_pivot" => {
+            (Op::Sequence(1), flow(&["then"], ins(&[("x", Float), ("y", Float)]), vec![]))
+        }
         "import_rename" => (Op::Sequence(1), flow(&["then"], ins(&[("name", Str)]), vec![])),
         "import_add_tag" => (Op::Sequence(1), flow(&["then"], ins(&[("tag", Str)]), vec![])),
         "import_set_text" => (Op::Sequence(1), flow(&["then"], ins(&[("text", Str)]), vec![])),

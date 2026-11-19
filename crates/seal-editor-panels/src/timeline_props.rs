@@ -66,8 +66,13 @@ fn time_warp_row(
             ]),
         );
     }
-    if !seq.time_warp.keys.is_empty() && frame.button(&session.messages.get("timeline-time-warp-clear")) {
-        return PanelEvent::Command("sequence.time_warp_clear".into(), CommandArgs::new(&[("path", path)]));
+    if !seq.time_warp.keys.is_empty()
+        && frame.button(&session.messages.get("timeline-time-warp-clear"))
+    {
+        return PanelEvent::Command(
+            "sequence.time_warp_clear".into(),
+            CommandArgs::new(&[("path", path)]),
+        );
     }
     PanelEvent::None
 }

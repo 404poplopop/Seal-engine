@@ -133,7 +133,10 @@ impl TextureAsset {
                 continue;
             }
             let Some((key, value)) = line.split_once('=') else {
-                return Err(TextureAssetError::Parse(format!("line {}: expected key = value", n + 1)));
+                return Err(TextureAssetError::Parse(format!(
+                    "line {}: expected key = value",
+                    n + 1
+                )));
             };
             let key = key.trim();
             let value = value.trim();
@@ -146,14 +149,17 @@ impl TextureAsset {
                     width = value.parse().map_err(|_| TextureAssetError::Parse("width".into()))?;
                 }
                 "height" => {
-                    height = value.parse().map_err(|_| TextureAssetError::Parse("height".into()))?;
+                    height =
+                        value.parse().map_err(|_| TextureAssetError::Parse("height".into()))?;
                 }
                 "depth" => {
                     depth = value.parse().map_err(|_| TextureAssetError::Parse("depth".into()))?;
                 }
                 "gpu_format" | "format" => {
-                    gpu_format = crate::gpu_block_format::GpuBlockFormat::parse(value)
-                        .ok_or_else(|| TextureAssetError::Parse(format!("unknown gpu format {value}")))?;
+                    gpu_format =
+                        crate::gpu_block_format::GpuBlockFormat::parse(value).ok_or_else(|| {
+                            TextureAssetError::Parse(format!("unknown gpu format {value}"))
+                        })?;
                 }
                 "memory_budget_mb" => {
                     memory_budget_mb = value
@@ -173,16 +179,7 @@ impl TextureAsset {
             return Err(TextureAssetError::Parse("missing header".into()));
         }
         // Picture counts are checked by `validate_pictures`, so a new empty texture still opens.
-        Ok(Self {
-            kind,
-            width,
-            height,
-            depth,
-            gpu_format,
-            memory_budget_mb,
-            streaming,
-            pictures,
-        })
+        Ok(Self { kind, width, height, depth, gpu_format, memory_budget_mb, streaming, pictures })
     }
 
     pub fn to_text(&self) -> String {
@@ -232,7 +229,9 @@ fn parse_string_list(value: &str) -> Result<Vec<String>, TextureAssetError> {
         .split(',')
         .map(|s| {
             let s = s.trim();
-            if (s.starts_with('"') && s.ends_with('"')) || (s.starts_with('\'') && s.ends_with('\'')) {
+            if (s.starts_with('"') && s.ends_with('"'))
+                || (s.starts_with('\'') && s.ends_with('\''))
+            {
                 Ok(s[1..s.len() - 1].replace("\\\"", "\""))
             } else if s.is_empty() {
                 Err(TextureAssetError::Parse("empty picture path".into()))
@@ -247,7 +246,8 @@ fn string_list(items: &[String]) -> String {
     if items.is_empty() {
         return "[]".into();
     }
-    let quoted: Vec<String> = items.iter().map(|p| format!("\"{}\"", p.replace('"', "\\\""))).collect();
+    let quoted: Vec<String> =
+        items.iter().map(|p| format!("\"{}\"", p.replace('"', "\\\""))).collect();
     format!("[{}]", quoted.join(", "))
 }
 

@@ -73,9 +73,15 @@ impl Feed {
 fn pick_host(name: &str) -> cpal::Host {
     use cpal::platform::available_hosts;
     let id = match name {
-        "wasapi" => available_hosts().into_iter().find(|id| id.name().to_ascii_lowercase().contains("wasapi")),
-        "coreaudio" => available_hosts().into_iter().find(|id| id.name().to_ascii_lowercase().contains("coreaudio")),
-        "alsa" => available_hosts().into_iter().find(|id| id.name().to_ascii_lowercase().contains("alsa")),
+        "wasapi" => available_hosts()
+            .into_iter()
+            .find(|id| id.name().to_ascii_lowercase().contains("wasapi")),
+        "coreaudio" => available_hosts()
+            .into_iter()
+            .find(|id| id.name().to_ascii_lowercase().contains("coreaudio")),
+        "alsa" => {
+            available_hosts().into_iter().find(|id| id.name().to_ascii_lowercase().contains("alsa"))
+        }
         "pulse" => available_hosts()
             .into_iter()
             .find(|id| id.name().to_ascii_lowercase().contains("pulse")),
@@ -110,7 +116,10 @@ impl AudioOut {
             if offered {
                 config.sample_rate = rate;
             } else {
-                eprintln!("sound output: {rate} Hz is not offered by the device; using {}", config.sample_rate);
+                eprintln!(
+                    "sound output: {rate} Hz is not offered by the device; using {}",
+                    config.sample_rate
+                );
             }
         }
         if let Some(frames) = settings.buffer_frames {
@@ -137,25 +146,25 @@ impl AudioOut {
         let err = |e| eprintln!("sound output: {e}");
         let stream = match supported.sample_format() {
             cpal::SampleFormat::F32 => device.build_output_stream(
-                config.clone(),
+                config,
                 move |o: &mut [f32], _: &_| feed.fill(o),
                 err,
                 None,
             ),
             cpal::SampleFormat::I16 => device.build_output_stream(
-                config.clone(),
+                config,
                 move |o: &mut [i16], _: &_| feed.fill(o),
                 err,
                 None,
             ),
             cpal::SampleFormat::U16 => device.build_output_stream(
-                config.clone(),
+                config,
                 move |o: &mut [u16], _: &_| feed.fill(o),
                 err,
                 None,
             ),
             cpal::SampleFormat::I32 => device.build_output_stream(
-                config.clone(),
+                config,
                 move |o: &mut [i32], _: &_| feed.fill(o),
                 err,
                 None,
@@ -164,12 +173,7 @@ impl AudioOut {
         }
         .map_err(|e| e.to_string())?;
         stream.play().map_err(|e| e.to_string())?;
-        Ok(Self {
-            _stream: stream,
-            device_rate,
-            device_channels: channels as u16,
-            backend,
-        })
+        Ok(Self { _stream: stream, device_rate, device_channels: channels as u16, backend })
     }
 
     /// Start with defaults (tests and headless tools).

@@ -60,9 +60,7 @@ pub struct BackgroundTextureSlot {
 
 impl BackgroundTextureSlot {
     pub fn start_placeholder() -> Self {
-        Self {
-            load: SharedTextureLoad::placeholder(),
-        }
+        Self { load: SharedTextureLoad::placeholder() }
     }
 
     /// Apply decoded pixels (called from worker or test).

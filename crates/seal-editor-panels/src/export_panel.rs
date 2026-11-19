@@ -94,15 +94,16 @@ pub fn export_panel(frame: &mut PanelFrame, session: &mut EditorSession) -> Pane
                     preset.profile = profile;
                     changed = true;
                 }
-                let platforms: Vec<(&str, String)> = seal_editor_core::import_platform::ALL_PLATFORMS
-                    .iter()
-                    .map(|p| {
-                        (
-                            p.id(),
-                            session.messages.format("import-platform-name", &[("id", p.id())]),
-                        )
-                    })
-                    .collect();
+                let platforms: Vec<(&str, String)> =
+                    seal_editor_core::import_platform::ALL_PLATFORMS
+                        .iter()
+                        .map(|p| {
+                            (
+                                p.id(),
+                                session.messages.format("import-platform-name", &[("id", p.id())]),
+                            )
+                        })
+                        .collect();
                 if let Some(platform) =
                     frame.choice(&text("export-platform"), &preset.platform, &platforms)
                 {
@@ -216,9 +217,14 @@ pub fn export_panel(frame: &mut PanelFrame, session: &mut EditorSession) -> Pane
                     match (msix_pack::which_makeappx(), msix_pack::tool_state()) {
                         (_, ToolState::Downloading) => {
                             frame.muted(&text("export-makeappx-downloading"));
-                            frame.ui_mut().ctx().request_repaint_after(std::time::Duration::from_millis(250));
+                            frame
+                                .ui_mut()
+                                .ctx()
+                                .request_repaint_after(std::time::Duration::from_millis(250));
                         }
-                        (Ok(path), _) => frame.muted(&format!("{} {path}", text("export-makeappx-found"))),
+                        (Ok(path), _) => {
+                            frame.muted(&format!("{} {path}", text("export-makeappx-found")))
+                        }
                         (Err(_), state) => {
                             frame.muted(&text("export-makeappx-missing"));
                             if let ToolState::Failed(why) = state {

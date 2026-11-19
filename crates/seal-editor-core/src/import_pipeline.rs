@@ -51,17 +51,11 @@ pub struct CustomImporter {
     pub graph: String,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Default)]
 pub struct PipelineBook {
     pub scripts: Vec<KindScript>,
     pub importers: Vec<CustomImporter>,
     pub load_warning: Option<String>,
-}
-
-impl Default for PipelineBook {
-    fn default() -> Self {
-        Self { scripts: Vec::new(), importers: Vec::new(), load_warning: None }
-    }
 }
 
 impl PipelineBook {
@@ -122,7 +116,9 @@ pub fn remove_importer_hook(extension: &str) {
     hooks.retain(|hook| hook.extension != extension);
 }
 
-fn hook_for(extension: &str) -> Option<(String, fn(&mut Scratch) -> Result<(), String>)> {
+type HookApply = fn(&mut Scratch) -> Result<(), String>;
+
+fn hook_for(extension: &str) -> Option<(String, HookApply)> {
     let extension = normalize_ext(extension);
     let hooks = hook_slot().lock().unwrap_or_else(|err| err.into_inner());
     hooks
@@ -205,12 +201,7 @@ fn meta_line(plan: &PlannedFile) -> String {
     };
     let mut tags = plan.tags.clone();
     tags.sort();
-    format!(
-        "name={}\nkind={}\npivot={pivot}\ntags={}\n",
-        plan.file_name,
-        plan.kind,
-        tags.join(",")
-    )
+    format!("name={}\nkind={}\npivot={pivot}\ntags={}\n", plan.file_name, plan.kind, tags.join(","))
 }
 
 pub fn book_path(root: &Path) -> PathBuf {
@@ -531,7 +522,8 @@ fn free_import_name(folder: &Path, name: &str, bytes: &[u8]) -> PathBuf {
 
 fn run_graph_file(root: &Path, rel: &str, scratch: &mut Scratch) -> Result<(), String> {
     let path = root.join(rel);
-    let text = fs::read_to_string(&path).map_err(|_| format!("import script {rel} was not found"))?;
+    let text =
+        fs::read_to_string(&path).map_err(|_| format!("import script {rel} was not found"))?;
     let graph = Graph::from_text(&text).map_err(|err| format!("import script {rel}: {err}"))?;
     run_graph(&graph, scratch)
 }
@@ -614,9 +606,7 @@ fn apply_rename(scratch: &mut Scratch, name: &str) {
         return;
     }
     let ext = extension_of(&scratch.file_name);
-    scratch.file_name = if Path::new(name).extension().is_some() {
-        name.to_string()
-    } else if ext.is_empty() {
+    scratch.file_name = if Path::new(name).extension().is_some() || ext.is_empty() {
         name.to_string()
     } else {
         format!("{name}.{ext}")
@@ -625,7 +615,8 @@ fn apply_rename(scratch: &mut Scratch, name: &str) {
 }
 
 fn linked_text(graph: &Graph, node: &Node, pin: &str, scratch: &Scratch) -> Option<String> {
-    if let Some(link) = graph.links.iter().find(|link| link.to.node == node.id && link.to.pin == pin)
+    if let Some(link) =
+        graph.links.iter().find(|link| link.to.node == node.id && link.to.pin == pin)
     {
         return eval_text(graph, link.from.node, &link.from.pin, scratch);
     }
@@ -705,7 +696,8 @@ pub fn sweep_partials(root: &Path) {
                 pending.push(path);
                 continue;
             }
-            let name = path.file_name().map(|name| name.to_string_lossy().to_string()).unwrap_or_default();
+            let name =
+                path.file_name().map(|name| name.to_string_lossy().to_string()).unwrap_or_default();
             if name.ends_with(".partial") || name.ends_with(".tmp") {
                 let _ = fs::remove_file(&path);
             }
@@ -727,7 +719,11 @@ fn write_plan(root: &Path, plan: &PlannedFile, cancel: bool) -> Result<bool, Cor
         return Ok(false);
     }
     if let Some(kind) = ImportKind::from_asset_path(&plan.dest_rel) {
-        import_presets::apply_preset_on_import(root, &import_presets::load_book(root), &plan.dest_rel)?;
+        import_presets::apply_preset_on_import(
+            root,
+            &import_presets::load_book(root),
+            &plan.dest_rel,
+        )?;
         if plan.pivot_set && kind == ImportKind::Picture {
             let mut state = import_presets::load_file_state(root, &plan.dest_rel, kind);
             if let import_presets::ImportSettings::Picture(picture) = &mut state.settings {
@@ -831,7 +827,8 @@ pub fn begin_import_from_arg(
     editor_tools::note_worker_budget(&session.foundation.settings);
     let (mut planned, _) =
         plan_imports(&root, sources, editor_tools::active_workers(), &book, true, false)?;
-    let place = args.get("place") == Some("1") || (args.get("a").is_some() && args.get("b").is_some());
+    let place =
+        args.get("place") == Some("1") || (args.get("a").is_some() && args.get("b").is_some());
     for plan in &mut planned {
         plan.place_sprite = plan.place_sprite && place;
     }
@@ -869,9 +866,9 @@ fn collect_sources(root: &Path, book: &PipelineBook, raw: &str) -> Result<Vec<Pa
                 .map(|entry| entry.path())
                 .filter(|path| {
                     path.is_file()
-                        && path.file_name().is_some_and(|name| {
-                            known_in_folder(book, &name.to_string_lossy())
-                        })
+                        && path
+                            .file_name()
+                            .is_some_and(|name| known_in_folder(book, &name.to_string_lossy()))
                 })
                 .collect();
             if found.is_empty() {
@@ -915,7 +912,12 @@ pub fn begin_reindex(session: &mut EditorSession) -> Result<(), CoreError> {
     Ok(())
 }
 
-fn walk_files(base: &Path, dir: &Path, ignore: &[String], out: &mut Vec<String>) -> Result<(), CoreError> {
+fn walk_files(
+    base: &Path,
+    dir: &Path,
+    ignore: &[String],
+    out: &mut Vec<String>,
+) -> Result<(), CoreError> {
     for entry in fs::read_dir(dir).map_err(|err| CoreError::new(err.to_string()))? {
         let entry = entry.map_err(|err| CoreError::new(err.to_string()))?;
         let name = entry.file_name().to_string_lossy().into_owned();
@@ -927,7 +929,8 @@ fn walk_files(base: &Path, dir: &Path, ignore: &[String], out: &mut Vec<String>)
             .strip_prefix(base)
             .map(|rel| rel.to_string_lossy().replace('\\', "/"))
             .unwrap_or(name);
-        if ignore.iter().any(|rule| !rule.is_empty() && rel.starts_with(rule.trim_end_matches('/'))) {
+        if ignore.iter().any(|rule| !rule.is_empty() && rel.starts_with(rule.trim_end_matches('/')))
+        {
             continue;
         }
         if path.is_dir() {
@@ -1025,7 +1028,11 @@ fn step_job(session: &mut EditorSession) -> Result<(), CoreError> {
                 }
             }
             let status = if plan.error.is_some() || !wrote { "failed" } else { "ok" };
-            let file = if plan.dest_rel.is_empty() { plan.file_name.clone() } else { plan.dest_rel.clone() };
+            let file = if plan.dest_rel.is_empty() {
+                plan.file_name.clone()
+            } else {
+                plan.dest_rel.clone()
+            };
             crate::asset_index::record_import_activity_hashed(
                 session,
                 &file,
@@ -1046,7 +1053,13 @@ fn step_job(session: &mut EditorSession) -> Result<(), CoreError> {
                 session.models.long_job = Some(LongJob {
                     id: id.clone(),
                     title,
-                    kind: JobKind::Import { steps, index, place_a, place_b, done_names: done_names.clone() },
+                    kind: JobKind::Import {
+                        steps,
+                        index,
+                        place_a,
+                        place_b,
+                        done_names: done_names.clone(),
+                    },
                     fraction,
                 });
                 finish_import(session, &done_names)?;
@@ -1092,7 +1105,8 @@ fn step_job(session: &mut EditorSession) -> Result<(), CoreError> {
                 });
                 crate::export_preset::execute_export(session, &request)?;
                 if task_cancelled(session, &id) {
-                    if let Some(root) = session.project.as_ref().map(|project| project.root.clone()) {
+                    if let Some(root) = session.project.as_ref().map(|project| project.root.clone())
+                    {
                         sweep_partials(&root);
                     }
                     clear_job(session, &id);
@@ -1265,16 +1279,18 @@ fn write_starter(root: &Path, kind: &str) -> Result<String, CoreError> {
     }
     if !path.is_file() {
         let mut graph = Graph::new(&format!("Import {kind}"));
-        graph.nodes.push(
-            Node::new(1, "event").with("name", SealValue::String("import".into())),
-        );
+        graph.nodes.push(Node::new(1, "event").with("name", SealValue::String("import".into())));
         graph.nodes.push(
             Node::new(2, "import_set_pivot")
                 .with("x", SealValue::Number("0.5".into()))
                 .with("y", SealValue::Number("0.5".into())),
         );
-        graph.nodes.push(Node::new(3, "import_rename").with("name", SealValue::String(String::new())));
-        graph.nodes.push(Node::new(4, "import_add_tag").with("tag", SealValue::String(String::new())));
+        graph
+            .nodes
+            .push(Node::new(3, "import_rename").with("name", SealValue::String(String::new())));
+        graph
+            .nodes
+            .push(Node::new(4, "import_add_tag").with("tag", SealValue::String(String::new())));
         graph.links.push(Link::new(1, "then", 2, "in"));
         graph.links.push(Link::new(2, "then", 3, "in"));
         graph.links.push(Link::new(3, "then", 4, "in"));
@@ -1294,7 +1310,12 @@ where
     atomic_write(&path, graph.to_text().as_bytes())
 }
 
-fn set_node_param(graph: &mut Graph, kind: &str, key: &str, value: SealValue) -> Result<(), CoreError> {
+fn set_node_param(
+    graph: &mut Graph,
+    kind: &str,
+    key: &str,
+    value: SealValue,
+) -> Result<(), CoreError> {
     let Some(node) = graph.nodes.iter_mut().find(|node| node.kind == kind) else {
         return Err(CoreError::new(format!("the import script has no {kind} node")));
     };

@@ -94,11 +94,7 @@ impl Presenter {
                 },
             ],
         });
-        let gain = if hdr_output {
-            paper_white_nits / 203.0
-        } else {
-            1.0
-        };
+        let gain = if hdr_output { paper_white_nits / 203.0 } else { 1.0 };
         let tone = d.create_buffer_init(&wgpu::util::BufferInitDescriptor {
             label: Some("seal present tone"),
             contents: bytemuck::bytes_of(&ToneUniform { gain, _pad: [0.0; 3] }),
@@ -140,16 +136,7 @@ impl Presenter {
             min_filter: wgpu::FilterMode::Nearest,
             ..Default::default()
         });
-        Self {
-            surface,
-            config,
-            hdr_output,
-            paper_white_nits,
-            pipeline,
-            layout,
-            sampler,
-            tone,
-        }
+        Self { surface, config, hdr_output, paper_white_nits, pipeline, layout, sampler, tone }
     }
 
     pub fn resize(&mut self, device: &WgpuDevice, width: u32, height: u32) {
@@ -184,10 +171,7 @@ impl Presenter {
                     binding: 1,
                     resource: wgpu::BindingResource::Sampler(&self.sampler),
                 },
-                wgpu::BindGroupEntry {
-                    binding: 2,
-                    resource: self.tone.as_entire_binding(),
-                },
+                wgpu::BindGroupEntry { binding: 2, resource: self.tone.as_entire_binding() },
             ],
         });
         let mut encoder = device.device.create_command_encoder(&Default::default());

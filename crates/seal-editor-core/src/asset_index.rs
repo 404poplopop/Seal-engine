@@ -131,7 +131,7 @@ pub fn load_index(root: &Path) -> Result<AssetIndex, String> {
         return Ok(AssetIndex::default());
     };
     let value = parse(&text).map_err(|err| format!("{INDEX_FILE} is unreadable ({err})"))?;
-    Ok(index_from_value(&value)?)
+    index_from_value(&value)
 }
 
 fn index_from_value(value: &SealValue) -> Result<AssetIndex, String> {
@@ -231,7 +231,12 @@ pub fn walk_for_scan(
     walk_files(base, dir, ignore, out)
 }
 
-fn walk_files(base: &Path, dir: &Path, ignore: &[String], out: &mut Vec<String>) -> Result<(), CoreError> {
+fn walk_files(
+    base: &Path,
+    dir: &Path,
+    ignore: &[String],
+    out: &mut Vec<String>,
+) -> Result<(), CoreError> {
     for entry in fs::read_dir(dir)? {
         let entry = entry?;
         let name = entry.file_name().to_string_lossy().into_owned();
@@ -823,7 +828,7 @@ pub fn apply_content_path_change(
         import_book_before: import_before,
         import_book_after: import_after,
     };
-    session.push_past(Past::ContentPathChange { change: change });
+    session.push_past(Past::ContentPathChange { change });
     session.future.clear();
     session.models.pending_content_path = None;
     Ok(())

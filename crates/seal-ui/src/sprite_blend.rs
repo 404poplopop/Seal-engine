@@ -35,24 +35,11 @@ pub fn gl_blend_factors(mode: &str) -> (u32, u32, u32, u32) {
     match mode {
         "additive" => (glow::ONE, glow::ONE, glow::ZERO, glow::ONE),
         "multiply" => (glow::DST_COLOR, glow::ONE_MINUS_SRC_ALPHA, glow::ZERO, glow::ONE),
-        "screen" => (
-            glow::ONE,
-            glow::ONE_MINUS_SRC_COLOR,
-            glow::ONE,
-            glow::ONE_MINUS_SRC_ALPHA,
-        ),
-        "premultiplied" => (
-            glow::ONE,
-            glow::ONE_MINUS_SRC_ALPHA,
-            glow::ONE,
-            glow::ONE_MINUS_SRC_ALPHA,
-        ),
-        _ => (
-            glow::ONE,
-            glow::ONE_MINUS_SRC_ALPHA,
-            glow::ONE,
-            glow::ONE_MINUS_SRC_ALPHA,
-        ),
+        "screen" => (glow::ONE, glow::ONE_MINUS_SRC_COLOR, glow::ONE, glow::ONE_MINUS_SRC_ALPHA),
+        "premultiplied" => {
+            (glow::ONE, glow::ONE_MINUS_SRC_ALPHA, glow::ONE, glow::ONE_MINUS_SRC_ALPHA)
+        }
+        _ => (glow::ONE, glow::ONE_MINUS_SRC_ALPHA, glow::ONE, glow::ONE_MINUS_SRC_ALPHA),
     }
 }
 
@@ -145,47 +132,28 @@ pub fn vertex_tint(mode: &str, color: Color32) -> [f32; 4] {
     let srgba = color.to_srgba_unmultiplied();
     let a = srgba[3] as f32 / 255.0;
     if mode == "premultiplied" {
-        [
-            srgba[0] as f32 / 255.0 * a,
-            srgba[1] as f32 / 255.0 * a,
-            srgba[2] as f32 / 255.0 * a,
-            a,
-        ]
+        [srgba[0] as f32 / 255.0 * a, srgba[1] as f32 / 255.0 * a, srgba[2] as f32 / 255.0 * a, a]
     } else {
-        [
-            srgba[0] as f32 / 255.0,
-            srgba[1] as f32 / 255.0,
-            srgba[2] as f32 / 255.0,
-            a,
-        ]
+        [srgba[0] as f32 / 255.0, srgba[1] as f32 / 255.0, srgba[2] as f32 / 255.0, a]
     }
 }
 
-pub fn push_quad(
-    out: &mut Vec<BlendVertex>,
-    corners: [Pos2; 4],
-    uv: [f32; 4],
-    tint: [f32; 4],
-) {
-    let uvs = [
-        [uv[0], uv[1]],
-        [uv[2], uv[1]],
-        [uv[2], uv[3]],
-        [uv[0], uv[3]],
-    ];
+pub fn push_quad(out: &mut Vec<BlendVertex>, corners: [Pos2; 4], uv: [f32; 4], tint: [f32; 4]) {
+    let uvs = [[uv[0], uv[1]], [uv[2], uv[1]], [uv[2], uv[3]], [uv[0], uv[3]]];
     for index in [0_usize, 1, 2, 0, 2, 3] {
         out.push(BlendVertex { pos: corners[index], uv: uvs[index], tint });
     }
 }
 
 #[cfg(test)]
-pub fn push_quad_uvs(out: &mut Vec<BlendVertex>, corners: [Pos2; 4], uvs: [Pos2; 4], tint: [f32; 4]) {
+pub fn push_quad_uvs(
+    out: &mut Vec<BlendVertex>,
+    corners: [Pos2; 4],
+    uvs: [Pos2; 4],
+    tint: [f32; 4],
+) {
     for index in [0_usize, 1, 2, 0, 2, 3] {
-        out.push(BlendVertex {
-            pos: corners[index],
-            uv: [uvs[index].x, uvs[index].y],
-            tint,
-        });
+        out.push(BlendVertex { pos: corners[index], uv: [uvs[index].x, uvs[index].y], tint });
     }
 }
 
@@ -235,12 +203,7 @@ impl SpriteBlendPass {
         true
     }
 
-    pub fn try_queue_mesh(
-        &mut self,
-        mode: &str,
-        mesh: &Mesh,
-        angled: bool,
-    ) -> bool {
+    pub fn try_queue_mesh(&mut self, mode: &str, mesh: &Mesh, angled: bool) -> bool {
         if !self.gpu || angled || !is_special_blend(mode) || mesh.indices.is_empty() {
             return false;
         }
@@ -249,11 +212,7 @@ impl SpriteBlendPass {
         if vertices.len() < 3 {
             return false;
         }
-        self.pending.push(BlendDraw {
-            texture: mesh.texture_id,
-            mode: mode.to_string(),
-            vertices,
-        });
+        self.pending.push(BlendDraw { texture: mesh.texture_id, mode: mode.to_string(), vertices });
         true
     }
 
@@ -320,12 +279,7 @@ pub fn cpu_paint_color(mode: &str, color: Color32) -> Color32 {
         }
         "multiply" | "screen" => {
             let dst = [0.5f32; 4];
-            let src = [
-                r as f32 / 255.0,
-                g as f32 / 255.0,
-                b as f32 / 255.0,
-                a as f32 / 255.0,
-            ];
+            let src = [r as f32 / 255.0, g as f32 / 255.0, b as f32 / 255.0, a as f32 / 255.0];
             let out = material2d::blend_pixel(dst, src, mode);
             let byte = |v: f32| (v.clamp(0.0, 1.0) * 255.0).round() as u8;
             Color32::from_rgba_unmultiplied(byte(out[0]), byte(out[1]), byte(out[2]), byte(out[3]))
@@ -471,12 +425,7 @@ mod tests {
         push_quad_uvs(
             &mut vertices,
             [Pos2::ZERO, Pos2::new(1.0, 0.0), Pos2::new(1.0, 1.0), Pos2::new(0.0, 1.0)],
-            [
-                Pos2::new(0.1, 0.2),
-                Pos2::new(0.9, 0.2),
-                Pos2::new(0.9, 0.8),
-                Pos2::new(0.1, 0.8),
-            ],
+            [Pos2::new(0.1, 0.2), Pos2::new(0.9, 0.2), Pos2::new(0.9, 0.8), Pos2::new(0.1, 0.8)],
             [1.0, 1.0, 1.0, 1.0],
         );
         assert_eq!(vertices.len(), 6);

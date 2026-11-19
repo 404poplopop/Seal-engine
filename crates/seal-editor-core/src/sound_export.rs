@@ -31,19 +31,15 @@ pub fn package_bytes(project: &Path, rel: &str, raw: &[u8]) -> Result<Vec<u8>, S
     let sound = decode_exported(raw)
         .or_else(|_| seal_audio::Sound::from_bytes(raw, Some(&project.join(rel))))
         .map_err(|e| e.to_string())?;
-    let bytes = encode_for_export(
-        &sound,
-        mode,
-        settings.vorbis_quality,
-    );
+    let bytes = encode_for_export(&sound, mode, settings.vorbis_quality);
     Ok(bytes)
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use seal_audio::Sound;
     use crate::import_presets::{save_file_state, FileImportState, ImportSettings, SoundSettings};
+    use seal_audio::Sound;
     use std::fs;
 
     #[test]

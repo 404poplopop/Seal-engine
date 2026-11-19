@@ -22,10 +22,7 @@ fn the_shadow_edge_is_soft_with_pcf() {
     let m = scene();
     let edge = m.lit([1.0, 0.0, 0.0], 0.005, 2);
     assert!(edge > 0.0 && edge < 1.0, "edge was {edge}");
-    assert_eq!(
-        m.lit([1.0, 0.0, 0.0], 0.005, 0) == 0.0 || m.lit([1.0, 0.0, 0.0], 0.005, 0) == 1.0,
-        true
-    );
+    assert!(m.lit([1.0, 0.0, 0.0], 0.005, 0) == 0.0 || m.lit([1.0, 0.0, 0.0], 0.005, 0) == 1.0);
 }
 
 #[test]

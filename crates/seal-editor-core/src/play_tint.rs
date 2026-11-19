@@ -137,10 +137,14 @@ pub fn blend_play_tint(base: &ThemeFile, tint: Rgb, strength_percent: u8) -> The
 }
 
 fn roles_to_tint() -> impl Iterator<Item = &'static str> {
-    THEME_SURFACE_ROLES.iter().copied().chain(
-        ["look_level0", "look_level1", "look_level2", "look_level3", "look_input", "title_bar"]
-            .into_iter(),
-    )
+    THEME_SURFACE_ROLES.iter().copied().chain([
+        "look_level0",
+        "look_level1",
+        "look_level2",
+        "look_level3",
+        "look_input",
+        "title_bar",
+    ])
 }
 
 fn default_play_tint_rgb() -> Rgb {

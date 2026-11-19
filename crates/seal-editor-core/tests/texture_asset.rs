@@ -1,6 +1,8 @@
 //! Composite texture asset commands and SealText round-trip.
 
-use seal_editor_core::{create_project, asset_editor::ASSET_DRAFT, CommandArgs, EditorSession, Layout};
+use seal_editor_core::{
+    asset_editor::ASSET_DRAFT, create_project, CommandArgs, EditorSession, Layout,
+};
 use seal_render::{TextureAsset, TextureAssetKind};
 use std::fs;
 
@@ -14,7 +16,7 @@ fn project_with_png() -> (std::path::PathBuf, EditorSession) {
     fs::create_dir_all(dir.join("textures")).unwrap();
     let png = dir.join("textures/layer0.png");
     {
-        let raw: Vec<u8> = std::iter::repeat([1u8, 2, 3, 255]).take(16).flatten().collect();
+        let raw: Vec<u8> = std::iter::repeat_n([1u8, 2, 3, 255], 16).flatten().collect();
         let mut enc = png::Encoder::new(std::fs::File::create(&png).unwrap(), 4, 4);
         enc.set_color(png::ColorType::Rgba);
         enc.set_depth(png::BitDepth::Eight);
@@ -23,10 +25,7 @@ fn project_with_png() -> (std::path::PathBuf, EditorSession) {
     }
     let mut session = EditorSession::new(Layout::default());
     session
-        .dispatch(
-            "file.open-project",
-            &CommandArgs::new(&[("path", dir.to_str().unwrap())]),
-        )
+        .dispatch("file.open-project", &CommandArgs::new(&[("path", dir.to_str().unwrap())]))
         .unwrap();
     (dir, session)
 }
@@ -89,12 +88,7 @@ fn texture_export_encode_writes_ktx2() {
             ]),
         )
         .unwrap();
-    session
-        .dispatch(
-            "asset.texture_set",
-            &CommandArgs::new(&[("gpu_format", "bc1")]),
-        )
-        .unwrap();
+    session.dispatch("asset.texture_set", &CommandArgs::new(&[("gpu_format", "bc1")])).unwrap();
     session
         .dispatch(
             "asset.texture_export_encode",

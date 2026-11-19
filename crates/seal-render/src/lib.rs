@@ -11,12 +11,9 @@ pub mod cull;
 pub mod device;
 pub mod gi;
 pub mod gpu_block_format;
-pub mod ktx2_io;
-pub mod texture_encode;
-#[cfg(not(all(windows, target_env = "gnu")))]
-mod texture_encode_intel;
 pub mod graph;
 pub mod hdr_output;
+pub mod ktx2_io;
 pub mod picture;
 mod picture_blocks;
 mod picture_mesh;
@@ -26,6 +23,9 @@ pub mod probes;
 pub mod shadow;
 pub mod soft;
 pub mod texture_asset;
+pub mod texture_encode;
+#[cfg(not(all(windows, target_env = "gnu")))]
+mod texture_encode_intel;
 pub mod texture_load;
 pub mod texture_stream;
 
@@ -34,8 +34,8 @@ pub use device::{
     TextureId, TextureShape, TextureWrap,
 };
 pub use gpu_block_format::GpuBlockFormat;
-pub use ktx2_io::{read_ktx2, write_ktx2, write_ktx2_from_rgba, Ktx2Image};
-pub use texture_encode::{export_block_format, psnr_rgba, EncodeQuality};
-pub use texture_asset::{TextureAsset, TextureAssetKind};
 pub use graph::{CompiledGraph, GraphError, PassBuilder, PassContext, RenderGraph, ResourceId};
+pub use ktx2_io::{read_ktx2, write_ktx2, write_ktx2_from_rgba, Ktx2Image};
 pub use soft::SoftDevice;
+pub use texture_asset::{TextureAsset, TextureAssetKind};
+pub use texture_encode::{export_block_format, psnr_rgba, EncodeQuality};

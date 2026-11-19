@@ -36,8 +36,8 @@ fn sample_directions_cover_the_sphere_evenly() {
             sum[k] += d[k];
         }
     }
-    for k in 0..3 {
-        assert!(sum[k].abs() / 256.0 < 0.02, "directions lean along axis {k}");
+    for (k, s) in sum.iter().enumerate() {
+        assert!(s.abs() / 256.0 < 0.02, "directions lean along axis {k}");
     }
 }
 

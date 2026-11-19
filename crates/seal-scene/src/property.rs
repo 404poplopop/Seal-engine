@@ -357,10 +357,8 @@ fn finite(value: &SealValue) -> Result<f32, String> {
 }
 
 pub fn write_seal(seq: &Sequence) -> String {
-    let mut entries = vec![
-        ("length".into(), number(seq.length)),
-        ("loop".into(), SealValue::Bool(seq.looping)),
-    ];
+    let mut entries =
+        vec![("length".into(), number(seq.length)), ("loop".into(), SealValue::Bool(seq.looping))];
     if !seq.tracks.is_empty() {
         entries.push((
             "tracks".into(),
@@ -393,8 +391,7 @@ pub fn write_seal(seq: &Sequence) -> String {
         entries.push((
             "time_warp".into(),
             SealValue::Array(
-                seq
-                    .time_warp
+                seq.time_warp
                     .keys
                     .iter()
                     .map(|(clock, content)| {

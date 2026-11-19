@@ -37,16 +37,19 @@ pub(crate) fn rows(
                 Some(key),
             ) {
                 let value = if matches!(next, PropertyCheckbox::On) { "yes" } else { "no" };
-                event = Some(command(
-                    "inspector.set",
-                    &[set_target, ("field", key), ("value", value)],
-                ));
+                event =
+                    Some(command("inspector.set", &[set_target, ("field", key), ("value", value)]));
             }
             continue;
         }
-        if let Some(painted) =
-            inspector_pickers::try_paint(frame, session, key, &label, Some(current.as_str()), set_target)
-        {
+        if let Some(painted) = inspector_pickers::try_paint(
+            frame,
+            session,
+            key,
+            &label,
+            Some(current.as_str()),
+            set_target,
+        ) {
             if !matches!(painted, PanelEvent::None) {
                 event = Some(painted);
             }

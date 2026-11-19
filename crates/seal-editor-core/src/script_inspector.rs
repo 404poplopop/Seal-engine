@@ -1,6 +1,6 @@
 //! Load custom inspector layouts from graph scripts and plan entity field rows.
 
-use seal_graph::inspector_layout::{InspectorLayout, plan_rows, InspectorRowPlan};
+use seal_graph::inspector_layout::{plan_rows, InspectorLayout, InspectorRowPlan};
 use std::path::Path;
 
 /// Read the inspector layout from a `.graph` file when it is readable.
@@ -40,10 +40,7 @@ mod tests {
         fs::create_dir_all(path.parent().unwrap()).unwrap();
         let mut graph = seal_graph::Graph::new("Test");
         let mut layout = InspectorLayout::default();
-        layout.sections.push(InspectorSection {
-            name: "Move".into(),
-            order: 0,
-        });
+        layout.sections.push(InspectorSection { name: "Move".into(), order: 0 });
         layout.fields.push(InspectorFieldRule {
             field: "bounce".into(),
             section: None,

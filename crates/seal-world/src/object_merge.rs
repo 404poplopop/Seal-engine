@@ -7,18 +7,12 @@
 use crate::{Entity, Shape, World};
 
 /// Sprites or triangles kept on one object after a merge. Empty `kind` means none.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Default)]
 pub struct MergedDraw {
     /// `sprites` or `mesh`. Empty when this object is not a merge.
     pub kind: String,
     /// Packed parts. See [`encode_sprites`] and [`encode_tris`].
     pub body: String,
-}
-
-impl Default for MergedDraw {
-    fn default() -> Self {
-        Self { kind: String::new(), body: String::new() }
-    }
 }
 
 seal_ecs::text_component!(MergedDraw as "merged_draw" { kind, body });
@@ -147,7 +141,10 @@ pub fn merge(world: &mut World, ids: &[String]) -> Result<String, String> {
 }
 
 fn mergeable(entity: &Entity) -> bool {
-    is_sprite(entity) || entity.shape.is_some() || shape_poly(entity) || entity.source_kind == "mesh"
+    is_sprite(entity)
+        || entity.shape.is_some()
+        || shape_poly(entity)
+        || entity.source_kind == "mesh"
 }
 
 fn is_sprite(entity: &Entity) -> bool {
@@ -190,10 +187,7 @@ fn local_tris(entity: &Entity, origin: [f32; 2]) -> Vec<[[f32; 2]; 3]> {
             .points
             .iter()
             .map(|p| {
-                [
-                    entity.translation[0] + p[0] - origin[0],
-                    entity.translation[1] + p[1] - origin[1],
-                ]
+                [entity.translation[0] + p[0] - origin[0], entity.translation[1] + p[1] - origin[1]]
             })
             .collect();
         if pts.len() >= 3 {
@@ -230,14 +224,16 @@ fn front_half(entity: &Entity) -> Option<([f32; 2], [f32; 3])> {
         return Some((half, color));
     }
     if entity.source_kind == "mesh" {
-        return Some(([0.5 * entity.scale[0].abs().max(0.5), 0.5 * entity.scale[1].abs().max(0.5)], color));
+        return Some((
+            [0.5 * entity.scale[0].abs().max(0.5), 0.5 * entity.scale[1].abs().max(0.5)],
+            color,
+        ));
     }
     if is_sprite(entity) {
-        return Some(([entity.scale[0].abs().max(0.05) * 0.5, entity.scale[1].abs().max(0.05) * 0.5], [
-            entity.tint[0],
-            entity.tint[1],
-            entity.tint[2],
-        ]));
+        return Some((
+            [entity.scale[0].abs().max(0.05) * 0.5, entity.scale[1].abs().max(0.05) * 0.5],
+            [entity.tint[0], entity.tint[1], entity.tint[2]],
+        ));
     }
     None
 }
@@ -373,10 +369,7 @@ pub fn tri_marks(entity: &Entity) -> Vec<TriMark> {
         return Vec::new();
     };
     let rgb = rgb_bytes(color);
-    local_tris(entity, [0.0, 0.0])
-        .into_iter()
-        .map(|t| TriMark { points: t, rgb })
-        .collect()
+    local_tris(entity, [0.0, 0.0]).into_iter().map(|t| TriMark { points: t, rgb }).collect()
 }
 
 fn tint_bytes(tint: [f32; 4]) -> [u8; 4] {
@@ -497,7 +490,11 @@ pub fn collect_marks(entities: &[Entity], ids: &[String]) -> (Vec<SpriteMark>, V
             tris.extend(tri_marks(entity));
         }
     }
-    sprites.sort_by(|a, b| a.image.cmp(&b.image).then(a.x.partial_cmp(&b.x).unwrap_or(std::cmp::Ordering::Equal)));
-    tris.sort_by(|a, b| a.points[0][0].partial_cmp(&b.points[0][0]).unwrap_or(std::cmp::Ordering::Equal));
+    sprites.sort_by(|a, b| {
+        a.image.cmp(&b.image).then(a.x.partial_cmp(&b.x).unwrap_or(std::cmp::Ordering::Equal))
+    });
+    tris.sort_by(|a, b| {
+        a.points[0][0].partial_cmp(&b.points[0][0]).unwrap_or(std::cmp::Ordering::Equal)
+    });
     (sprites, tris)
 }

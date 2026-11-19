@@ -152,6 +152,7 @@ fn camera_frame(session: &EditorSession, camera_id: &str) -> ([f32; 2], f32, boo
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 fn paint_play_window(
     ui: &mut egui::Ui,
     stamps: &[Stamp],

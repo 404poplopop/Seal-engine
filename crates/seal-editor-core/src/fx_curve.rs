@@ -113,9 +113,8 @@ pub(crate) fn cmd_fx_text(
                 .iter()
                 .rev()
                 .any(|item| matches!(item, Past::File { path: slot, .. } if slot == &path))
+                || next != current
             {
-                remember(session, &path, current, next);
-            } else if next != current {
                 remember(session, &path, current, next);
             }
             session.set_draft(FX_FIELD_EDIT, &mark)?;

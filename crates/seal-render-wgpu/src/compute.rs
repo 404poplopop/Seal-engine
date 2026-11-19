@@ -178,7 +178,12 @@ pub fn run_kernel_gpu(gpu: &WgpuDevice, k: &Checked, data: &mut Data) -> Result<
     device.poll(wgpu::PollType::wait_indefinitely()).map_err(|e| e.to_string())?;
     let read = |b: &wgpu::Buffer| -> Vec<u32> {
         let mapped = b.get_mapped_range(..).expect("mapped kernel read-back");
-        mapped.chunks_exact(4).map(|w| u32::from_le_bytes([w[0], w[1], w[2], w[3]])).collect()
+        mapped
+            .as_chunks::<4>()
+            .0
+            .iter()
+            .map(|w| u32::from_le_bytes([w[0], w[1], w[2], w[3]]))
+            .collect()
     };
 
     let mut out = Data32 { columns: narrow.columns.clone(), params: narrow.params.clone() };

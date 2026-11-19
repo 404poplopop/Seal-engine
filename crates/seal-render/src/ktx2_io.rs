@@ -46,14 +46,14 @@ pub fn vk_format_for(format: GpuBlockFormat, srgb: bool, alpha: bool) -> u32 {
 
 pub fn gpu_format_from_vk(vk: u32) -> Option<GpuBlockFormat> {
     Some(match vk {
-        131 | 132 | 133 | 134 => GpuBlockFormat::Bc1,
+        131..=134 => GpuBlockFormat::Bc1,
         135 | 136 => GpuBlockFormat::Bc2,
         137 | 138 => GpuBlockFormat::Bc3,
         139 | 140 => GpuBlockFormat::Bc4,
         141 | 142 => GpuBlockFormat::Bc5,
         143 | 144 => GpuBlockFormat::Bc6h,
         145 | 146 => GpuBlockFormat::Bc7,
-        147 | 148 | 149 | 150 => GpuBlockFormat::Etc2,
+        147..=150 => GpuBlockFormat::Etc2,
         157 | 158 => GpuBlockFormat::Astc4x4,
         37 | 43 => GpuBlockFormat::Rgba8,
         _ => return None,
@@ -149,16 +149,18 @@ pub fn read_ktx2(bytes: &[u8]) -> Result<Ktx2Image, PictureError> {
         return Err(PictureError::new("the picture could not be read"));
     }
     let u32_at = |off: usize| -> Result<u32, PictureError> {
-        let raw = bytes
-            .get(off..off + 4)
-            .ok_or_else(|| PictureError::new("the picture is truncated"))?;
-        Ok(u32::from_le_bytes(raw.try_into().map_err(|_| PictureError::new("the picture is truncated"))?))
+        let raw =
+            bytes.get(off..off + 4).ok_or_else(|| PictureError::new("the picture is truncated"))?;
+        Ok(u32::from_le_bytes(
+            raw.try_into().map_err(|_| PictureError::new("the picture is truncated"))?,
+        ))
     };
     let u64_at = |off: usize| -> Result<u64, PictureError> {
-        let raw = bytes
-            .get(off..off + 8)
-            .ok_or_else(|| PictureError::new("the picture is truncated"))?;
-        Ok(u64::from_le_bytes(raw.try_into().map_err(|_| PictureError::new("the picture is truncated"))?))
+        let raw =
+            bytes.get(off..off + 8).ok_or_else(|| PictureError::new("the picture is truncated"))?;
+        Ok(u64::from_le_bytes(
+            raw.try_into().map_err(|_| PictureError::new("the picture is truncated"))?,
+        ))
     };
     let vk = u32_at(12)?;
     let width = u32_at(20)?;
@@ -173,35 +175,29 @@ pub fn read_ktx2(bytes: &[u8]) -> Result<Ktx2Image, PictureError> {
     if levels == 0 || width == 0 || height == 0 {
         return Err(PictureError::new("the picture size is not usable"));
     }
-    let format = gpu_format_from_vk(vk).ok_or_else(|| PictureError::new("this picture format is not supported"))?;
+    let format = gpu_format_from_vk(vk)
+        .ok_or_else(|| PictureError::new("this picture format is not supported"))?;
     let srgb = is_vk_srgb(vk);
     let mut mips = Vec::with_capacity(levels as usize);
     for level in 0..levels {
         let at = 80 + level as usize * 24;
         let offset = u64_at(at)?;
         let length = u64_at(at + 8)?;
-        let start = usize::try_from(offset).map_err(|_| PictureError::new("the picture could not be read"))?;
+        let start = usize::try_from(offset)
+            .map_err(|_| PictureError::new("the picture could not be read"))?;
         let end = start.saturating_add(length as usize);
-        let slice = bytes
-            .get(start..end)
-            .ok_or_else(|| PictureError::new("the picture is truncated"))?;
+        let slice =
+            bytes.get(start..end).ok_or_else(|| PictureError::new("the picture is truncated"))?;
         mips.push(slice.to_vec());
     }
-    Ok(Ktx2Image {
-        format,
-        vk_format: vk,
-        width,
-        height,
-        srgb,
-        levels: mips,
-    })
+    Ok(Ktx2Image { format, vk_format: vk, width, height, srgb, levels: mips })
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::texture_encode::{encode_rgba, EncodeQuality, psnr_rgba};
     use crate::texture_encode::decode_to_rgba;
+    use crate::texture_encode::{encode_rgba, psnr_rgba, EncodeQuality};
 
     fn sample() -> (Vec<u8>, u32, u32) {
         let w = 16;
@@ -222,8 +218,16 @@ mod tests {
     #[test]
     fn ktx2_write_read_round_trip_with_mips() {
         let (rgba, w, h) = sample();
-        let file = write_ktx2_from_rgba(GpuBlockFormat::Bc3, true, w, h, &rgba, true, EncodeQuality::Normal)
-            .unwrap();
+        let file = write_ktx2_from_rgba(
+            GpuBlockFormat::Bc3,
+            true,
+            w,
+            h,
+            &rgba,
+            true,
+            EncodeQuality::Normal,
+        )
+        .unwrap();
         let back = read_ktx2(&file).unwrap();
         assert_eq!(back.width, w);
         assert_eq!(back.height, h);
@@ -245,12 +249,9 @@ mod tests {
     #[test]
     fn encode_all_bc_formats_to_ktx2() {
         let (rgba, w, h) = sample();
-        for format in [
-            GpuBlockFormat::Bc1,
-            GpuBlockFormat::Bc2,
-            GpuBlockFormat::Bc4,
-            GpuBlockFormat::Bc7,
-        ] {
+        for format in
+            [GpuBlockFormat::Bc1, GpuBlockFormat::Bc2, GpuBlockFormat::Bc4, GpuBlockFormat::Bc7]
+        {
             let data = encode_rgba(format, EncodeQuality::Normal, w, h, &rgba).unwrap();
             let file = write_ktx2(format, false, w, h, &[data]).unwrap();
             let img = read_ktx2(&file).unwrap();

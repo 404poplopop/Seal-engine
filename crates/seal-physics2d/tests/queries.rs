@@ -60,7 +60,9 @@ fn overlap_all_lists_a_shape_and_honours_the_mask() {
     let poly = [[-0.2, -0.2], [0.2, -0.2], [0.2, 0.2], [-0.2, 0.2]];
     assert_eq!(p.overlap_all("polygon", [1.0, 1.0], &poly, [3.0, 0.0], 0.0, 0), vec![b]);
     assert!(p.overlap_all("triangle", [1.0, 1.0], &[], [0.0, 0.0], 0.0, 0).is_empty());
-    assert!(p.overlap_all("polygon", [1.0, 1.0], &[[0.0, 0.0], [1.0, 0.0]], [0.0, 0.0], 0.0, 0).is_empty());
+    assert!(p
+        .overlap_all("polygon", [1.0, 1.0], &[[0.0, 0.0], [1.0, 0.0]], [0.0, 0.0], 0.0, 0)
+        .is_empty());
 }
 
 #[test]

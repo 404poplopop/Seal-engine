@@ -506,9 +506,8 @@ fn property_delete(session: &mut EditorSession, args: &CommandArgs) -> Result<()
 
 fn time_warp_add(session: &mut EditorSession, args: &CommandArgs) -> Result<(), CoreError> {
     let clock = playhead(session, args);
-    let content: f32 = need(args, "content")?
-        .parse()
-        .map_err(|_| CoreError::new("content must be a number"))?;
+    let content: f32 =
+        need(args, "content")?.parse().map_err(|_| CoreError::new("content must be a number"))?;
     with_doc(session, args, |doc| {
         doc.edit(|seq| {
             let keys = &mut seq.time_warp.keys;

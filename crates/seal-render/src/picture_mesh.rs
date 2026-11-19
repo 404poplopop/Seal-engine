@@ -87,7 +87,7 @@ pub(crate) fn read_mesh_file(path: &Path) -> Option<Vec<[f32; 2]>> {
 pub fn read_mesh_text(text: &str) -> Option<Vec<[f32; 2]>> {
     let mut lines = text.lines().filter(|line| !line.trim().is_empty());
     let count: usize = lines.next()?.trim().parse().ok()?;
-    if count < 3 || count > 4096 {
+    if !(3..=4096).contains(&count) {
         return None;
     }
     let mut points = Vec::with_capacity(count);
@@ -109,32 +109,6 @@ pub fn write_mesh_text(points: &[[f32; 2]]) -> String {
         text.push_str(&format!("{:.6} {:.6}\n", point[0], point[1]));
     }
     text
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn a_tight_mesh_covers_opaque_pixels_and_is_smaller_than_the_rectangle() {
-        let mut rgba = vec![0u8; 8 * 8 * 4];
-        for y in 2..4 {
-            for x in 2..4 {
-                let i = (y * 8 + x) * 4;
-                rgba[i] = 255;
-                rgba[i + 3] = 255;
-            }
-        }
-        let mesh = tight_mesh(&rgba, 8, 8);
-        assert!(covers_opaque(&rgba, 8, 8, &mesh), "{mesh:?}");
-        assert!(polygon_area(&mesh) < 0.5, "{}", polygon_area(&mesh));
-        let full = tight_mesh(&[255u8, 0, 0, 255].repeat(4), 2, 2);
-        assert!((polygon_area(&full) - 1.0).abs() < 1.0e-3);
-        let text = write_mesh_text(&mesh);
-        assert_eq!(read_mesh_text(&text).as_deref(), Some(mesh.as_slice()));
-        assert!(read_mesh_text("nope").is_none());
-        assert!(std::panic::catch_unwind(|| read_mesh_text("2\n0 0\n")).unwrap().is_none());
-    }
 }
 
 fn unit_quad() -> Vec<[f32; 2]> {
@@ -200,4 +174,30 @@ fn on_segment(point: [f32; 2], a: [f32; 2], b: [f32; 2]) -> bool {
     let dot = ap[0] * ab[0] + ap[1] * ab[1];
     let len2 = ab[0] * ab[0] + ab[1] * ab[1];
     cross.abs() <= 1.0e-5 && dot >= -1.0e-5 && dot <= len2 + 1.0e-5
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn a_tight_mesh_covers_opaque_pixels_and_is_smaller_than_the_rectangle() {
+        let mut rgba = vec![0u8; 8 * 8 * 4];
+        for y in 2..4 {
+            for x in 2..4 {
+                let i = (y * 8 + x) * 4;
+                rgba[i] = 255;
+                rgba[i + 3] = 255;
+            }
+        }
+        let mesh = tight_mesh(&rgba, 8, 8);
+        assert!(covers_opaque(&rgba, 8, 8, &mesh), "{mesh:?}");
+        assert!(polygon_area(&mesh) < 0.5, "{}", polygon_area(&mesh));
+        let full = tight_mesh(&[255u8, 0, 0, 255].repeat(4), 2, 2);
+        assert!((polygon_area(&full) - 1.0).abs() < 1.0e-3);
+        let text = write_mesh_text(&mesh);
+        assert_eq!(read_mesh_text(&text).as_deref(), Some(mesh.as_slice()));
+        assert!(read_mesh_text("nope").is_none());
+        assert!(std::panic::catch_unwind(|| read_mesh_text("2\n0 0\n")).unwrap().is_none());
+    }
 }

@@ -1153,8 +1153,7 @@ fn place_children(
     let (pad, gap) = match parent {
         Some(p) => {
             let node = &screen.nodes[p];
-            let pad_default = if node.kind == "panel" { 0.0 } else { 0.0 };
-            (node.padding.unwrap_or(pad_default), node.spacing.unwrap_or(theme.spacing))
+            (node.padding.unwrap_or(0.0), node.spacing.unwrap_or(theme.spacing))
         }
         None => (0.0, theme.spacing),
     };
@@ -1450,7 +1449,7 @@ impl Live {
             "list" => {
                 let r = lay.rect(i).unwrap();
                 let rows = self.screen.nodes[i].options.len().max(1);
-                let row_h = r.h / rows.min(6).max(1) as f32;
+                let row_h = r.h / rows.clamp(1, 6) as f32;
                 let k = ((p[1] - r.y) / row_h).floor() as usize;
                 if k < self.screen.nodes[i].options.len() {
                     self.pick(i, k);

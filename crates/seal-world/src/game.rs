@@ -2,8 +2,8 @@
 //! players start, named scores and the game's state. Everything here lives
 //! only while the scene plays; stop throws it away with the rest of play.
 
-use crate::Entity;
 use crate::extra_window::ExtraWindowTable;
+use crate::Entity;
 use std::collections::BTreeMap;
 
 /// The tag that marks a start point for players.

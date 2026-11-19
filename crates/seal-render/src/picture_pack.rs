@@ -396,6 +396,29 @@ fn encode_bc7_block(pixels: &[[u8; 4]; 16]) -> [u8; 16] {
     out
 }
 
+pub(crate) struct Bits {
+    pub(crate) buf: Vec<u8>,
+    pos: usize,
+}
+
+impl Bits {
+    pub(crate) fn new(bytes: usize) -> Self {
+        Self { buf: vec![0; bytes], pos: 0 }
+    }
+
+    pub(crate) fn push(&mut self, value: u32, n: usize) {
+        for bit in 0..n {
+            if (value >> bit) & 1 == 1 {
+                let index = self.pos / 8;
+                if index < self.buf.len() {
+                    self.buf[index] |= 1 << (self.pos % 8);
+                }
+            }
+            self.pos += 1;
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -426,28 +449,5 @@ mod tests {
         }
         assert!(std::panic::catch_unwind(|| unpack(b"SEALPIC1")).unwrap().is_err());
         assert!(unpack(&[0, 1, 2, 3]).is_err());
-    }
-}
-
-pub(crate) struct Bits {
-    pub(crate) buf: Vec<u8>,
-    pos: usize,
-}
-
-impl Bits {
-    pub(crate) fn new(bytes: usize) -> Self {
-        Self { buf: vec![0; bytes], pos: 0 }
-    }
-
-    pub(crate) fn push(&mut self, value: u32, n: usize) {
-        for bit in 0..n {
-            if (value >> bit) & 1 == 1 {
-                let index = self.pos / 8;
-                if index < self.buf.len() {
-                    self.buf[index] |= 1 << (self.pos % 8);
-                }
-            }
-            self.pos += 1;
-        }
     }
 }

@@ -122,15 +122,14 @@ fn restart_rebuilds_the_level() {
 #[test]
 fn players_can_rebind_controls() {
     let map = "action jump = key.k\naction restart = key.r\naction quit = key.escape\naxis move = key.j key.l\n";
-    let mut r =
-        Runner::new(
-            SealHop::new(DEFAULT_LEVEL),
-            SoftDevice::new(),
-            config(),
-            Some(map),
-            seal_app::render_config::GameRenderConfig::default(),
-        )
-        .unwrap();
+    let mut r = Runner::new(
+        SealHop::new(DEFAULT_LEVEL),
+        SoftDevice::new(),
+        config(),
+        Some(map),
+        seal_app::render_config::GameRenderConfig::default(),
+    )
+    .unwrap();
     let x0 =
         r.cx.world.get::<seal_app::ecs::core::Transform>(r.game.player).unwrap().translation[0];
     let mut raw = RawInput::default();

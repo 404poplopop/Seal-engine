@@ -106,7 +106,7 @@ impl PadSensors {
         #[cfg(any(windows, target_os = "linux"))]
         {
             self.link.last_rgb = Some(rgb);
-            return self.write_light(rgb);
+            self.write_light(rgb)
         }
         #[cfg(not(any(windows, target_os = "linux")))]
         {
@@ -117,6 +117,7 @@ impl PadSensors {
 }
 
 #[cfg(any(windows, target_os = "linux"))]
+#[derive(Default)]
 struct Link {
     last_rgb: Option<[f32; 3]>,
     seq: u8,
@@ -126,12 +127,6 @@ struct Link {
 }
 
 #[cfg(any(windows, target_os = "linux"))]
-impl Default for Link {
-    fn default() -> Self {
-        Self { last_rgb: None, seq: 0, scanned_at: None, cached: Vec::new(), opened: None }
-    }
-}
-
 #[cfg(any(windows, target_os = "linux"))]
 struct Opened {
     key: String,
@@ -207,7 +202,7 @@ impl PadSensors {
         let due = self
             .link
             .scanned_at
-            .map_or(true, |at| at.elapsed() >= std::time::Duration::from_millis(500));
+            .is_none_or(|at| at.elapsed() >= std::time::Duration::from_millis(500));
         if !due {
             return;
         }

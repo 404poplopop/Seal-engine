@@ -170,7 +170,7 @@ fn sample_offset_stays_inside_circle() {
         (seed % 1000) as f32 / 1000.0 * 2.0 - 1.0
     };
     for _ in 0..50 {
-        let o = sample_emit_offset(&shape, || rand());
+        let o = sample_emit_offset(&shape, &mut rand);
         assert!(offset_inside_shape(&shape, o));
     }
 }

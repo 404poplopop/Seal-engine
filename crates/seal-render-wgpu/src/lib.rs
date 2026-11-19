@@ -10,9 +10,9 @@
 pub mod background_loader;
 pub mod compute;
 pub mod cull;
+pub mod hdr_surface;
 mod present;
 pub mod texture_gpu;
-pub mod hdr_surface;
 pub use hdr_surface::{clamp_paper_white_nits, pick_surface_format, SurfacePick};
 pub use present::{pick_format, Presenter};
 pub use wgpu;
@@ -255,74 +255,74 @@ fn quad_pipelines(
     pipeline_layout: &wgpu::PipelineLayout,
     samples: u32,
 ) -> HashMap<BlendMode, wgpu::RenderPipeline> {
-        let blend_for = |mode: BlendMode| match mode {
-            BlendMode::Opaque => None,
-            BlendMode::Alpha => Some(wgpu::BlendState {
-                color: wgpu::BlendComponent {
-                    src_factor: wgpu::BlendFactor::SrcAlpha,
-                    dst_factor: wgpu::BlendFactor::OneMinusSrcAlpha,
-                    operation: wgpu::BlendOperation::Add,
-                },
-                alpha: wgpu::BlendComponent {
-                    src_factor: wgpu::BlendFactor::One,
-                    dst_factor: wgpu::BlendFactor::OneMinusSrcAlpha,
-                    operation: wgpu::BlendOperation::Add,
-                },
+    let blend_for = |mode: BlendMode| match mode {
+        BlendMode::Opaque => None,
+        BlendMode::Alpha => Some(wgpu::BlendState {
+            color: wgpu::BlendComponent {
+                src_factor: wgpu::BlendFactor::SrcAlpha,
+                dst_factor: wgpu::BlendFactor::OneMinusSrcAlpha,
+                operation: wgpu::BlendOperation::Add,
+            },
+            alpha: wgpu::BlendComponent {
+                src_factor: wgpu::BlendFactor::One,
+                dst_factor: wgpu::BlendFactor::OneMinusSrcAlpha,
+                operation: wgpu::BlendOperation::Add,
+            },
+        }),
+        BlendMode::Additive => Some(wgpu::BlendState {
+            color: wgpu::BlendComponent {
+                src_factor: wgpu::BlendFactor::SrcAlpha,
+                dst_factor: wgpu::BlendFactor::One,
+                operation: wgpu::BlendOperation::Add,
+            },
+            alpha: wgpu::BlendComponent {
+                src_factor: wgpu::BlendFactor::Zero,
+                dst_factor: wgpu::BlendFactor::One,
+                operation: wgpu::BlendOperation::Add,
+            },
+        }),
+    };
+    let attributes = wgpu::vertex_attr_array![
+        0 => Float32x4,
+        1 => Float32x4,
+        2 => Float32x4,
+        3 => Float32x4,
+        4 => Float32x4
+    ];
+    let mut pipelines = HashMap::new();
+    for mode in [BlendMode::Opaque, BlendMode::Alpha, BlendMode::Additive] {
+        let pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+            label: Some("seal quads"),
+            layout: Some(pipeline_layout),
+            vertex: wgpu::VertexState {
+                module: shader,
+                entry_point: Some("vs"),
+                compilation_options: Default::default(),
+                buffers: &[Some(wgpu::VertexBufferLayout {
+                    array_stride: std::mem::size_of::<GpuInstance>() as u64,
+                    step_mode: wgpu::VertexStepMode::Instance,
+                    attributes: &attributes,
+                })],
+            },
+            primitive: wgpu::PrimitiveState::default(),
+            depth_stencil: None,
+            multisample: wgpu::MultisampleState { count: samples, ..Default::default() },
+            fragment: Some(wgpu::FragmentState {
+                module: shader,
+                entry_point: Some("fs"),
+                compilation_options: Default::default(),
+                targets: &[Some(wgpu::ColorTargetState {
+                    format: FORMAT,
+                    blend: blend_for(mode),
+                    write_mask: wgpu::ColorWrites::ALL,
+                })],
             }),
-            BlendMode::Additive => Some(wgpu::BlendState {
-                color: wgpu::BlendComponent {
-                    src_factor: wgpu::BlendFactor::SrcAlpha,
-                    dst_factor: wgpu::BlendFactor::One,
-                    operation: wgpu::BlendOperation::Add,
-                },
-                alpha: wgpu::BlendComponent {
-                    src_factor: wgpu::BlendFactor::Zero,
-                    dst_factor: wgpu::BlendFactor::One,
-                    operation: wgpu::BlendOperation::Add,
-                },
-            }),
-        };
-        let attributes = wgpu::vertex_attr_array![
-            0 => Float32x4,
-            1 => Float32x4,
-            2 => Float32x4,
-            3 => Float32x4,
-            4 => Float32x4
-        ];
-        let mut pipelines = HashMap::new();
-        for mode in [BlendMode::Opaque, BlendMode::Alpha, BlendMode::Additive] {
-            let pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-                label: Some("seal quads"),
-                layout: Some(pipeline_layout),
-                vertex: wgpu::VertexState {
-                    module: shader,
-                    entry_point: Some("vs"),
-                    compilation_options: Default::default(),
-                    buffers: &[Some(wgpu::VertexBufferLayout {
-                        array_stride: std::mem::size_of::<GpuInstance>() as u64,
-                        step_mode: wgpu::VertexStepMode::Instance,
-                        attributes: &attributes,
-                    })],
-                },
-                primitive: wgpu::PrimitiveState::default(),
-                depth_stencil: None,
-                multisample: wgpu::MultisampleState { count: samples, ..Default::default() },
-                fragment: Some(wgpu::FragmentState {
-                    module: shader,
-                    entry_point: Some("fs"),
-                    compilation_options: Default::default(),
-                    targets: &[Some(wgpu::ColorTargetState {
-                        format: FORMAT,
-                        blend: blend_for(mode),
-                        write_mask: wgpu::ColorWrites::ALL,
-                    })],
-                }),
-                multiview_mask: None,
-                cache: None,
-            });
-            pipelines.insert(mode, pipeline);
-        }
-        pipelines
+            multiview_mask: None,
+            cache: None,
+        });
+        pipelines.insert(mode, pipeline);
+    }
+    pipelines
 }
 
 fn extent(desc: TextureDesc) -> wgpu::Extent3d {
@@ -354,7 +354,11 @@ fn picture_sampler(desc: TextureDesc, anisotropy: u16) -> wgpu::SamplerDescripto
         address_mode_v: address,
         address_mode_w: address,
         // Anisotropic filtering needs every filter linear.
-        anisotropy_clamp: if desc.filter == TextureFilter::Linear { anisotropy.clamp(1, 16) } else { 1 },
+        anisotropy_clamp: if desc.filter == TextureFilter::Linear {
+            anisotropy.clamp(1, 16)
+        } else {
+            1
+        },
         ..Default::default()
     }
 }
@@ -377,18 +381,19 @@ impl Device for WgpuDevice {
         });
         let view = match desc.shape {
             seal_render::TextureShape::D2 => texture.create_view(&Default::default()),
-            seal_render::TextureShape::D2Array { .. } | seal_render::TextureShape::Cube => {
-                texture.create_view(&wgpu::TextureViewDescriptor {
+            seal_render::TextureShape::D2Array { .. } | seal_render::TextureShape::Cube => texture
+                .create_view(&wgpu::TextureViewDescriptor {
                     dimension: Some(wgpu::TextureViewDimension::D2),
                     base_array_layer: 0,
                     array_layer_count: Some(1),
                     ..Default::default()
+                }),
+            seal_render::TextureShape::D3 { .. } => {
+                texture.create_view(&wgpu::TextureViewDescriptor {
+                    dimension: Some(wgpu::TextureViewDimension::D3),
+                    ..Default::default()
                 })
             }
-            seal_render::TextureShape::D3 { .. } => texture.create_view(&wgpu::TextureViewDescriptor {
-                dimension: Some(wgpu::TextureViewDimension::D3),
-                ..Default::default()
-            }),
         };
         let extra = self.device.create_sampler(&picture_sampler(desc, self.anisotropy));
         // The two built-in samplers are the historical clamp samplers. Anything else

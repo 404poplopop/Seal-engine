@@ -31,7 +31,11 @@ impl Plane {
             return None;
         }
         let t = -(self.nx * origin[0] + self.ny * origin[1] + self.nz * origin[2] + self.d) / denom;
-        if t.is_finite() { Some(t) } else { None }
+        if t.is_finite() {
+            Some(t)
+        } else {
+            None
+        }
     }
 }
 

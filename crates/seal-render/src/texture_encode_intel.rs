@@ -1,11 +1,11 @@
 //! Block compressors via Intel ISPC kernels (not on Windows GNU).
 
-use intel_tex_2::{self, RgbaSurface, RgSurface, RSurface};
+use intel_tex_2::{self, RSurface, RgSurface, RgbaSurface};
 
 use crate::gpu_block_format::GpuBlockFormat;
 use crate::picture::PictureError;
 use crate::texture_encode::{
-    encode_blocks_manual, encode_bc1a_block, encode_etc2_a8_block, EncodeQuality,
+    encode_bc1a_block, encode_blocks_manual, encode_etc2_a8_block, EncodeQuality,
 };
 
 pub fn encode_rgba_intel(
@@ -15,7 +15,7 @@ pub fn encode_rgba_intel(
     height: u32,
     rgba: &[u8],
 ) -> Result<Vec<u8>, PictureError> {
-    let transparent = rgba.chunks_exact(4).any(|p| p[3] < 250);
+    let transparent = rgba.as_chunks::<4>().0.iter().any(|p| p[3] < 250);
     match format {
         GpuBlockFormat::Rgba8 => Ok(rgba.to_vec()),
         GpuBlockFormat::Bc1 => {
@@ -39,9 +39,9 @@ pub fn encode_rgba_intel(
             out.extend_from_slice(&color);
             out
         })),
-        GpuBlockFormat::Bc3 => Ok(intel_tex_2::bc3::compress_blocks(&rgba_surface(
-            rgba, width, height,
-        ))),
+        GpuBlockFormat::Bc3 => {
+            Ok(intel_tex_2::bc3::compress_blocks(&rgba_surface(rgba, width, height)))
+        }
         GpuBlockFormat::Bc4 => {
             let (r, ()) = r_surface_owned(rgba, width, height, 0);
             Ok(intel_tex_2::bc4::compress_blocks(&RSurface {
@@ -63,10 +63,7 @@ pub fn encode_rgba_intel(
         GpuBlockFormat::Bc6h => encode_bc6h_from_rgba8(width, height, rgba, quality),
         GpuBlockFormat::Bc7 => {
             let settings = bc7_settings(quality, transparent);
-            Ok(intel_tex_2::bc7::compress_blocks(
-                &settings,
-                &rgba_surface(rgba, width, height),
-            ))
+            Ok(intel_tex_2::bc7::compress_blocks(&settings, &rgba_surface(rgba, width, height)))
         }
         GpuBlockFormat::Etc2 => {
             if transparent {
@@ -80,10 +77,7 @@ pub fn encode_rgba_intel(
         }
         GpuBlockFormat::Astc4x4 => {
             let settings = astc_settings(quality);
-            Ok(intel_tex_2::astc::compress_blocks(
-                &settings,
-                &rgba_surface(rgba, width, height),
-            ))
+            Ok(intel_tex_2::astc::compress_blocks(&settings, &rgba_surface(rgba, width, height)))
         }
     }
 }
@@ -101,12 +95,7 @@ pub fn encode_bc6h_linear_float(
     }
     let fp16 = floats_to_fp16_rgba(rgba_linear, width, height);
     let stride = width * 8;
-    let surface = RgbaSurface {
-        data: &fp16,
-        width,
-        height,
-        stride,
-    };
+    let surface = RgbaSurface { data: &fp16, width, height, stride };
     let settings = bc6h_settings(quality);
     Ok(intel_tex_2::bc6h::compress_blocks(&settings, &surface))
 }
@@ -118,7 +107,7 @@ fn encode_bc6h_from_rgba8(
     quality: EncodeQuality,
 ) -> Result<Vec<u8>, PictureError> {
     let mut linear = Vec::with_capacity(rgba.len());
-    for px in rgba.chunks_exact(4) {
+    for px in rgba.as_chunks::<4>().0 {
         linear.push(px[0] as f32 / 255.0);
         linear.push(px[1] as f32 / 255.0);
         linear.push(px[2] as f32 / 255.0);
@@ -128,20 +117,10 @@ fn encode_bc6h_from_rgba8(
 }
 
 fn rgba_surface(rgba: &[u8], width: u32, height: u32) -> RgbaSurface<'_> {
-    RgbaSurface {
-        data: rgba,
-        width,
-        height,
-        stride: width * 4,
-    }
+    RgbaSurface { data: rgba, width, height, stride: width * 4 }
 }
 
-fn encode_etc2_rgba(
-    width: u32,
-    height: u32,
-    rgba: &[u8],
-    quality: EncodeQuality,
-) -> Vec<u8> {
+fn encode_etc2_rgba(width: u32, height: u32, rgba: &[u8], quality: EncodeQuality) -> Vec<u8> {
     let etc1 = intel_tex_2::etc1::compress_blocks(
         &etc1_settings(quality),
         &rgba_surface(rgba, width, height),
@@ -169,7 +148,7 @@ fn block_rgba(block: &[[u8; 4]; 16]) -> Vec<u8> {
 fn r_surface_owned(rgba: &[u8], width: u32, height: u32, channel: usize) -> (Vec<u8>, ()) {
     let pixels = (width * height) as usize;
     let mut r = Vec::with_capacity(pixels);
-    for px in rgba.chunks_exact(4) {
+    for px in rgba.as_chunks::<4>().0 {
         r.push(px[channel]);
     }
     (r, ())
@@ -178,7 +157,7 @@ fn r_surface_owned(rgba: &[u8], width: u32, height: u32, channel: usize) -> (Vec
 fn rg_surface_owned(rgba: &[u8], width: u32, height: u32) -> (Vec<u8>, ()) {
     let pixels = (width * height) as usize;
     let mut rg = Vec::with_capacity(pixels * 2);
-    for px in rgba.chunks_exact(4) {
+    for px in rgba.as_chunks::<4>().0 {
         rg.push(px[0]);
         rg.push(px[1]);
     }
@@ -187,13 +166,9 @@ fn rg_surface_owned(rgba: &[u8], width: u32, height: u32) -> (Vec<u8>, ()) {
 
 fn etc1_settings(quality: EncodeQuality) -> intel_tex_2::etc1::EncodeSettings {
     match quality {
-        EncodeQuality::Fast => intel_tex_2::etc1::EncodeSettings {
-            fast_skip_threshold: 12,
-        },
+        EncodeQuality::Fast => intel_tex_2::etc1::EncodeSettings { fast_skip_threshold: 12 },
         EncodeQuality::Normal => intel_tex_2::etc1::slow_settings(),
-        EncodeQuality::Best => intel_tex_2::etc1::EncodeSettings {
-            fast_skip_threshold: 2,
-        },
+        EncodeQuality::Best => intel_tex_2::etc1::EncodeSettings { fast_skip_threshold: 2 },
     }
 }
 
@@ -228,7 +203,7 @@ fn floats_to_fp16_rgba(linear: &[f32], width: u32, height: u32) -> Vec<u8> {
     let _ = width;
     let _ = height;
     let mut out = vec![0u8; (linear.len() / 4) * 8];
-    for (i, chunk) in linear.chunks_exact(4).enumerate() {
+    for (i, chunk) in linear.as_chunks::<4>().0.iter().enumerate() {
         let base = i * 8;
         for c in 0..4 {
             let half = half::f16::from_f32(chunk[c]).to_bits();

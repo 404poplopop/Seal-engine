@@ -53,21 +53,16 @@ pub fn active_listener(world: &World) -> Option<ActiveListener> {
     })
 }
 
-fn pick_listener_entity<'a>(world: &'a World) -> Option<&'a Entity> {
+fn pick_listener_entity(world: &World) -> Option<&Entity> {
     if let Some(cam) = world.camera2d_object().filter(|e| listener_enabled(e)) {
         return Some(cam);
     }
-    if let Some(cam) = world
-        .entities
-        .iter()
-        .find(|e| e.tag == "camera" && !e.hidden && listener_enabled(e))
+    if let Some(cam) =
+        world.entities.iter().find(|e| e.tag == "camera" && !e.hidden && listener_enabled(e))
     {
         return Some(cam);
     }
-    world
-        .entities
-        .iter()
-        .find(|e| !e.hidden && e.audio_listener.on)
+    world.entities.iter().find(|e| !e.hidden && e.audio_listener.on)
 }
 
 fn listener_enabled(entity: &Entity) -> bool {
@@ -91,7 +86,9 @@ fn entity_listener(entity: &Entity) -> ActiveListener {
 }
 
 fn forward_from_entity_at(world: &World, _position: [f32; 3]) -> [f32; 3] {
-    if let Some(cam) = world.entities.iter().find(|e| (e.tag == "camera" || e.camera2d.on) && !e.hidden) {
+    if let Some(cam) =
+        world.entities.iter().find(|e| (e.tag == "camera" || e.camera2d.on) && !e.hidden)
+    {
         let yaw = cam.rotation[1].to_radians();
         let (sy, cy) = yaw.sin_cos();
         return [sy, 0.0, cy];

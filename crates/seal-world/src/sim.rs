@@ -87,7 +87,7 @@ impl Sim {
             for c in self.bodies[*handle].colliders() {
                 let Some(collider) = self.colliders.get(*c) else { continue };
                 if let Some(t) = collider.shape().cast_ray(collider.position(), &ray, max, true) {
-                    if best.as_ref().map_or(true, |b| t < b.1) {
+                    if best.as_ref().is_none_or(|b| t < b.1) {
                         best = Some((id.clone(), t));
                     }
                 }
@@ -115,7 +115,7 @@ impl Sim {
                 if let Some(hit) =
                     collider.shape().cast_ray_and_get_normal(collider.position(), &ray, max, true)
                 {
-                    if best.map_or(true, |b| hit.time_of_impact < b.0) {
+                    if best.is_none_or(|b| hit.time_of_impact < b.0) {
                         best = Some((hit.time_of_impact, hit.normal));
                     }
                 }
@@ -154,8 +154,8 @@ impl Sim {
         let ground =
             self.cast_skipping(id, pos, Vector::new(0.0, -1.0, 0.0), half + rules.ground_reach);
         // Rising faster than a walk means a jump is under way: not standing any more.
-        let grounded = vel.y <= 0.5
-            && ground.map_or(false, |g| g.1.y >= rules.max_slope_deg.to_radians().cos());
+        let grounded =
+            vel.y <= 0.5 && ground.is_some_and(|g| g.1.y >= rules.max_slope_deg.to_radians().cos());
         let mut v = vel;
         let mut want = Vector::new(wish[0], 0.0, wish[1]);
         if grounded {
@@ -168,7 +168,7 @@ impl Sim {
             v.x = want.x;
             v.z = want.z;
             if want.length() < 1e-4 {
-                v.y = v.y.min(0.0).max(-1.0);
+                v.y = v.y.clamp(-1.0, 0.0);
             } else {
                 v.y = want.y;
             }

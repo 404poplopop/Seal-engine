@@ -15,16 +15,16 @@ use std::collections::BTreeMap;
 use std::sync::mpsc;
 
 use rapier2d::prelude::*;
-use seal_ecs::core::{Transform, SceneSettings};
+use seal_ecs::core::{SceneSettings, Transform};
 use seal_ecs::{text_component, Entity, World};
 
 pub mod area_effect;
 mod joint_extra;
-mod queries;
 pub mod profiler;
+mod queries;
 pub mod settings;
-pub use joint_extra::JointBreak;
 pub use area_effect::{AreaEffect, SurfaceEffect};
+pub use joint_extra::JointBreak;
 pub use profiler::normalize_history;
 pub use rapier2d;
 pub use settings::{Physics2DProfiler, Physics2DSettings};
@@ -46,6 +46,9 @@ pub struct Body2D {
     /// Continuous collision detection, for fast small bodies.
     pub ccd: bool,
 }
+
+/// An area and a body, in that order.
+pub type EntityPair = (Entity, Entity);
 
 impl Default for Body2D {
     fn default() -> Self {
@@ -446,7 +449,7 @@ impl Physics2D {
     }
 
     /// Area and body pairs that started or stopped overlapping on the last step.
-    pub fn area_events(&self) -> (&[(Entity, Entity)], &[(Entity, Entity)]) {
+    pub fn area_events(&self) -> (&[EntityPair], &[EntityPair]) {
         (&self.areas.entered, &self.areas.exited)
     }
 
@@ -555,10 +558,7 @@ impl Physics2D {
         if let Some(local) = local {
             shape = shape.position(pose_of(local));
         }
-        let mut col = shape
-            .friction(friction)
-            .restitution(restitution)
-            .density(density);
+        let mut col = shape.friction(friction).restitution(restitution).density(density);
         if collider.center_of_mass[0] != 0.0 || collider.center_of_mass[1] != 0.0 {
             col = col.translation(Vector::new(
                 collider.center_of_mass[0] * sx,
@@ -596,7 +596,10 @@ impl Physics2D {
                     if world.get::<Body2D>(*child).is_some() {
                         return None;
                     }
-                    Some((world.get::<Transform>(*child)?.clone(), world.get::<Collider2D>(*child)?.clone()))
+                    Some((
+                        world.get::<Transform>(*child)?.clone(),
+                        world.get::<Collider2D>(*child)?.clone(),
+                    ))
                 })
                 .collect();
             if self.links.get(&parent).is_some_and(|link| link.parts == mine) {
@@ -929,11 +932,7 @@ impl Physics2D {
 
     /// Blend dynamic transforms toward the pose after the last step (`alpha` is 0 at a fixed tick, 1 just before the next).
     pub fn write_transforms(&self, world: &mut World, alpha: f32) {
-        let a = if self.settings.render_interpolation {
-            alpha.clamp(0.0, 1.0)
-        } else {
-            1.0
-        };
+        let a = if self.settings.render_interpolation { alpha.clamp(0.0, 1.0) } else { 1.0 };
         for (entity, link) in &self.links {
             if link.settings.0.kind != "dynamic" {
                 continue;

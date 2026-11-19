@@ -2,15 +2,12 @@
 
 use seal_editor_core::{CommandArgs, EditorSession, Layout, ModalChoice};
 use std::fs;
-use std::path::PathBuf;
+use std::path::Path;
 
-fn open_project(dir: &PathBuf) -> EditorSession {
+fn open_project(dir: &Path) -> EditorSession {
     let mut s = EditorSession::new(Layout::default());
-    s.dispatch(
-        "file.open-project",
-        &CommandArgs::new(&[("path", dir.to_string_lossy().as_ref())]),
-    )
-    .unwrap();
+    s.dispatch("file.open-project", &CommandArgs::new(&[("path", dir.to_string_lossy().as_ref())]))
+        .unwrap();
     s
 }
 
@@ -33,9 +30,7 @@ fn naming_scan_lists_violation_and_fix_renames() {
     session.dispatch("naming.scan", &CommandArgs::default()).unwrap();
     assert!(!session.models.naming_rules.violations.is_empty());
     let path = session.models.naming_rules.violations[0].path.clone();
-    session
-        .dispatch("naming.fix", &CommandArgs::new(&[("path", path.as_str())]))
-        .unwrap();
+    session.dispatch("naming.fix", &CommandArgs::new(&[("path", path.as_str())])).unwrap();
     if session.foundation.modal.is_some() {
         session.choose_modal(ModalChoice::Confirm);
     }
@@ -73,11 +68,17 @@ fn new_and_imported_assets_are_checked_and_patterns_are_real_regular_expressions
     seal_editor_core::naming_rules::write_template_defaults(&dir).unwrap();
     let mut session = open_project(&dir);
     session
-        .dispatch("asset.frames_new", &CommandArgs::new(&[("path", "sprites/walk"), ("unique", "yes")]))
+        .dispatch(
+            "asset.frames_new",
+            &CommandArgs::new(&[("path", "sprites/walk"), ("unique", "yes")]),
+        )
         .unwrap();
     assert!(session.models.naming_rules.violations.is_empty(), "lowercase default names pass");
     session
-        .dispatch("asset.frames_new", &CommandArgs::new(&[("path", "sprites/Walk"), ("unique", "yes")]))
+        .dispatch(
+            "asset.frames_new",
+            &CommandArgs::new(&[("path", "sprites/Walk"), ("unique", "yes")]),
+        )
         .unwrap();
     assert!(session.models.naming_rules.violations.iter().any(|v| v.path.ends_with("Walk.frames")));
 }

@@ -36,8 +36,10 @@ pub fn set_picture_policy(path: &str, streaming: bool, budget_mb: u32) {
 }
 
 fn policy(path: &str) -> PicturePolicy {
-    POLICIES.lock().ok().and_then(|m| m.get(path).copied())
-        .unwrap_or(PicturePolicy { streaming: true, budget_mb: seal_editor_core::texture_memory::budget_mb() })
+    POLICIES.lock().ok().and_then(|m| m.get(path).copied()).unwrap_or(PicturePolicy {
+        streaming: true,
+        budget_mb: seal_editor_core::texture_memory::budget_mb(),
+    })
 }
 
 pub fn sync_project_budget(mb: u32) {
@@ -95,7 +97,8 @@ fn sprite_worker() -> &'static std::sync::Mutex<SpriteWorker> {
                         Some((rgba, w, h)) => (Some((rgba, w, h)), None),
                         None => (None, Some("decode failed".into())),
                     };
-                    if done_tx.send(SpriteDone { path, mtime, side, nearest, pixels, err }).is_err() {
+                    if done_tx.send(SpriteDone { path, mtime, side, nearest, pixels, err }).is_err()
+                    {
                         break;
                     }
                 }
@@ -108,7 +111,7 @@ fn sprite_worker() -> &'static std::sync::Mutex<SpriteWorker> {
 fn placeholder_image(w: u32, h: u32) -> ColorImage {
     let w = w.max(1) as usize;
     let h = h.max(1) as usize;
-    let px: Vec<u8> = std::iter::repeat(PLACEHOLDER_RGBA).take(w * h).flatten().collect();
+    let px: Vec<u8> = std::iter::repeat_n(PLACEHOLDER_RGBA, w * h).flatten().collect();
     ColorImage::from_rgba_unmultiplied([w, h], &px)
 }
 
@@ -149,7 +152,11 @@ pub fn note_sprite_coverage(path: &str, pixel_area: f32, base_w: u32, base_h: u3
         seal_editor_core::texture_memory::touch_drawn(path);
         return;
     }
-    seal_editor_core::texture_memory::raise_for_visible(path, pixel_area, base_w.saturating_mul(base_h));
+    seal_editor_core::texture_memory::raise_for_visible(
+        path,
+        pixel_area,
+        base_w.saturating_mul(base_h),
+    );
 }
 
 fn apply_mip_to_handle(
@@ -169,7 +176,7 @@ fn apply_mip_to_handle(
     } else {
         0
     };
-  if finest == entry.uploaded_mip && entry.state == EntryState::Ready {
+    if finest == entry.uploaded_mip && entry.state == EntryState::Ready {
         return;
     }
     let (pixels, uw, uh) = mip_downscale(rgba, *w, *h, finest);
@@ -225,8 +232,11 @@ pub fn finish_worker_jobs(ctx: &Context, cache: &RuntimeSpriteCache) {
             seal_editor_core::texture_memory::log_picture_load_failed(&done.path, &msg);
             entry.state = EntryState::Failed;
             if entry.handle.is_none() {
-                entry.handle =
-                    Some(ctx.load_texture(format!("sprite:{}", done.path), placeholder_image(1, 1), opts));
+                entry.handle = Some(ctx.load_texture(
+                    format!("sprite:{}", done.path),
+                    placeholder_image(1, 1),
+                    opts,
+                ));
             }
         }
         ctx.request_repaint();
@@ -249,7 +259,8 @@ pub fn queue_async_load(
             return entry.handle.as_ref().map(|h| h.id());
         }
     }
-    let (pw, ph) = seal_editor_core::picture_import::file_dimensions(Path::new(path)).unwrap_or((1, 1));
+    let (pw, ph) =
+        seal_editor_core::picture_import::file_dimensions(Path::new(path)).unwrap_or((1, 1));
     let image = placeholder_image(pw, ph);
     let handle = ctx.load_texture(format!("sprite:{path}"), image, options);
     let id = handle.id();

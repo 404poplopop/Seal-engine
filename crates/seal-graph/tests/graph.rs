@@ -527,12 +527,10 @@ fn music_nodes_reach_the_host() {
     let defaults = |text: &str| seal_sealtext::parse(text).unwrap();
     let g = Graph::new("music")
         .node(Node::new(1, "event").with("name", s("start")))
-        .node(
-            Node::new(2, "play_music").with(
-                "defaults",
-                defaults("file = \"Audio/Theme\"\nlooping = true\nfade = 1.5\nloop_start = 2.25"),
-            ),
-        )
+        .node(Node::new(2, "play_music").with(
+            "defaults",
+            defaults("file = \"Audio/Theme\"\nlooping = true\nfade = 1.5\nloop_start = 2.25"),
+        ))
         .node(Node::new(3, "set_music_volume").with("defaults", defaults("volume = 0.4")))
         .node(Node::new(4, "stop_music").with("defaults", defaults("fade = 0.25")))
         .link(1, "then", 2, "in")

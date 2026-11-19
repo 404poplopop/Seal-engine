@@ -84,8 +84,15 @@ fn msix_target_writes_manifest_layout() {
     let mut preset = ExportPreset::named("Store", &out.display().to_string());
     preset.package_target = "msix".into();
     preset.single_archive = true;
-    seal_editor_core::export_preset::export_preset(&project, "Hop", &exe, &preset, "title Hop\n", "")
-        .unwrap();
+    seal_editor_core::export_preset::export_preset(
+        &project,
+        "Hop",
+        &exe,
+        &preset,
+        "title Hop\n",
+        "",
+    )
+    .unwrap();
     let layout = out.join("msix_layout");
     let xml = fs::read_to_string(layout.join("AppxManifest.xml")).unwrap();
     assert!(xml.contains("<DisplayName>Hop</DisplayName>"));

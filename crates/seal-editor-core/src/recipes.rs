@@ -53,14 +53,8 @@ pub fn import_recipe(session: &mut EditorSession, id: &str) -> Result<(), CoreEr
     write_recipe_files(&root, id)?;
     apply_recipe_to_world(&mut session.world, id)?;
     session.scene_dirty = true;
-    session
-        .models
-        .panel_states
-        .insert("recipe.last_import".into(), id.to_string());
-    session.notify(
-        session.messages.format("recipe-imported", &[("id", id)]),
-        false,
-    );
+    session.models.panel_states.insert("recipe.last_import".into(), id.to_string());
+    session.notify(session.messages.format("recipe-imported", &[("id", id)]), false);
     Ok(())
 }
 
@@ -91,8 +85,24 @@ fn apply_recipe_to_world(world: &mut World, id: &str) -> Result<(), CoreError> {
         .unwrap_or_else(|| "root".to_string());
     match id {
         "door_key" => {
-            add_prop(world, &folder, "recipe_door", "Door", [4.0, 1.0, 0.0], Shape::Cube, "logic/door_key.graph");
-            add_prop(world, &folder, "recipe_key", "Key", [-2.0, 0.6, 2.0], Shape::Cube, "logic/door_key.graph");
+            add_prop(
+                world,
+                &folder,
+                "recipe_door",
+                "Door",
+                [4.0, 1.0, 0.0],
+                Shape::Cube,
+                "logic/door_key.graph",
+            );
+            add_prop(
+                world,
+                &folder,
+                "recipe_key",
+                "Key",
+                [-2.0, 0.6, 2.0],
+                Shape::Cube,
+                "logic/door_key.graph",
+            );
             if let Some(door) = world.entities.iter_mut().find(|e| e.id == "recipe_door") {
                 door.tag = "door".into();
                 door.source_asset = "door".into();
@@ -291,8 +301,9 @@ mod tests {
         let _ = std::fs::remove_dir_all(&dir);
         crate::create_project(&dir, "Recipe").unwrap();
         std::fs::write(dir.join("scene.seal"), seal_world::World::starter().to_text()).unwrap();
-        let w = seal_world::World::from_text(&std::fs::read_to_string(dir.join("scene.seal")).unwrap())
-            .unwrap();
+        let w =
+            seal_world::World::from_text(&std::fs::read_to_string(dir.join("scene.seal")).unwrap())
+                .unwrap();
         (dir, w)
     }
 

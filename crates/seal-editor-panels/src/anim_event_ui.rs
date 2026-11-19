@@ -7,7 +7,12 @@ use seal_ui::PanelFrame;
 use crate::PanelEvent;
 
 /// Event name rows for the frames of the open clip. Each edit is saved at once.
-pub fn rows(frame: &mut PanelFrame, session: &EditorSession, clip: &str, frames: &[Frame]) -> PanelEvent {
+pub fn rows(
+    frame: &mut PanelFrame,
+    session: &EditorSession,
+    clip: &str,
+    frames: &[Frame],
+) -> PanelEvent {
     let mut event = PanelEvent::None;
     for (index, shown) in frames.iter().enumerate() {
         let label = session

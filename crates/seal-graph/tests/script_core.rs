@@ -25,10 +25,8 @@ impl Host for Stub {
 fn quat_euler_and_clocks() {
     let g = Graph::new("t")
         .node(
-            Node::new(0, "quat_euler").with(
-                "defaults",
-                seal_sealtext::parse("pitch = 0\nyaw = 90\nroll = 0").unwrap(),
-            ),
+            Node::new(0, "quat_euler")
+                .with("defaults", seal_sealtext::parse("pitch = 0\nyaw = 90\nroll = 0").unwrap()),
         )
         .node(Node::new(1, "unscaled_time"))
         .node(Node::new(2, "sim_tick"));
@@ -44,7 +42,8 @@ fn quat_euler_and_clocks() {
 #[test]
 fn utf8_to_utf16_units() {
     let g = Graph::new("t").node(
-        Node::new(0, "utf8_to_utf16").with("defaults", seal_sealtext::parse("text = \"Hi\"").unwrap()),
+        Node::new(0, "utf8_to_utf16")
+            .with("defaults", seal_sealtext::parse("text = \"Hi\"").unwrap()),
     );
     let prog = Program::build(&g).unwrap();
     let mut i = Interp::new(prog, 1);

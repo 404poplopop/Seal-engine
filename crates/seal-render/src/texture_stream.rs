@@ -49,12 +49,7 @@ impl TextureStreamPlanner {
     pub fn register(&mut self, id: StreamTextureId, mip0_bytes: u64, max_mip: u32) {
         self.resident.insert(
             id,
-            ResidentMip {
-                bytes: mip0_bytes,
-                finest_loaded: 0,
-                max_mip,
-                last_draw: self.draw_gen,
-            },
+            ResidentMip { bytes: mip0_bytes, finest_loaded: 0, max_mip, last_draw: self.draw_gen },
         );
         self.draw_gen = self.draw_gen.saturating_add(1);
         self.used_bytes += mip0_bytes;
@@ -148,10 +143,12 @@ impl TextureStreamPlanner {
                 break;
             }
             if let Some(entry) = self.resident.get_mut(&id) {
-                while entry.finest_loaded < entry.max_mip && self.used_bytes + need > budget.max_bytes
+                while entry.finest_loaded < entry.max_mip
+                    && self.used_bytes + need > budget.max_bytes
                 {
-                    self.used_bytes =
-                        self.used_bytes.saturating_sub(Self::mip_bytes(entry.bytes, entry.finest_loaded));
+                    self.used_bytes = self
+                        .used_bytes
+                        .saturating_sub(Self::mip_bytes(entry.bytes, entry.finest_loaded));
                     entry.finest_loaded += 1;
                 }
             }

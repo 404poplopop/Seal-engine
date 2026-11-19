@@ -377,7 +377,7 @@ fn tags_become_clips_and_slices_stay_out_of_the_animation() {
     fs::create_dir_all(&dir).unwrap();
     fs::write(
         dir.join("hero.aseprite"),
-        &build(&Doc {
+        build(&Doc {
             w: 1,
             h: 1,
             depth: 32,

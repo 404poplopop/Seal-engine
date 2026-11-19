@@ -109,12 +109,9 @@ pub fn vertex_data(tris: &[LitTriangle], rect: Rect) -> (Vec<f32>, Vec<AlbedoBat
     let span = (hi - lo).max(1e-6);
     let mut order: Vec<usize> = (0..tris.len()).collect();
     order.sort_by(|&a, &b| {
-        (&tris[a].tex_path, tris[a].tex_kind, tris[a].tex_layer, tris[a].tex_slice.to_bits()).cmp(&(
-            &tris[b].tex_path,
-            tris[b].tex_kind,
-            tris[b].tex_layer,
-            tris[b].tex_slice.to_bits(),
-        ))
+        (&tris[a].tex_path, tris[a].tex_kind, tris[a].tex_layer, tris[a].tex_slice.to_bits()).cmp(
+            &(&tris[b].tex_path, tris[b].tex_kind, tris[b].tex_layer, tris[b].tex_slice.to_bits()),
+        )
     });
     let mut out = Vec::with_capacity(tris.len() * 3 * STRIDE);
     let mut batches = Vec::new();
@@ -348,11 +345,8 @@ fn draw(
             if copy {
                 log_layer_copy_once();
             }
-            let program = if copy {
-                flat
-            } else {
-                state.programs[program_slot(batch.kind)].or(flat)
-            };
+            let program =
+                if copy { flat } else { state.programs[program_slot(batch.kind)].or(flat) };
             let Some(program) = program else { continue };
             gl.use_program(Some(program));
             gl.uniform_1_i32(gl.get_uniform_location(program, "u_shadow").as_ref(), 0);
@@ -444,7 +438,11 @@ pub fn paint_callback(
             let px = info.viewport_in_pixels();
             let size = scaled_size(px.width_px as u32, px.height_px as u32, frame.render_scale);
             let full = (px.width_px as u32, px.height_px as u32);
-            if size == full || !draw_scaled(gl, size, |gl| draw(gl, &data, &batches, shadow.as_ref().as_ref(), &frame)) {
+            if size == full
+                || !draw_scaled(gl, size, |gl| {
+                    draw(gl, &data, &batches, shadow.as_ref().as_ref(), &frame)
+                })
+            {
                 draw(gl, &data, &batches, shadow.as_ref().as_ref(), &frame);
             }
         })),
@@ -543,7 +541,8 @@ fn draw_scaled(gl: &glow::Context, size: (u32, u32), paint: impl FnOnce(&glow::C
 fn build_scale_target(gl: &glow::Context, size: (u32, u32)) -> Result<ScaleTarget, String> {
     let version = egui_glow::ShaderVersion::get(gl);
     let new = version.is_new_shader_interface();
-    let (attr, vout, fin) = if new { ("in", "out", "in") } else { ("attribute", "varying", "varying") };
+    let (attr, vout, fin) =
+        if new { ("in", "out", "in") } else { ("attribute", "varying", "varying") };
     let precision = if version.is_embedded() { "precision mediump float;\n" } else { "" };
     let sample = if new { "texture" } else { "texture2D" };
     let out_decl = if new { "out vec4 out_color;\n" } else { "" };
@@ -581,13 +580,29 @@ fn build_scale_target(gl: &glow::Context, size: (u32, u32)) -> Result<ScaleTarge
         gl.bind_texture(glow::TEXTURE_2D, None);
         let depth = gl.create_renderbuffer()?;
         gl.bind_renderbuffer(glow::RENDERBUFFER, Some(depth));
-        gl.renderbuffer_storage(glow::RENDERBUFFER, glow::DEPTH_COMPONENT24, size.0 as i32, size.1 as i32);
+        gl.renderbuffer_storage(
+            glow::RENDERBUFFER,
+            glow::DEPTH_COMPONENT24,
+            size.0 as i32,
+            size.1 as i32,
+        );
         gl.bind_renderbuffer(glow::RENDERBUFFER, None);
         let previous = gl.get_parameter_framebuffer(glow::FRAMEBUFFER_BINDING);
         let fbo = gl.create_framebuffer()?;
         gl.bind_framebuffer(glow::FRAMEBUFFER, Some(fbo));
-        gl.framebuffer_texture_2d(glow::FRAMEBUFFER, glow::COLOR_ATTACHMENT0, glow::TEXTURE_2D, Some(color), 0);
-        gl.framebuffer_renderbuffer(glow::FRAMEBUFFER, glow::DEPTH_ATTACHMENT, glow::RENDERBUFFER, Some(depth));
+        gl.framebuffer_texture_2d(
+            glow::FRAMEBUFFER,
+            glow::COLOR_ATTACHMENT0,
+            glow::TEXTURE_2D,
+            Some(color),
+            0,
+        );
+        gl.framebuffer_renderbuffer(
+            glow::FRAMEBUFFER,
+            glow::DEPTH_ATTACHMENT,
+            glow::RENDERBUFFER,
+            Some(depth),
+        );
         let status = gl.check_framebuffer_status(glow::FRAMEBUFFER);
         gl.bind_framebuffer(glow::FRAMEBUFFER, previous);
         if status != glow::FRAMEBUFFER_COMPLETE {
@@ -619,7 +634,8 @@ fn build_scale_target(gl: &glow::Context, size: (u32, u32)) -> Result<ScaleTarge
         gl.bind_vertex_array(Some(vao));
         gl.bind_buffer(glow::ARRAY_BUFFER, Some(vbo));
         let quad: [f32; 8] = [-1.0, -1.0, 1.0, -1.0, -1.0, 1.0, 1.0, 1.0];
-        let bytes = std::slice::from_raw_parts(quad.as_ptr().cast::<u8>(), std::mem::size_of_val(&quad));
+        let bytes =
+            std::slice::from_raw_parts(quad.as_ptr().cast::<u8>(), std::mem::size_of_val(&quad));
         gl.buffer_data_u8_slice(glow::ARRAY_BUFFER, bytes, glow::STATIC_DRAW);
         gl.bind_vertex_array(None);
         gl.bind_buffer(glow::ARRAY_BUFFER, None);
@@ -687,7 +703,8 @@ fn paint_sky(gl: &glow::Context, frame: &GpuFrame, spread: [f32; 2]) {
         gl.bind_vertex_array(Some(state.vao));
         gl.bind_buffer(glow::ARRAY_BUFFER, Some(state.vbo));
         let quad: [f32; 8] = [-1.0, -1.0, 1.0, -1.0, -1.0, 1.0, 1.0, 1.0];
-        let bytes = std::slice::from_raw_parts(quad.as_ptr().cast::<u8>(), std::mem::size_of_val(&quad));
+        let bytes =
+            std::slice::from_raw_parts(quad.as_ptr().cast::<u8>(), std::mem::size_of_val(&quad));
         gl.buffer_data_u8_slice(glow::ARRAY_BUFFER, bytes, glow::STREAM_DRAW);
         gl.enable_vertex_attrib_array(0);
         gl.vertex_attrib_pointer_f32(0, 2, glow::FLOAT, false, 8, 0);
@@ -695,8 +712,15 @@ fn paint_sky(gl: &glow::Context, frame: &GpuFrame, spread: [f32; 2]) {
         gl.bind_texture(tex.target, Some(tex.texture));
         gl.uniform_1_i32(gl.get_uniform_location(state.program, "u_sky").as_ref(), 0);
         gl.uniform_1_f32(gl.get_uniform_location(state.program, "u_yaw").as_ref(), frame.yaw_deg);
-        gl.uniform_1_f32(gl.get_uniform_location(state.program, "u_pitch").as_ref(), frame.pitch_deg);
-        gl.uniform_2_f32(gl.get_uniform_location(state.program, "u_spread").as_ref(), spread[0], spread[1]);
+        gl.uniform_1_f32(
+            gl.get_uniform_location(state.program, "u_pitch").as_ref(),
+            frame.pitch_deg,
+        );
+        gl.uniform_2_f32(
+            gl.get_uniform_location(state.program, "u_spread").as_ref(),
+            spread[0],
+            spread[1],
+        );
         gl.disable(glow::DEPTH_TEST);
         gl.disable(glow::BLEND);
         gl.draw_arrays(glow::TRIANGLE_STRIP, 0, 4);
@@ -711,7 +735,8 @@ fn paint_sky(gl: &glow::Context, frame: &GpuFrame, spread: [f32; 2]) {
 fn build_sky(gl: &glow::Context) -> Result<SkyState, String> {
     let version = egui_glow::ShaderVersion::get(gl);
     let new = version.is_new_shader_interface();
-    let (attr, vout, fin) = if new { ("in", "out", "in") } else { ("attribute", "varying", "varying") };
+    let (attr, vout, fin) =
+        if new { ("in", "out", "in") } else { ("attribute", "varying", "varying") };
     let precision = if version.is_embedded() { "precision mediump float;\n" } else { "" };
     let sample = if new { "texture(u_sky, dir)" } else { "textureCube(u_sky, dir)" };
     let vs = format!(

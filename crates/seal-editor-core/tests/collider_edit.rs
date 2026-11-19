@@ -79,9 +79,7 @@ fn outline_from_sprite_traces_a_picture_and_refuses_a_damaged_file() {
         entity.phys2d.part = true;
     }
     session.adopt_world();
-    session
-        .dispatch("collider.outline", &CommandArgs::new(&[("id", &id)]))
-        .unwrap();
+    session.dispatch("collider.outline", &CommandArgs::new(&[("id", &id)])).unwrap();
     let points = session.world.entity(&id).unwrap().phys2d.points.clone();
     assert!(points.len() >= 4, "{points:?}");
     assert!(points.iter().any(|p| p[0] < -0.2 && p[1] < -0.2), "{points:?}");
@@ -93,8 +91,10 @@ fn outline_from_sprite_traces_a_picture_and_refuses_a_damaged_file() {
     let part = reloaded.entity(&id).unwrap();
     assert!(part.phys2d.part && part.phys2d.points.len() == 3, "{:?}", part.phys2d);
     session.world.entity_mut(&id).unwrap().sprite = "sprites/broken.png".into();
-    let err = session
-        .dispatch("collider.outline", &CommandArgs::new(&[("id", &id)]))
-        .unwrap_err();
-    assert!(err.to_string().contains("picture") || err.to_string().contains("read") || !err.to_string().is_empty());
+    let err = session.dispatch("collider.outline", &CommandArgs::new(&[("id", &id)])).unwrap_err();
+    assert!(
+        err.to_string().contains("picture")
+            || err.to_string().contains("read")
+            || !err.to_string().is_empty()
+    );
 }

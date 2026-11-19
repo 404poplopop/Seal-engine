@@ -32,14 +32,9 @@ fn field_value(data_text: &str, field: &str) -> String {
 }
 
 fn csv_cell(text: &str, row: usize, col: usize) -> String {
-    let rows: Vec<Vec<&str>> = text
-        .lines()
-        .map(|l| l.split(',').map(str::trim).collect())
-        .collect();
-    rows.get(row)
-        .and_then(|r| r.get(col))
-        .map(|s| s.to_string())
-        .unwrap_or_default()
+    let rows: Vec<Vec<&str>> =
+        text.lines().map(|l| l.split(',').map(str::trim).collect()).collect();
+    rows.get(row).and_then(|r| r.get(col)).map(|s| s.to_string()).unwrap_or_default()
 }
 
 fn json_value(text: &str, path: &str) -> String {
@@ -117,24 +112,18 @@ fn get_field_reads_a_data_asset() {
     std::fs::write(dir.join("meta.json"), r#"{"x":3}"#).unwrap();
 
     let g = Graph::new("data")
-        .node(
-            Node::new(0, "get_field").with(
-                "defaults",
-                seal_sealtext::parse("path = \"data/hero.data\"\nfield = \"hp\"").unwrap(),
-            ),
-        )
-        .node(
-            Node::new(1, "read_csv_cell").with(
-                "defaults",
-                seal_sealtext::parse("path = \"tables.csv\"\nrow = 1\ncol = 1").unwrap(),
-            ),
-        )
-        .node(
-            Node::new(2, "read_json_value").with(
-                "defaults",
-                seal_sealtext::parse("path = \"meta.json\"\njson_path = \"x\"").unwrap(),
-            ),
-        );
+        .node(Node::new(0, "get_field").with(
+            "defaults",
+            seal_sealtext::parse("path = \"data/hero.data\"\nfield = \"hp\"").unwrap(),
+        ))
+        .node(Node::new(1, "read_csv_cell").with(
+            "defaults",
+            seal_sealtext::parse("path = \"tables.csv\"\nrow = 1\ncol = 1").unwrap(),
+        ))
+        .node(Node::new(2, "read_json_value").with(
+            "defaults",
+            seal_sealtext::parse("path = \"meta.json\"\njson_path = \"x\"").unwrap(),
+        ));
     let prog = Program::build(&g).unwrap();
     assert!(matches!(prog.nodes.first().map(|n| &n.op), Some(Op::DataField)));
     let mut host = DataHost { root: dir.clone() };

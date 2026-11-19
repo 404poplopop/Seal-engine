@@ -91,11 +91,7 @@ pub fn effective_picture(
             .clone()
             .filter(|s| !s.is_empty())
             .unwrap_or_else(|| "balanced".into()),
-        format: ov
-            .format
-            .clone()
-            .filter(|s| !s.is_empty())
-            .unwrap_or_else(|| "keep".into()),
+        format: ov.format.clone().filter(|s| !s.is_empty()).unwrap_or_else(|| "keep".into()),
     }
 }
 
@@ -137,7 +133,9 @@ pub fn platform_overrides_to_value(map: &PlatformOverrideMap) -> SealValue {
     SealValue::Map(entries.into())
 }
 
-pub fn parse_atlas_platform_overrides(value: &SealValue) -> BTreeMap<ImportPlatform, AtlasPlatformOverride> {
+pub fn parse_atlas_platform_overrides(
+    value: &SealValue,
+) -> BTreeMap<ImportPlatform, AtlasPlatformOverride> {
     let mut out = BTreeMap::new();
     let Some(SealValue::Map(map)) = value.get("atlas_platform_overrides") else {
         return out;
@@ -164,7 +162,9 @@ pub fn atlas_platform_overrides_to_value(
             if let Some(size) = ov.page_size {
                 entries.push((
                     platform.id().into(),
-                    SealValue::Map(vec![("page_size".into(), SealValue::Number(size.to_string()))].into()),
+                    SealValue::Map(
+                        vec![("page_size".into(), SealValue::Number(size.to_string()))].into(),
+                    ),
                 ));
             }
         }
@@ -244,7 +244,7 @@ pub fn valid_format(text: &str) -> bool {
 }
 
 pub fn valid_atlas_page(n: u32) -> bool {
-    PICTURE_MAX_SIZES.contains(&n) || (n.is_power_of_two() && n >= 512 && n <= 4096)
+    PICTURE_MAX_SIZES.contains(&n) || (n.is_power_of_two() && (512..=4096).contains(&n))
 }
 
 pub fn set_picture_override_field(
@@ -257,7 +257,9 @@ pub fn set_picture_override_field(
             "max_size" => ov.max_size = None,
             "compression" => ov.compression = None,
             "format" => ov.format = None,
-            other => return Err(CoreError::new(format!("unknown platform override field {other}"))),
+            other => {
+                return Err(CoreError::new(format!("unknown platform override field {other}")))
+            }
         }
         return Ok(());
     }
@@ -291,7 +293,9 @@ pub fn set_atlas_override_field(
     if field == "page_size" {
         let n: u32 = value.parse().map_err(|_| CoreError::new("page size must be a number"))?;
         if n != 0 && !valid_atlas_page(n) {
-            return Err(CoreError::new("page size must be 0 for default or a power of two from 512 to 4096"));
+            return Err(CoreError::new(
+                "page size must be 0 for default or a power of two from 512 to 4096",
+            ));
         }
         ov.page_size = if n == 0 { None } else { Some(n) };
         return Ok(());
@@ -300,7 +304,10 @@ pub fn set_atlas_override_field(
 }
 
 /// Picture look using platform overrides on top of the sidecar next to `path`.
-pub fn picture_look_for_platform(path: &Path, platform: ImportPlatform) -> crate::import_presets::PictureLook {
+pub fn picture_look_for_platform(
+    path: &Path,
+    platform: ImportPlatform,
+) -> crate::import_presets::PictureLook {
     let mut look = picture_look(path);
     let sidecar = PathBuf::from(format!("{}.import.seal", path.display()));
     let Ok(text) = fs::read_to_string(&sidecar) else {
@@ -348,16 +355,8 @@ pub fn process_picture_for_export(
     if let Some(parent) = dest.parent() {
         fs::create_dir_all(parent).map_err(|e| CoreError::new(e.to_string()))?;
     }
-    let ext = dest
-        .extension()
-        .and_then(|e| e.to_str())
-        .unwrap_or("png")
-        .to_ascii_lowercase();
-    let format = if effective.format == "keep" {
-        ext.as_str()
-    } else {
-        effective.format.as_str()
-    };
+    let ext = dest.extension().and_then(|e| e.to_str()).unwrap_or("png").to_ascii_lowercase();
+    let format = if effective.format == "keep" { ext.as_str() } else { effective.format.as_str() };
     seal_render::picture::write_rgba8(&dest, &rgba, width, height, format, &effective.compression)
         .map_err(|e| CoreError::new(e.to_string()))?;
     Ok(Some((width, height)))
@@ -438,9 +437,11 @@ mod tests {
             customized: true,
             platform_overrides: PlatformOverrideMap::new(),
         };
-        let mut ov = PicturePlatformOverride::default();
-        ov.max_size = Some(128);
-        ov.compression = Some("fast".into());
+        let ov = PicturePlatformOverride {
+            max_size: Some(128),
+            compression: Some("fast".into()),
+            ..Default::default()
+        };
         state.platform_overrides.insert(ImportPlatform::Android, ov);
         save_file_state(&dir, "sprites/a.png", &state).unwrap();
         let loaded = load_file_state(&dir, "sprites/a.png", ImportKind::Picture);
@@ -450,10 +451,7 @@ mod tests {
 
     #[test]
     fn effective_settings_merge_base_and_override() {
-        let base = PictureSettings {
-            max_size: 512,
-            ..PictureSettings::default()
-        };
+        let base = PictureSettings { max_size: 512, ..PictureSettings::default() };
         let ov = PicturePlatformOverride {
             max_size: Some(64),
             compression: Some("maximum".into()),
@@ -503,9 +501,10 @@ mod tests {
             customized: true,
             platform_overrides: PlatformOverrideMap::new(),
         };
-        state
-            .platform_overrides
-            .insert(ImportPlatform::Windows, PicturePlatformOverride { max_size: Some(64), ..Default::default() });
+        state.platform_overrides.insert(
+            ImportPlatform::Windows,
+            PicturePlatformOverride { max_size: Some(64), ..Default::default() },
+        );
         state.platform_overrides.insert(
             ImportPlatform::Android,
             PicturePlatformOverride { max_size: Some(32), ..Default::default() },
@@ -513,14 +512,16 @@ mod tests {
         save_file_state(&dir, "sprites/wide.png", &state).unwrap();
         let loaded = load_file_state(&dir, "sprites/wide.png", ImportKind::Picture);
         assert_eq!(loaded.platform_overrides.len(), 2);
-        let win_dims = process_picture_for_export(&dir, &data, "sprites/wide.png", ImportPlatform::Windows)
-            .unwrap()
-            .expect("windows export");
+        let win_dims =
+            process_picture_for_export(&dir, &data, "sprites/wide.png", ImportPlatform::Windows)
+                .unwrap()
+                .expect("windows export");
         let _ = fs::remove_file(data.join("sprites/wide.png"));
         fs::copy(dir.join("sprites/wide.png"), data.join("sprites/wide.png")).unwrap();
-        let android_dims = process_picture_for_export(&dir, &data, "sprites/wide.png", ImportPlatform::Android)
-            .unwrap()
-            .expect("android export");
+        let android_dims =
+            process_picture_for_export(&dir, &data, "sprites/wide.png", ImportPlatform::Android)
+                .unwrap()
+                .expect("android export");
         assert_eq!(win_dims.0, 64);
         assert_eq!(android_dims.0, 32);
         assert!(win_dims.0 > android_dims.0);

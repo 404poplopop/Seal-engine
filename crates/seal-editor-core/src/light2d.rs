@@ -518,6 +518,6 @@ mod tests {
         let away = light_at([0.0, 0.0], Some([1.0, 0.0, 0.0]), &l, &[], [0.0; 3])[0];
         assert!(toward > 0.3);
         assert_eq!(away, 0.0);
-        assert_eq!(decode_normal([128, 128, 255])[2] > 0.99, true);
+        assert!(decode_normal([128, 128, 255])[2] > 0.99);
     }
 }

@@ -161,7 +161,12 @@ pub fn fit_sprite(path: &str, corners: [Pos2; 4], frame: [f32; 4]) -> Option<Spr
 }
 
 /// Draw a quad with one UV per corner (a turned sprite does not share one axis-aligned rectangle).
-pub fn build_quad_uvs_mesh(texture: TextureId, corners: [Pos2; 4], uvs: [Pos2; 4], color: Color32) -> Mesh {
+pub fn build_quad_uvs_mesh(
+    texture: TextureId,
+    corners: [Pos2; 4],
+    uvs: [Pos2; 4],
+    color: Color32,
+) -> Mesh {
     let mut mesh = Mesh::with_texture(texture);
     for (pos, uv) in corners.into_iter().zip(uvs) {
         mesh.vertices.push(egui::epaint::Vertex { pos, uv, color });
@@ -292,9 +297,8 @@ pub fn set_texture_picture_policy(path: &str, streaming: bool, budget_mb: u32) {
 
 /// Pixel size of a picture file, cached until the file changes.
 pub fn picture_pixels(path: &str) -> Option<[f32; 2]> {
-    static CACHE: std::sync::Mutex<
-        Option<HashMap<String, (Option<SystemTime>, Option<SystemTime>, [f32; 2])>>,
-    > = std::sync::Mutex::new(None);
+    type SizeCache = HashMap<String, (Option<SystemTime>, Option<SystemTime>, [f32; 2])>;
+    static CACHE: std::sync::Mutex<Option<SizeCache>> = std::sync::Mutex::new(None);
     let mtime = std::fs::metadata(path).and_then(|m| m.modified()).ok();
     let side = sidecar_time(path);
     let mut guard = CACHE.lock().ok()?;
@@ -313,7 +317,7 @@ pub fn picture_pixels(path: &str) -> Option<[f32; 2]> {
 pub fn texture_size(ctx: &egui::Context, path: &str) -> Option<[f32; 2]> {
     let cache =
         ctx.data_mut(|d| d.get_temp_mut_or_default::<Cache>(egui::Id::new("seal-sprites")).clone());
-    let map = cache.0.0.lock().ok()?;
+    let map = cache.0 .0.lock().ok()?;
     let entry = map.get(path)?;
     if let Some(handle) = &entry.handle {
         let s = handle.size();
@@ -532,9 +536,8 @@ fn tight_points(path: &str) -> Option<Vec<[f32; 2]>> {
     }
     let mtime = std::fs::metadata(path).and_then(|meta| meta.modified()).ok();
     let side = sidecar_time(path);
-    static CACHE: std::sync::Mutex<
-        Option<HashMap<String, (Option<SystemTime>, Option<SystemTime>, Vec<[f32; 2]>)>>,
-    > = std::sync::Mutex::new(None);
+    type OutlineCache = HashMap<String, (Option<SystemTime>, Option<SystemTime>, Vec<[f32; 2]>)>;
+    static CACHE: std::sync::Mutex<Option<OutlineCache>> = std::sync::Mutex::new(None);
     let mut guard = CACHE.lock().ok()?;
     let map = guard.get_or_insert_with(HashMap::new);
     if let Some((seen, seen_side, points)) = map.get(path) {
@@ -661,7 +664,11 @@ pub fn thumbnail(ctx: &egui::Context, path: &str) -> Option<(TextureId, egui::Ve
         let handle = done.pixels.map(|(small, sw, sh)| {
             let image =
                 egui::ColorImage::from_rgba_unmultiplied([sw as usize, sh as usize], &small);
-            ctx.load_texture(format!("thumb:{}", done.path), image, texture_options(look.nearest, &look))
+            ctx.load_texture(
+                format!("thumb:{}", done.path),
+                image,
+                texture_options(look.nearest, &look),
+            )
         });
         map.insert(done.path, (done.mtime, done.side, handle));
         ctx.request_repaint();
@@ -791,7 +798,10 @@ mod tests {
         encoder.write_header().unwrap().write_image_data(&[255u8; 16]).unwrap();
         let ctx = egui::Context::default();
         let path = path.to_string_lossy().to_string();
-        assert!(super::thumbnail(&ctx, &path).is_none(), "the first request only queues the decode");
+        assert!(
+            super::thumbnail(&ctx, &path).is_none(),
+            "the first request only queues the decode"
+        );
         let mut found = None;
         for _ in 0..200 {
             found = super::thumbnail(&ctx, &path);

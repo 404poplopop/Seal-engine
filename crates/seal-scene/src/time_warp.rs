@@ -40,9 +40,7 @@ mod tests {
 
     #[test]
     fn hold_and_reverse_segments() {
-        let warp = TimeWarp {
-            keys: vec![(0.0, 0.0), (1.0, 0.0), (2.0, -1.0), (3.0, 1.0)],
-        };
+        let warp = TimeWarp { keys: vec![(0.0, 0.0), (1.0, 0.0), (2.0, -1.0), (3.0, 1.0)] };
         assert!((warp.sample(0.5) - 0.0).abs() < 1e-5);
         assert!(warp.sample(1.5) < 0.0);
     }

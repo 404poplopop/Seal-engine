@@ -67,7 +67,7 @@ pub fn crossings(clip: &Clip, prev: Option<f32>, now: f32) -> (Vec<usize>, bool,
     let finished = !clip.looping
         && length > 0.0
         && now + 1e-5 >= length
-        && prev.map_or(true, |p| p + 1e-5 < length);
+        && prev.is_none_or(|p| p + 1e-5 < length);
     (frames, finished, now)
 }
 

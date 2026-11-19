@@ -616,8 +616,7 @@ mod tests {
     #[test]
     fn project_fixed_hz_runs_more_steps_per_frame() {
         let w = level();
-        let mut settings = seal_physics2d::Physics2DSettings::default();
-        settings.fixed_hz = 120.0;
+        let settings = seal_physics2d::Physics2DSettings { fixed_hz: 120.0, ..Default::default() };
         let mut entities = w.entities.clone();
         let mut game =
             super::Platformer::from_entities(&entities, crate::DEFAULT_GRAVITY, &settings).unwrap();
@@ -655,8 +654,8 @@ mod tests {
         game.step(1.0 / 120.0, input, &mut plain);
         let x_plain = plain.iter().find(|e| e.tag == "player").unwrap().translation[0];
 
-        let mut settings = seal_physics2d::Physics2DSettings::default();
-        settings.render_interpolation = true;
+        let settings =
+            seal_physics2d::Physics2DSettings { render_interpolation: true, ..Default::default() };
         let mut interp = w.entities.clone();
         let mut game_i =
             super::Platformer::from_entities(&interp, crate::DEFAULT_GRAVITY, &settings).unwrap();

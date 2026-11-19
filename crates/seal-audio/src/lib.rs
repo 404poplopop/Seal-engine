@@ -13,21 +13,21 @@
 
 #![allow(unknown_lints, clippy::chunks_exact_to_as_chunks)]
 
-mod decode;
 pub mod backend;
 pub mod compress;
+mod decode;
 pub mod frames;
 pub mod listener;
 pub mod ring;
 pub mod stream;
-pub mod web;
 mod stream_file;
+pub mod web;
 #[cfg(target_arch = "wasm32")]
 pub mod web_out;
 
-pub use stream::{MusicPlayer, MUSIC_BUFFER_LIMIT, MUSIC_BUS};
 pub use decode::detect_format;
 pub use decode::SoundFormat;
+pub use stream::{MusicPlayer, MUSIC_BUFFER_LIMIT, MUSIC_BUS};
 
 use std::fmt;
 

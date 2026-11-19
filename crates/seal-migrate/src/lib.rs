@@ -1646,7 +1646,7 @@ fn timer_call(
                 let zero = p
                     .default
                     .as_deref()
-                    .map_or(true, |t| t.trim().parse::<f64>().is_ok_and(|v| v == 0.0));
+                    .is_none_or(|t| t.trim().parse::<f64>().is_ok_and(|v| v == 0.0));
                 if !p.linked.is_empty() || !zero {
                     return Err(Status::Unsupported(format!("{delay} is not zero")));
                 }

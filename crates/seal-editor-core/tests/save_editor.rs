@@ -40,7 +40,10 @@ fn saves_open_in_the_asset_editor_and_the_version_can_be_raised() {
     let b = view.save.as_ref().unwrap();
     assert_eq!(b.scores.get("coins"), Some(&7));
     assert_eq!(b.values.get("level").map(String::as_str), Some("2"));
-    assert_eq!(view.slots.iter().map(|x| x.slot.as_str()).collect::<Vec<_>>(), ["Slot B", "Slot A"]);
+    assert_eq!(
+        view.slots.iter().map(|x| x.slot.as_str()).collect::<Vec<_>>(),
+        ["Slot B", "Slot A"]
+    );
     assert_eq!(view.project_version, 1);
     assert_eq!(play_time(b.play_time), "2:05");
 
@@ -48,7 +51,10 @@ fn saves_open_in_the_asset_editor_and_the_version_can_be_raised() {
     run(&mut s, "asset.save_version", &[("value", "2")]);
     assert_eq!(savegame::project_save_version(&folder), 2);
     let manifest = fs::read_to_string(folder.join("project.seal")).unwrap();
-    assert!(manifest.contains("save_version = 2") && manifest.contains("name = \"Game\""), "{manifest}");
+    assert!(
+        manifest.contains("save_version = 2") && manifest.contains("name = \"Game\""),
+        "{manifest}"
+    );
     seal_editor_core::open_project(&folder).expect("project.seal still opens");
     let view = save_view(&s).unwrap();
     assert_eq!(view.project_version, 2);
@@ -67,7 +73,11 @@ fn saves_open_in_the_asset_editor_and_the_version_can_be_raised() {
     assert!(!folder.join(slot_rel("Future")).exists());
     assert_eq!(s.draft("asset-path").as_deref(), Some(slot_rel("Slot B").as_str()));
     run(&mut s, "asset.save_delete", &[("slot", "Slot A")]);
-    assert_eq!(s.draft("asset-path").as_deref(), Some(slot_rel("Slot B").as_str()), "the open save stays");
+    assert_eq!(
+        s.draft("asset-path").as_deref(),
+        Some(slot_rel("Slot B").as_str()),
+        "the open save stays"
+    );
     fs::remove_dir_all(dir).ok();
 }
 

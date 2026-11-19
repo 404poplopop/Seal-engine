@@ -16,10 +16,7 @@ pub fn pick_surface_format(formats: &[TextureFormat], want_hdr: bool) -> Surface
             return SurfacePick { format: texture_format(buffer), hdr: true };
         }
     }
-    SurfacePick {
-        format: super::present::pick_format(formats),
-        hdr: false,
-    }
+    SurfacePick { format: super::present::pick_format(formats), hdr: false }
 }
 
 fn hdr_buffer(format: TextureFormat) -> Option<seal_render::hdr_output::HdrBuffer> {
@@ -47,10 +44,7 @@ mod tests {
 
     #[test]
     fn hdr_picks_first_offered_hdr_format() {
-        let formats = [
-            TextureFormat::Bgra8UnormSrgb,
-            TextureFormat::Rgba16Float,
-        ];
+        let formats = [TextureFormat::Bgra8UnormSrgb, TextureFormat::Rgba16Float];
         let pick = pick_surface_format(&formats, true);
         assert!(pick.hdr);
         assert_eq!(pick.format, TextureFormat::Rgba16Float);

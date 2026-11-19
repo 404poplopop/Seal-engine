@@ -141,13 +141,7 @@ impl DataTypeDef {
                     if kind == FieldKind::Choice && options.is_empty() {
                         return Err(err("choice fields need options=a|b"));
                     }
-                    fields.push(DataFieldDef {
-                        name: fname,
-                        kind,
-                        element,
-                        options,
-                        default,
-                    });
+                    fields.push(DataFieldDef { name: fname, kind, element, options, default });
                 }
                 _ => return Err(err("unknown keyword")),
             }
@@ -238,7 +232,7 @@ impl DataAsset {
     }
 
     pub fn to_text(&self) -> String {
-        let mut out = format!("seal_data = 1\n");
+        let mut out = "seal_data = 1\n".to_string();
         if !self.name.is_empty() {
             out.push_str(&format!("name = {}\n", self.name));
         }
@@ -251,7 +245,11 @@ impl DataAsset {
 }
 
 /// Check one value against a data type field definition.
-pub fn validate_value(type_def: &DataTypeDef, field: &str, value: &str) -> Result<(), DataAssetError> {
+pub fn validate_value(
+    type_def: &DataTypeDef,
+    field: &str,
+    value: &str,
+) -> Result<(), DataAssetError> {
     let spec = type_def
         .fields
         .iter()
@@ -295,8 +293,9 @@ pub fn validate_value(type_def: &DataTypeDef, field: &str, value: &str) -> Resul
             }
         }
         FieldKind::Choice => {
-            let allowed: Vec<&str> = spec.options.split('|').map(str::trim).filter(|s| !s.is_empty()).collect();
-            if !value.is_empty() && !allowed.iter().any(|opt| *opt == value) {
+            let allowed: Vec<&str> =
+                spec.options.split('|').map(str::trim).filter(|s| !s.is_empty()).collect();
+            if !value.is_empty() && !allowed.contains(&value) {
                 return Err(DataAssetError::TypeMismatch {
                     field: field.into(),
                     expected: "a choice from the type".into(),
@@ -343,7 +342,11 @@ fn parse_csv_line(line: &str) -> Vec<String> {
 }
 
 /// Read a JSON object into a Data asset, checking every field against `type_def`.
-pub fn read_typed_json(json: &str, type_path: &str, type_def: &DataTypeDef) -> Result<DataAsset, DataAssetError> {
+pub fn read_typed_json(
+    json: &str,
+    type_path: &str,
+    type_def: &DataTypeDef,
+) -> Result<DataAsset, DataAssetError> {
     let value: serde_json::Value =
         serde_json::from_str(json).map_err(|e| DataAssetError::Parse(e.to_string()))?;
     let obj = value
@@ -361,11 +364,7 @@ pub fn read_typed_json(json: &str, type_path: &str, type_def: &DataTypeDef) -> R
         validate_value(type_def, &field.name, &text)?;
         values.push((field.name.clone(), text));
     }
-    Ok(DataAsset {
-        name: String::new(),
-        type_path: type_path.to_string(),
-        values,
-    })
+    Ok(DataAsset { name: String::new(), type_path: type_path.to_string(), values })
 }
 
 fn json_field_text(value: &serde_json::Value) -> Result<String, DataAssetError> {
@@ -383,7 +382,10 @@ fn json_field_text(value: &serde_json::Value) -> Result<String, DataAssetError> 
 }
 
 /// Write a Data asset to a JSON object with field types enforced.
-pub fn write_typed_json(asset: &DataAsset, type_def: &DataTypeDef) -> Result<String, DataAssetError> {
+pub fn write_typed_json(
+    asset: &DataAsset,
+    type_def: &DataTypeDef,
+) -> Result<String, DataAssetError> {
     let mut map = serde_json::Map::new();
     for (field, value) in &asset.values {
         validate_value(type_def, field, value)?;
@@ -405,12 +407,12 @@ fn typed_json_value(spec: &DataFieldDef, value: &str) -> Result<serde_json::Valu
                 field: spec.name.clone(),
                 expected: "a number".into(),
             })?;
-            serde_json::Number::from_f64(n)
-                .map(serde_json::Value::Number)
-                .ok_or_else(|| DataAssetError::TypeMismatch {
+            serde_json::Number::from_f64(n).map(serde_json::Value::Number).ok_or_else(|| {
+                DataAssetError::TypeMismatch {
                     field: spec.name.clone(),
                     expected: "a finite number".into(),
-                })?
+                }
+            })?
         }
         FieldKind::Bool => serde_json::Value::Bool(matches!(value, "true" | "yes" | "1")),
         FieldKind::Text | FieldKind::Asset => serde_json::Value::String(value.to_string()),

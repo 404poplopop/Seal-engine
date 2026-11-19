@@ -38,7 +38,11 @@ fn rms(samples: &[f32]) -> f32 {
 fn lossless_fixtures_match_the_sine_sample_for_sample() {
     for name in ["tone.wav", "tone.flac"] {
         let sound = load(name);
-        assert_eq!((sound.sample_rate, sound.channels, sound.frames()), (RATE, 1, FRAMES), "{name}");
+        assert_eq!(
+            (sound.sample_rate, sound.channels, sound.frames()),
+            (RATE, 1, FRAMES),
+            "{name}"
+        );
         for (i, s) in sound.samples.iter().enumerate() {
             assert!((s - expected(i)).abs() < 1e-4, "{name} sample {i}: {s} vs {}", expected(i));
         }
@@ -51,7 +55,11 @@ fn lossy_fixtures_keep_rate_length_pitch_and_level() {
         let sound = load(name);
         assert_eq!((sound.sample_rate, sound.channels), (RATE, 1), "{name}");
         // Encoders may pad the start or end by up to a few frames of silence.
-        assert!((FRAMES..FRAMES + 2_400).contains(&sound.frames()), "{name} frames {}", sound.frames());
+        assert!(
+            (FRAMES..FRAMES + 2_400).contains(&sound.frames()),
+            "{name} frames {}",
+            sound.frames()
+        );
         let cps = crossings_per_second(&sound.samples);
         assert!((cps - 880.0).abs() < 25.0, "{name} crossings per second {cps}");
         let level = rms(&sound.samples);
@@ -104,7 +112,11 @@ fn stereo_files_keep_both_channels_and_their_length() {
     for name in ["stereo.flac", "stereo.mp3"] {
         let sound = load(name);
         assert_eq!((sound.sample_rate, sound.channels), (RATE, 2), "{name}");
-        assert!((2_000..2_000 + 2_400).contains(&sound.frames()), "{name} frames {}", sound.frames());
+        assert!(
+            (2_000..2_000 + 2_400).contains(&sound.frames()),
+            "{name} frames {}",
+            sound.frames()
+        );
         let left: Vec<f32> = sound.samples.iter().step_by(2).copied().collect();
         let right: Vec<f32> = sound.samples.iter().skip(1).step_by(2).copied().collect();
         assert!((crossings_per_second(&left) - 880.0).abs() < 30.0, "{name} left");
@@ -114,4 +126,3 @@ fn stereo_files_keep_both_channels_and_their_length() {
         assert_eq!(reader.frames() as usize, sound.frames(), "{name} streamed length");
     }
 }
-

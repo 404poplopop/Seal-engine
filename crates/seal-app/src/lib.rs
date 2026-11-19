@@ -21,9 +21,9 @@ use seal_render2d::{FrameStats, Renderer2D};
 
 #[cfg(feature = "audio-out")]
 pub mod audio_out;
+pub mod render_config;
 #[cfg(feature = "window")]
 pub mod window;
-pub mod render_config;
 pub mod window_config;
 
 pub use seal_audio as audio;

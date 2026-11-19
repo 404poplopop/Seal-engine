@@ -26,20 +26,20 @@ pub mod sound_container;
 pub use seal_input;
 pub use seal_scene;
 pub mod ai;
-pub mod area_effect;
 pub mod anim_events;
-pub mod cam_drag;
+pub mod area_effect;
 pub mod audio_listener;
+pub mod cam_drag;
 pub mod camera2d;
 pub mod character2d;
+pub mod cloud;
 pub mod collider_edit;
+pub mod collider_gate;
+pub mod dialog_ui;
+pub mod extra_window;
+pub mod file_dialog;
 pub mod fonts;
 pub mod frames;
-pub mod text_sprites;
-pub mod text_encoding;
-pub mod text_layout;
-pub mod sprite_socket;
-pub mod extra_window;
 pub mod game;
 pub mod gameui;
 pub mod light_fields;
@@ -48,26 +48,27 @@ pub mod mesh_surface;
 pub mod nav;
 pub mod nav2d;
 pub mod net;
-pub mod particles;
-pub mod object_merge;
 pub mod object_files;
-pub mod post_volume;
-pub mod prefab_nest;
+pub mod object_merge;
+pub mod particles;
 pub mod phys2d;
 pub mod physics;
-pub mod tile_merge;
-pub mod collider_gate;
+pub mod post_volume;
+pub mod prefab_nest;
 pub mod query_shapes;
 pub mod remote_transform;
-pub mod script_groups;
 pub mod savegame;
-pub mod cloud;
-pub mod dialog_ui;
-pub mod file_dialog;
 pub mod scenes;
+pub mod script_groups;
 pub mod scripts;
+pub mod sprite_socket;
+pub mod text_encoding;
+pub mod text_layout;
+pub mod text_sprites;
+pub mod tile_merge;
 
 pub use audio_listener::{active_listener, ActiveListener};
+pub mod players;
 pub mod shape2d;
 pub mod shape_style;
 pub mod sheet;
@@ -77,7 +78,6 @@ pub mod sprite_shape;
 pub mod sprite_slice;
 pub mod sprite_sort;
 pub mod volumes;
-pub mod players;
 
 /// Play steps a rigid-body preview only when the crate is built with `play-preview`.
 pub fn play_preview_enabled() -> bool {
@@ -445,7 +445,8 @@ impl Entity {
             fields.push(("script".into(), self.script.clone()));
             fields.push(("script_order".into(), self.script_order.to_string()));
             fields.push(("script_group".into(), script_groups::name(&self.script_group).into()));
-        } else if self.script_order != 0 || script_groups::name(&self.script_group) != script_groups::BEFORE
+        } else if self.script_order != 0
+            || script_groups::name(&self.script_group) != script_groups::BEFORE
         {
             if self.script_order != 0 {
                 fields.push(("script_order".into(), self.script_order.to_string()));
@@ -1937,14 +1938,15 @@ impl World {
 
     fn install_builtin_sims(&mut self) {
         if let Some(bodies) = self.held_out_of_builtin() {
-            self.platformer = platformer::Platformer::from_entities(
-                &bodies,
-                self.gravity,
-                &self.phys2d_settings,
-            );
+            self.platformer =
+                platformer::Platformer::from_entities(&bodies, self.gravity, &self.phys2d_settings);
             self.sim2d = match self.platformer {
                 Some(_) => None,
-                None => phys2d::Sim2d::from_entities(&bodies, self.gravity, self.phys2d_settings.clone()),
+                None => phys2d::Sim2d::from_entities(
+                    &bodies,
+                    self.gravity,
+                    self.phys2d_settings.clone(),
+                ),
             };
         } else {
             self.platformer = platformer::Platformer::from_entities(
@@ -1954,9 +1956,11 @@ impl World {
             );
             self.sim2d = match self.platformer {
                 Some(_) => None,
-                None => {
-                    phys2d::Sim2d::from_entities(&self.entities, self.gravity, self.phys2d_settings.clone())
-                }
+                None => phys2d::Sim2d::from_entities(
+                    &self.entities,
+                    self.gravity,
+                    self.phys2d_settings.clone(),
+                ),
             };
         }
     }
@@ -2032,11 +2036,8 @@ impl World {
     /// Carry out cloud uploads, downloads and script-hook replies.
     fn exchange_cloud(&mut self) {
         let Some(dir) = self.project_dir.clone() else { return };
-        let cmds = self
-            .scripts
-            .as_mut()
-            .map(|s| std::mem::take(&mut s.ui.cloud))
-            .unwrap_or_default();
+        let cmds =
+            self.scripts.as_mut().map(|s| std::mem::take(&mut s.ui.cloud)).unwrap_or_default();
         if cmds.is_empty() {
             return;
         }
@@ -2062,7 +2063,9 @@ impl World {
                             cloud::enqueue_upload(&mut queue, &slot, saved_at, body);
                             flush = true;
                         }
-                        Err(err) => self.play_log.push(format!("cannot read the save {slot}: {err}")),
+                        Err(err) => {
+                            self.play_log.push(format!("cannot read the save {slot}: {err}"))
+                        }
                     },
                     Err(err) => self.play_log.push(err),
                 },
@@ -2089,9 +2092,17 @@ impl World {
             let provider = savegame::project_text(&dir, "cloud_provider");
             let url = savegame::project_text(&dir, "cloud_url");
             let notes = if provider == "http" {
-                cloud::flush(&mut queue, &|slot| cloud::local_saved_at(&dir, slot), cloud::Mode::Http { url: &url })
+                cloud::flush(
+                    &mut queue,
+                    &|slot| cloud::local_saved_at(&dir, slot),
+                    cloud::Mode::Http { url: &url },
+                )
             } else {
-                cloud::flush(&mut queue, &|slot| cloud::local_saved_at(&dir, slot), cloud::Mode::Script)
+                cloud::flush(
+                    &mut queue,
+                    &|slot| cloud::local_saved_at(&dir, slot),
+                    cloud::Mode::Script,
+                )
             };
             for note in notes {
                 self.apply_cloud_note(&dir, &queue, note);
@@ -2121,11 +2132,8 @@ impl World {
                     scripts.ui.cloud_kept = kept.clone();
                 }
                 self.play_log.push(format!("cloud save {slot} kept the {kept} copy"));
-                let event = if kept == "remote" {
-                    "cloud_conflict_remote"
-                } else {
-                    "cloud_conflict_local"
-                };
+                let event =
+                    if kept == "remote" { "cloud_conflict_remote" } else { "cloud_conflict_local" };
                 self.fire_cloud(event);
             }
             cloud::Note::Waiting { slot, message } => {
@@ -3196,10 +3204,7 @@ fn entity_value(entity: &Entity) -> SealValue {
         || (entity.audio_listener.rolloff - 1.0).abs() > 0.001
     {
         extra.push(("audio_listener".into(), SealValue::Bool(entity.audio_listener.on)));
-        extra.push((
-            "listener_max_distance".into(),
-            number(entity.audio_listener.max_distance),
-        ));
+        extra.push(("listener_max_distance".into(), number(entity.audio_listener.max_distance)));
         extra.push(("listener_rolloff".into(), number(entity.audio_listener.rolloff)));
     }
     if entity.camera2d != seal_scene::Camera2d::default() {
@@ -3308,7 +3313,8 @@ fn entity_value(entity: &Entity) -> SealValue {
         extra.push(("unselectable".into(), SealValue::Bool(true)));
     }
     if entity.mesh_material != seal_scene::MeshMaterial::default() {
-        extra.push(("mesh_texture".into(), SealValue::String(entity.mesh_material.texture.clone())));
+        extra
+            .push(("mesh_texture".into(), SealValue::String(entity.mesh_material.texture.clone())));
         extra.push(("mesh_layer".into(), number(entity.mesh_material.layer as f32)));
         extra.push(("mesh_slice".into(), number(entity.mesh_material.slice)));
         extra.push(("mesh_tile_u".into(), number(entity.mesh_material.tile[0])));
@@ -3655,7 +3661,6 @@ fn format_num(value: f32) -> String {
     }
 }
 
-
 /// Walk direction (x, z) for forward/right input. With a play camera of yaw `yaw`
 /// (degrees; it looks along (sin, 0, cos), so yaw 0 is the Front view's +z and +x is
 /// on its right) forward walks where it looks and right walks to the picture's right;
@@ -3976,7 +3981,9 @@ pub(crate) fn copy_field(from: &Entity, to: &mut Entity, field: &str) {
         "cam_cull_mask" => to.camera2d.cull_mask = from.camera2d.cull_mask,
         k if cam_drag::copy_field(from, to, k) => {}
         "audio_listener" => to.audio_listener.on = from.audio_listener.on,
-        "listener_max_distance" => to.audio_listener.max_distance = from.audio_listener.max_distance,
+        "listener_max_distance" => {
+            to.audio_listener.max_distance = from.audio_listener.max_distance
+        }
         "listener_rolloff" => to.audio_listener.rolloff = from.audio_listener.rolloff,
         k if shape2d::known(k) => {
             if let Some(text) = shape2d::field_text(from, k) {

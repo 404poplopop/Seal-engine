@@ -95,10 +95,7 @@ impl Renderer2D {
         // Render scale: a frame drawn at a different size shows the same view.
         let zoom = camera.zoom * if self.pixel_scale > 0.0 { self.pixel_scale } else { 1.0 };
         let view = |p: [f32; 2]| {
-            [
-                (p[0] - camera.center[0]) * zoom + w * 0.5,
-                h * 0.5 - (p[1] - camera.center[1]) * zoom,
-            ]
+            [(p[0] - camera.center[0]) * zoom + w * 0.5, h * 0.5 - (p[1] - camera.center[1]) * zoom]
         };
         let rows = world.query::<(Entity, &Sprite)>().collect(|(e, s)| (e, s.clone()));
         let mut stats = FrameStats::default();

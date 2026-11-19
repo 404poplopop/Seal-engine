@@ -291,7 +291,7 @@ fn ray_shape(origin: [f64; 2], dir: [f64; 2], shape: &Shape) -> Option<Hit> {
             for i in 0..edges {
                 let b = pts[(i + 1) % n];
                 if let Some(h) = ray_segment(origin, dir, pts[i], b) {
-                    if best.map_or(true, |k| h.distance < k.distance) {
+                    if best.is_none_or(|k| h.distance < k.distance) {
                         best = Some(h);
                     }
                 }
@@ -523,7 +523,7 @@ fn cast_disk_aabb(
     }
     let mut best: Option<Hit> = None;
     let consider = |hit: Hit, best: &mut Option<Hit>| {
-        if hit.distance <= max + 1e-8 && best.map_or(true, |b| hit.distance < b.distance) {
+        if hit.distance <= max + 1e-8 && best.is_none_or(|b| hit.distance < b.distance) {
             *best = Some(hit);
         }
     };
@@ -589,7 +589,7 @@ fn cast_disk(center: [f64; 2], dir: [f64; 2], radius: f64, max: f64, shape: &Sha
             let mut best: Option<Hit> = None;
             for w in shape.points.windows(2) {
                 if let Some(h) = cast_disk_segment(center, dir, radius, w[0], w[1]) {
-                    if best.map_or(true, |b| h.distance < b.distance) {
+                    if best.is_none_or(|b| h.distance < b.distance) {
                         best = Some(h);
                     }
                 }
@@ -606,7 +606,7 @@ fn cast_disk(center: [f64; 2], dir: [f64; 2], radius: f64, max: f64, shape: &Sha
             for i in 0..n {
                 if let Some(h) = cast_disk_segment(center, dir, radius, poly[i], poly[(i + 1) % n])
                 {
-                    if best.map_or(true, |b| h.distance < b.distance) {
+                    if best.is_none_or(|b| h.distance < b.distance) {
                         best = Some(h);
                     }
                 }
@@ -641,7 +641,7 @@ fn cast_disk_segment(
 ) -> Option<Hit> {
     let mut best: Option<Hit> = None;
     let keep = |h: Hit, best: &mut Option<Hit>| {
-        if best.map_or(true, |k| h.distance < k.distance) {
+        if best.is_none_or(|k| h.distance < k.distance) {
             *best = Some(h);
         }
     };
@@ -800,7 +800,7 @@ pub fn shape_cast(
             None
         };
         if let Some(hit) = hit {
-            if best.map_or(true, |b| {
+            if best.is_none_or(|b| {
                 hit.distance < b.distance || (hit.distance == b.distance && hit.entity < b.entity)
             }) {
                 best = Some(hit);
@@ -865,7 +865,8 @@ fn place_points(center: [f64; 2], angle: f64, local: &[[f64; 2]]) -> Vec<[f64; 2
 fn overlap_convex(mine: &[[f64; 2]], shape: &Shape) -> bool {
     match shape.kind.as_str() {
         "circle" => {
-            point_in_poly(shape.center, mine) || edge_near(mine, shape.center, shape.half[0].abs(), true)
+            point_in_poly(shape.center, mine)
+                || edge_near(mine, shape.center, shape.half[0].abs(), true)
         }
         "edge" => shape.points.windows(2).any(|w| segment_hits_convex(w[0], w[1], mine)),
         "polygon" => sat_overlap(mine, &hull(&shape.points)),
@@ -904,7 +905,9 @@ fn overlaps_query(
             let half = [size[0].abs() * 0.5, size[1].abs() * 0.5];
             overlap_convex(&box_corners(center, angle, half), shape)
         }
-        "capsule" => capsule_overlaps(center, angle, size[0].abs() * 0.5, size[1].abs() * 0.5, shape),
+        "capsule" => {
+            capsule_overlaps(center, angle, size[0].abs() * 0.5, size[1].abs() * 0.5, shape)
+        }
         "polygon" => {
             if points.len() < 3 {
                 return false;
@@ -984,7 +987,7 @@ pub fn test_move(host: &mut dyn Host, entity: u64, delta: V3, mask: i64) -> Cast
             _ => cast_box(mine.center, [mine.half[0].abs(), mine.half[1].abs()], dir, len, &other),
         };
         if let Some(hit) = hit {
-            if best.map_or(true, |b| hit.distance < b.distance) {
+            if best.is_none_or(|b| hit.distance < b.distance) {
                 best = Some(hit);
             }
         }
@@ -1028,7 +1031,15 @@ pub fn eval(kind: Kind, pin: u32, host: &mut dyn Host, args: &[Value]) -> Value 
         Kind::OverlapCircle => overlap_circle(host, args[0].vec3(), args[1].float(), args[2].int()),
         Kind::OverlapShape => {
             let points = args[2].list();
-            overlap_shape(host, &args[0].str(), args[1].vec2(), &points, args[3].vec3(), args[4].float(), args[5].int())
+            overlap_shape(
+                host,
+                &args[0].str(),
+                args[1].vec2(),
+                &points,
+                args[3].vec3(),
+                args[4].float(),
+                args[5].int(),
+            )
         }
         Kind::TestMove => {
             let hit = test_move(host, args[0].entity(), args[1].vec3(), args[2].int());
@@ -1132,9 +1143,25 @@ mod tests {
             Value::Vec2(V2 { x: 0.2, y: 0.2 }),
             Value::Vec2(V2 { x: -0.2, y: 0.2 }),
         ];
-        let hit = overlap_shape(&mut h, "polygon", V2 { x: 1.0, y: 1.0 }, &poly, V3 { x: 3.0, y: 0.0, z: 0.0 }, 0.0, 0);
+        let hit = overlap_shape(
+            &mut h,
+            "polygon",
+            V2 { x: 1.0, y: 1.0 },
+            &poly,
+            V3 { x: 3.0, y: 0.0, z: 0.0 },
+            0.0,
+            0,
+        );
         assert_eq!(hit.list().iter().map(|v| v.entity()).collect::<Vec<_>>(), vec![2]);
-        let none = overlap_shape(&mut h, "triangle", V2 { x: 1.0, y: 1.0 }, &[], V3 { x: 0.0, y: 0.0, z: 0.0 }, 0.0, 0);
+        let none = overlap_shape(
+            &mut h,
+            "triangle",
+            V2 { x: 1.0, y: 1.0 },
+            &[],
+            V3 { x: 0.0, y: 0.0, z: 0.0 },
+            0.0,
+            0,
+        );
         assert!(none.list().is_empty());
         let short = overlap_shape(
             &mut h,

@@ -10,7 +10,9 @@ use crate::error::CoreError;
 
 pub use graphs::{parse_all, FPS_CAMERA, FPS_LOOK, TPS_CAMERA};
 
-use graphs::{FPS_CAMERA as FPS_CAMERA_GRAPH, FPS_LOOK as FPS_LOOK_GRAPH, TPS_CAMERA as TPS_CAMERA_GRAPH};
+use graphs::{
+    FPS_CAMERA as FPS_CAMERA_GRAPH, FPS_LOOK as FPS_LOOK_GRAPH, TPS_CAMERA as TPS_CAMERA_GRAPH,
+};
 
 const PREVIEW_ARENA_PX: [u8; 128] = {
     const F: [u8; 4] = [120, 160, 90, 255];
@@ -32,7 +34,7 @@ const PREVIEW_ARENA_PX: [u8; 128] = {
     out
 };
 
-pub const PREVIEW_ARENA: (&'static [u8], u32, u32) = (&PREVIEW_ARENA_PX, 8, 4);
+pub const PREVIEW_ARENA: (&[u8], u32, u32) = (&PREVIEW_ARENA_PX, 8, 4);
 
 pub(crate) const INPUT: &str = "\
 # First- and third-person controls
@@ -121,7 +123,13 @@ pub fn build_arena(first_person: bool) -> World {
     world.entities.retain(|e| {
         !matches!(
             e.id.as_str(),
-            "crate" | "shape_red" | "shape_teal" | "shape_green" | "shape_blue" | "shape_gold" | "shape_violet"
+            "crate"
+                | "shape_red"
+                | "shape_teal"
+                | "shape_green"
+                | "shape_blue"
+                | "shape_gold"
+                | "shape_violet"
         )
     });
     world.gravity = seal_world::DEFAULT_GRAVITY;

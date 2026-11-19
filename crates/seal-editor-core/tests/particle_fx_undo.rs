@@ -19,14 +19,11 @@ fn project() -> (std::path::PathBuf, EditorSession) {
     )
     .unwrap();
     fs::write(project.join("scene.seal"), "scene\n").unwrap();
-  let text = "rate 0\nlifetime 1\nburst 0 5\nburst 1 3\n";
+    let text = "rate 0\nlifetime 1\nburst 0 5\nburst 1 3\n";
     fs::write(project.join("fx/test.fx"), text).unwrap();
     let mut session = EditorSession::new(Layout::default());
     session
-        .dispatch(
-            "file.open-project",
-            &CommandArgs::new(&[("path", project.to_str().unwrap())]),
-        )
+        .dispatch("file.open-project", &CommandArgs::new(&[("path", project.to_str().unwrap())]))
         .unwrap();
     (project, session)
 }
@@ -53,11 +50,7 @@ fn burst_edit_and_remove_change_file_text_and_undo_once() {
     session
         .dispatch(
             "asset.fx_set",
-            &CommandArgs::new(&[
-                ("path", "fx/test.fx"),
-                ("key", "burst.remove"),
-                ("value", "1"),
-            ]),
+            &CommandArgs::new(&[("path", "fx/test.fx"), ("key", "burst.remove"), ("value", "1")]),
         )
         .unwrap();
     text = fs::read_to_string(project.join("fx/test.fx")).unwrap();

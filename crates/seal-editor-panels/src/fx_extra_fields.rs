@@ -1,11 +1,11 @@
 //! Advanced particle effect fields in the Asset Editor and Inspector.
 
 use seal_editor_core::asset_editor::EmitterDef;
-use seal_editor_core::EditorSession;
 use seal_editor_core::asset_editor::{
     EmitShape, FlipbookMode, MeshSampleMode, RendererMode, SphereVolume,
 };
 use seal_editor_core::CommandArgs;
+use seal_editor_core::EditorSession;
 use seal_ui::PanelFrame;
 
 use crate::{command, PanelEvent};
@@ -150,7 +150,9 @@ pub fn effect_extra_fields(
                 path,
                 false,
             ) {
-                crate::inspector_pickers::AssetRow::Set(next) if !next.contains(char::is_whitespace) => {
+                crate::inspector_pickers::AssetRow::Set(next)
+                    if !next.contains(char::is_whitespace) =>
+                {
                     return fx_command("shape", &format!("mesh {next} {mode_id}"), rel);
                 }
                 crate::inspector_pickers::AssetRow::Show => {
@@ -272,7 +274,9 @@ pub fn effect_extra_fields(
             path,
             false,
         ) {
-            crate::inspector_pickers::AssetRow::Set(next) if !next.contains(char::is_whitespace) => {
+            crate::inspector_pickers::AssetRow::Set(next)
+                if !next.contains(char::is_whitespace) =>
+            {
                 return fx_command("renderer", &format!("mesh {next}"), rel);
             }
             crate::inspector_pickers::AssetRow::Show => {
@@ -442,7 +446,9 @@ pub fn effect_extra_fields(
                 &mat.sheet,
                 false,
             ) {
-                crate::inspector_pickers::AssetRow::Set(next) if !next.contains(char::is_whitespace) => {
+                crate::inspector_pickers::AssetRow::Set(next)
+                    if !next.contains(char::is_whitespace) =>
+                {
                     return fx_command(
                         "billboard_material",
                         &format!("{next} {} {} {loop_id}", mat.cols, mat.rows),
@@ -456,10 +462,26 @@ pub fn effect_extra_fields(
             }
             let mut cols = mat.cols as f32;
             let mut rows = mat.rows as f32;
-            let (c_changed, _, _) =
-                frame.number_row(&text("asset-fx-sheet-cols"), &mut cols, 1.0, false, None, None, None, &mut None);
-            let (r_changed, _, _) =
-                frame.number_row(&text("asset-fx-sheet-rows"), &mut rows, 1.0, false, None, None, None, &mut None);
+            let (c_changed, _, _) = frame.number_row(
+                &text("asset-fx-sheet-cols"),
+                &mut cols,
+                1.0,
+                false,
+                None,
+                None,
+                None,
+                &mut None,
+            );
+            let (r_changed, _, _) = frame.number_row(
+                &text("asset-fx-sheet-rows"),
+                &mut rows,
+                1.0,
+                false,
+                None,
+                None,
+                None,
+                &mut None,
+            );
             if let Some(picked) = frame
                 .choice_row(
                     &text("asset-fx-sheet-loop"),

@@ -25,10 +25,14 @@ pub(crate) fn paint(
         mixed,
     ) {
         inspector_pickers::AssetRow::Set(path) => {
-            *event = command("inspector.set", &[set_target, ("field", "mesh_texture"), ("value", path.as_str())]);
+            *event = command(
+                "inspector.set",
+                &[set_target, ("field", "mesh_texture"), ("value", path.as_str())],
+            );
         }
         inspector_pickers::AssetRow::Clear => {
-            *event = command("inspector.set", &[set_target, ("field", "mesh_texture"), ("value", "")]);
+            *event =
+                command("inspector.set", &[set_target, ("field", "mesh_texture"), ("value", "")]);
         }
         inspector_pickers::AssetRow::Show => {
             *event = command("picker.show_asset", &[("path", texture.as_str())]);
@@ -43,8 +47,22 @@ pub(crate) fn paint(
         number_row(frame, &text("inspector-mesh-slice"), "mesh_slice", targets, set_target, event);
     }
     if !texture.is_empty() {
-        number_row(frame, &text("inspector-mesh-tile-u"), "mesh_tile_u", targets, set_target, event);
-        number_row(frame, &text("inspector-mesh-tile-v"), "mesh_tile_v", targets, set_target, event);
+        number_row(
+            frame,
+            &text("inspector-mesh-tile-u"),
+            "mesh_tile_u",
+            targets,
+            set_target,
+            event,
+        );
+        number_row(
+            frame,
+            &text("inspector-mesh-tile-v"),
+            "mesh_tile_v",
+            targets,
+            set_target,
+            event,
+        );
         frame.muted(&text("inspector-mesh-texture-hint"));
     }
 }
@@ -60,7 +78,9 @@ fn number_row(
     let mut menu_pick = None;
     let shared = shared_field(targets, key);
     let mut draft = shared.clone().unwrap_or_else(|| "—".into());
-    let modified = shared.as_deref().is_some_and(|value| !value.is_empty() && value != seal_editor_core::inspector_field_default(key));
+    let modified = shared.as_deref().is_some_and(|value| {
+        !value.is_empty() && value != seal_editor_core::inspector_field_default(key)
+    });
     let (changed, _, commit) = frame.property_validated_row(
         label,
         &mut draft,

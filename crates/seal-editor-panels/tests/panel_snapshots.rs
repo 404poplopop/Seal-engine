@@ -14,7 +14,11 @@ fn panel_theme_snapshots_match_committed_text() {
     let projects = seal_editor_core::default_projects_dir().display().to_string();
     // The Assistant panel's setup snippet names this test binary; the JSON doubles backslashes.
     let exe = std::env::current_exe().unwrap().display().to_string().replace('\\', "\\\\");
-    let actual = render_all_snapshots().replace(&projects, "<projects>").replace(&exe, "<exe>");
+    // The build hash changes with every commit; the snapshot keeps a placeholder.
+    let actual = render_all_snapshots()
+        .replace(&projects, "<projects>")
+        .replace(&exe, "<exe>")
+        .replace(seal_editor_core::ENGINE_HASH, "<hash>");
     let path = std::path::Path::new(SNAPSHOT_PATH);
     if std::env::var("SEAL_UPDATE_SNAPSHOTS").is_ok() {
         if let Some(parent) = path.parent() {

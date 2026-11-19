@@ -4,7 +4,10 @@ use seal_ui::PanelFrame;
 
 use crate::{command, PanelEvent};
 
-pub fn preview_platform_row(frame: &mut PanelFrame, session: &mut seal_editor_core::EditorSession) -> PanelEvent {
+pub fn preview_platform_row(
+    frame: &mut PanelFrame,
+    session: &mut seal_editor_core::EditorSession,
+) -> PanelEvent {
     if session.project.is_none() {
         return PanelEvent::None;
     }
@@ -29,9 +32,7 @@ pub fn override_row(
     setting_id: &str,
     base_value: &str,
 ) -> Option<PanelEvent> {
-    if session.project.is_none() {
-        return None;
-    }
+    session.project.as_ref()?;
     let platform = session.models.settings_preview_platform.as_str();
     let enabled = session.models.platform_overrides.enabled(setting_id, platform);
     let effective = seal_editor_core::effective_from_session(session, setting_id, platform);
@@ -42,11 +43,8 @@ pub fn override_row(
     let title = session.messages.get("setting-platform-override");
     if frame.toggle(&title, enabled) {
         let next = !enabled;
-        let value = session
-            .models
-            .platform_overrides
-            .get(setting_id, platform)
-            .unwrap_or(base_value);
+        let value =
+            session.models.platform_overrides.get(setting_id, platform).unwrap_or(base_value);
         return Some(command(
             "settings.platform.override",
             &[

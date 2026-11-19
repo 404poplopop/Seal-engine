@@ -5,8 +5,8 @@ use std::fs;
 use std::path::Path;
 
 use crate::asset_index::{
-    self, find_references, load_index, normalize_rel, rewrite_project_paths, save_index, sync_index,
-    AssetIndex, INDEX_FILE,
+    self, find_references, load_index, normalize_rel, rewrite_project_paths, save_index,
+    sync_index, AssetIndex, INDEX_FILE,
 };
 use crate::command::CommandArgs;
 use crate::content::refresh_content_tree;
@@ -20,18 +20,8 @@ use crate::session::{EditorSession, HostAction};
 type CommandFn = fn(&mut EditorSession, &CommandArgs) -> Result<(), CoreError>;
 
 pub const COMMANDS: &[(&str, &str, &str, CommandFn)] = &[
-    (
-        "asset.merge_duplicates",
-        "command-asset-merge-duplicates",
-        "file",
-        cmd_merge_duplicates,
-    ),
-    (
-        "asset.copy_to_project",
-        "command-asset-copy-to-project",
-        "file",
-        cmd_copy_to_project,
-    ),
+    ("asset.merge_duplicates", "command-asset-merge-duplicates", "file", cmd_merge_duplicates),
+    ("asset.copy_to_project", "command-asset-copy-to-project", "file", cmd_copy_to_project),
     (
         "asset.copy_to_project.finish",
         "command-asset-copy-to-project-finish",
@@ -40,12 +30,7 @@ pub const COMMANDS: &[(&str, &str, &str, CommandFn)] = &[
     ),
     ("naming.scan", "command-naming-scan", "tools", cmd_naming_scan),
     ("naming.fix", "command-naming-fix", "tools", cmd_naming_fix),
-    (
-        "naming.rule.set",
-        "command-naming-rule-set",
-        "tools",
-        cmd_naming_rule_set,
-    ),
+    ("naming.rule.set", "command-naming-rule-set", "tools", cmd_naming_rule_set),
 ];
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -103,10 +88,7 @@ pub fn dependency_closure(root: &Path, seeds: &[String], ignore: &[String]) -> B
 }
 
 fn cmd_merge_duplicates(session: &mut EditorSession, args: &CommandArgs) -> Result<(), CoreError> {
-    let project = session
-        .project
-        .clone()
-        .ok_or_else(|| CoreError::new("no project is open"))?;
+    let project = session.project.clone().ok_or_else(|| CoreError::new("no project is open"))?;
     if project.read_only {
         return Err(CoreError::new(session.messages.get("content-error-read-only")));
     }
@@ -124,19 +106,18 @@ fn cmd_merge_duplicates(session: &mut EditorSession, args: &CommandArgs) -> Resu
     if others.is_empty() {
         return Err(CoreError::new(session.messages.get("asset-merge-no-duplicates")));
     }
-    let mut lines: Vec<String> = std::iter::once(keeper.clone())
-        .chain(others.iter().cloned())
-        .collect();
+    let mut lines: Vec<String> =
+        std::iter::once(keeper.clone()).chain(others.iter().cloned()).collect();
     lines.sort();
     let body = lines.join("\n");
-    session.models.pending_merge_duplicates = Some(PendingMergeDuplicates {
-        keeper: keeper.clone(),
-        others: others.clone(),
-    });
+    session.models.pending_merge_duplicates =
+        Some(PendingMergeDuplicates { keeper: keeper.clone(), others: others.clone() });
     session.foundation.modal = Some(crate::foundation::Modal {
         kind: ModalKind::MergeDuplicates,
         title: session.messages.get("modal-merge-duplicates-title"),
-        body: session.messages.format("modal-merge-duplicates-body", &[("files", &body), ("keeper", &keeper)]),
+        body: session
+            .messages
+            .format("modal-merge-duplicates-body", &[("files", &body), ("keeper", &keeper)]),
         confirm: session.messages.get("modal-merge-duplicates-confirm"),
         alternate: String::new(),
         cancel: session.messages.get("modal-cancel"),
@@ -148,10 +129,7 @@ pub fn apply_merge_duplicates(session: &mut EditorSession) -> Result<(), CoreErr
     let Some(pending) = session.models.pending_merge_duplicates.take() else {
         return Ok(());
     };
-    let project = session
-        .project
-        .clone()
-        .ok_or_else(|| CoreError::new("no project is open"))?;
+    let project = session.project.clone().ok_or_else(|| CoreError::new("no project is open"))?;
     let root = project.root.clone();
     let keeper = pending.keeper;
     let index_before = fs::read_to_string(root.join(INDEX_FILE)).unwrap_or_default();
@@ -232,10 +210,7 @@ pub fn redo_merge(session: &mut EditorSession, change: &MergeDuplicatesChange) {
 }
 
 fn cmd_copy_to_project(session: &mut EditorSession, args: &CommandArgs) -> Result<(), CoreError> {
-    let project = session
-        .project
-        .clone()
-        .ok_or_else(|| CoreError::new("no project is open"))?;
+    let project = session.project.clone().ok_or_else(|| CoreError::new("no project is open"))?;
     if project.read_only {
         return Err(CoreError::new(session.messages.get("content-error-read-only")));
     }
@@ -247,12 +222,8 @@ fn cmd_copy_to_project(session: &mut EditorSession, args: &CommandArgs) -> Resul
 
 fn selected_paths(session: &EditorSession, args: &CommandArgs) -> Result<Vec<String>, CoreError> {
     if let Some(list) = args.get("paths") {
-        let paths: Vec<String> = list
-            .split(',')
-            .map(str::trim)
-            .filter(|p| !p.is_empty())
-            .map(normalize_rel)
-            .collect();
+        let paths: Vec<String> =
+            list.split(',').map(str::trim).filter(|p| !p.is_empty()).map(normalize_rel).collect();
         if !paths.is_empty() {
             return Ok(paths);
         }
@@ -260,7 +231,7 @@ fn selected_paths(session: &EditorSession, args: &CommandArgs) -> Result<Vec<Str
     if let Some(one) = args.get("path").map(str::to_string) {
         return Ok(vec![normalize_rel(&one)]);
     }
-  session
+    session
         .models
         .content_pick
         .clone()
@@ -282,10 +253,7 @@ fn cmd_copy_to_project_finish(
         .pending_migrate_assets
         .take()
         .ok_or_else(|| CoreError::new("no assets were queued to copy"))?;
-    let source = session
-        .project
-        .clone()
-        .ok_or_else(|| CoreError::new("no project is open"))?;
+    let source = session.project.clone().ok_or_else(|| CoreError::new("no project is open"))?;
     migrate_assets(&source, &target, &pending.paths, session)
 }
 
@@ -328,10 +296,8 @@ pub fn migrate_assets(
     save_index(target_root, &index)?;
     if !conflicts.is_empty() {
         let list = conflicts.join("\n");
-        session.notify(
-            session.messages.format("asset-migrate-conflicts", &[("list", &list)]),
-            true,
-        );
+        session
+            .notify(session.messages.format("asset-migrate-conflicts", &[("list", &list)]), true);
     }
     session.notify(
         session.messages.format("asset-migrate-done", &[("count", &copied.to_string())]),
@@ -361,13 +327,7 @@ fn cmd_naming_rule_set(session: &mut EditorSession, args: &CommandArgs) -> Resul
     let pattern = args.get("pattern").unwrap_or("").to_string();
     crate::naming_rules::upsert_rule(
         session,
-        crate::naming_rules::NamingRule {
-            kind,
-            prefix,
-            suffix,
-            case,
-            pattern,
-        },
+        crate::naming_rules::NamingRule { kind, prefix, suffix, case, pattern },
     )
 }
 
@@ -431,10 +391,7 @@ mod tests {
     fn merge_rewrites_and_removes_duplicate_undo_restores() {
         let (project, mut session) = tiny("merge");
         session
-            .dispatch(
-                "asset.merge_duplicates",
-                &CommandArgs::new(&[("path", "sprites/a.png")]),
-            )
+            .dispatch("asset.merge_duplicates", &CommandArgs::new(&[("path", "sprites/a.png")]))
             .unwrap();
         session.choose_modal(ModalChoice::Confirm);
         assert!(!project.join("sprites/b.png").exists());
@@ -450,11 +407,7 @@ mod tests {
     fn migrate_copies_files_and_index_ids() {
         let (src, mut session) = tiny("mig-src");
         fs::write(src.join("sprites/dep.png"), b"dep-bytes").unwrap();
-        fs::write(
-            src.join("scene.seal"),
-            "entity { sprite = \"sprites/a.png\" }\n",
-        )
-        .unwrap();
+        fs::write(src.join("scene.seal"), "entity { sprite = \"sprites/a.png\" }\n").unwrap();
         let dest = std::env::temp_dir().join(format!("seal-adb-mig-dst-{}", std::process::id()));
         let _ = fs::remove_dir_all(&dest);
         fs::create_dir_all(dest.join("sprites")).unwrap();

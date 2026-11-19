@@ -39,11 +39,8 @@ pub fn extra_marks<'a>(
         }
         for tri in seal_editor_core::object_merge::drawn_tris(entity) {
             let rgb = tri.color.map(|c| (c.clamp(0.0, 1.0) * 255.0) as u8);
-            let points = tri
-                .points
-                .into_iter()
-                .map(|p| [p[across] * flip_a, p[up] * flip_b])
-                .collect();
+            let points =
+                tri.points.into_iter().map(|p| [p[across] * flip_a, p[up] * flip_b]).collect();
             marks.push(blank(
                 [0.0, 0.0],
                 [0.1, 0.1],
@@ -71,6 +68,7 @@ pub fn extra_marks<'a>(
     marks
 }
 
+#[allow(clippy::too_many_arguments)]
 fn blank<'a>(
     at: [f32; 2],
     half: [f32; 2],

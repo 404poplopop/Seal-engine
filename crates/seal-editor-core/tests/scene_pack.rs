@@ -21,9 +21,7 @@ fn project() -> (std::path::PathBuf, EditorSession) {
     fs::write(project.join("scene.seal"), seal_world::World::empty_scene_text("Level")).unwrap();
     let path = project.to_string_lossy().to_string();
     let mut session = EditorSession::new(Layout::default());
-    session
-        .dispatch("file.open-project", &CommandArgs::new(&[("path", path.as_str())]))
-        .unwrap();
+    session.dispatch("file.open-project", &CommandArgs::new(&[("path", path.as_str())])).unwrap();
     (project, session)
 }
 
@@ -53,17 +51,13 @@ fn post_process_and_object_files_are_in_the_editor() {
     let entity = session.world.entity(&id).unwrap();
     assert_eq!(entity.volume.kind, "post");
     assert!(entity.inspector_fields().iter().any(|(key, _)| key == "post_tint"));
-    session
-        .dispatch("scene.object_files", &CommandArgs::new(&[("value", "yes")]))
-        .unwrap();
+    session.dispatch("scene.object_files", &CommandArgs::new(&[("value", "yes")])).unwrap();
     assert!(session.world.objects_per_file);
     let scene = project.join("scene.seal");
     let index = fs::read_to_string(&scene).unwrap();
     assert!(seal_world::object_files::is_index(&index), "{index}");
     assert!(seal_world::object_files::folder_for(&scene).join(".seal-objects").is_file());
-    session
-        .dispatch("scene.object_files", &CommandArgs::new(&[("value", "no")]))
-        .unwrap();
+    session.dispatch("scene.object_files", &CommandArgs::new(&[("value", "no")])).unwrap();
     assert!(!session.world.objects_per_file);
     let single = fs::read_to_string(&scene).unwrap();
     assert!(single.contains("seal_scene"));

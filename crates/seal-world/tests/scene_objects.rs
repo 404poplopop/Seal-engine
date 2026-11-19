@@ -37,7 +37,7 @@ fn merging_sprites_keeps_the_pixels_in_one_batch_and_undoes() {
     let entity = world.entity(&id).unwrap();
     assert_eq!(entity.merged.kind, "sprites");
     assert_eq!(object_merge::sprite_batches(entity), 1);
-    let after = object_merge::collect_marks(&world.entities, &[id.clone()]);
+    let after = object_merge::collect_marks(&world.entities, std::slice::from_ref(&id));
     assert_eq!(object_merge::raster(&after.0, &after.1), before_pixels);
     let restored = World::from_text(&previous).unwrap();
     assert!(restored.entity(&id).is_none());

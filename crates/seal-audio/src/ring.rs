@@ -69,7 +69,8 @@ unsafe impl Sync for StereoRing {}
 impl StereoRing {
     pub fn with_capacity(frames: usize) -> Self {
         let cap = frames.max(1).next_power_of_two();
-        let slots = (0..cap).map(|_| UnsafeCell::new([0.0; 2])).collect::<Vec<_>>().into_boxed_slice();
+        let slots =
+            (0..cap).map(|_| UnsafeCell::new([0.0; 2])).collect::<Vec<_>>().into_boxed_slice();
         Self { slots, cap, mask: cap - 1, read: Index::new(0), write: Index::new(0) }
     }
 
@@ -171,10 +172,7 @@ mod tests {
         assert_eq!(ring.push(&[[4.0, -4.0], [5.0, -5.0]]), 2);
         let mut rest = [[0.0; 2]; 4];
         assert_eq!(ring.pop(&mut rest), 4);
-        assert_eq!(
-            rest,
-            [[3.0, -3.0], [9.0, 9.0], [4.0, -4.0], [5.0, -5.0]]
-        );
+        assert_eq!(rest, [[3.0, -3.0], [9.0, 9.0], [4.0, -4.0], [5.0, -5.0]]);
         assert_eq!(ring.filled(), 0);
         assert_eq!(ring.pop(&mut rest), 0);
     }

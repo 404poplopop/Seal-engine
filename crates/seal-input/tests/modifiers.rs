@@ -134,7 +134,8 @@ fn a_players_rebind_keeps_a_modifier_on_that_slot() {
     map.rebind("jump", 0, Button::parse("key.w").unwrap()).unwrap();
     assert_eq!(map.modifier("jump", 0), BindMod::Hold(0.5));
     assert_eq!(map.bindings("jump")[0], Button::parse("key.w").unwrap());
-    let changes = map.changes_from(&InputMap::parse("action jump = key.space, pad.south\n").unwrap());
+    let changes =
+        map.changes_from(&InputMap::parse("action jump = key.space, pad.south\n").unwrap());
     let laid = InputMap::parse("action jump = key.space hold 0.5, pad.south\n")
         .unwrap()
         .with_changes(&changes);

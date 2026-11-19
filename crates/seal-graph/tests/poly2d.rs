@@ -18,8 +18,7 @@ fn run(text: &str) -> Vec<String> {
 
 #[test]
 fn offset_polygon_node_moves_the_first_corner() {
-    let logs = run(
-        r#"
+    let logs = run(r#"
 schema_version = 1
 seal_graph = "poly"
 nodes = [
@@ -39,7 +38,6 @@ links = [
   "5.out -> 6.a",
   "6.out -> 7.message",
 ]
-"#,
-    );
+"#);
     assert_eq!(logs, ["-0.5"]);
 }

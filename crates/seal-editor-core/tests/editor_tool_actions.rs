@@ -30,9 +30,7 @@ fn project_session(dir: &Path) -> (EditorSession, PathBuf) {
 }
 
 fn set_user(session: &mut EditorSession, id: &str, value: &str) {
-    session
-        .dispatch("settings.set", &CommandArgs::new(&[("id", id), ("value", value)]))
-        .unwrap();
+    session.dispatch("settings.set", &CommandArgs::new(&[("id", id), ("value", value)])).unwrap();
 }
 
 #[test]
@@ -53,10 +51,7 @@ fn toolbar_commands_build_argument_lists_and_honor_disabled_states() {
     assert!(open_external_enabled(&session));
     assert!(!compare_saved_enabled(&session), "unchanged text stays off");
     session
-        .dispatch(
-            "asset.open_external",
-            &CommandArgs::new(&[("path", rel), ("line", "9")]),
-        )
+        .dispatch("asset.open_external", &CommandArgs::new(&[("path", rel), ("line", "9")]))
         .unwrap();
     match session.host_action.take() {
         Some(HostAction::RunExternal { exe, args }) => {
@@ -68,9 +63,7 @@ fn toolbar_commands_build_argument_lists_and_honor_disabled_states() {
     }
     std::fs::write(folder.join(rel), "hello\nchanged").unwrap();
     assert!(compare_saved_enabled(&session));
-    session
-        .dispatch("asset.compare_saved", &CommandArgs::new(&[("path", rel)]))
-        .unwrap();
+    session.dispatch("asset.compare_saved", &CommandArgs::new(&[("path", rel)])).unwrap();
     match session.host_action.take() {
         Some(HostAction::RunExternal { exe, args }) => {
             assert_eq!(exe, "/bin/diff");
@@ -90,21 +83,14 @@ fn toolbar_commands_build_argument_lists_and_honor_disabled_states() {
 fn profile_export_then_import_round_trips_and_a_damaged_file_is_rejected() {
     let dir = scratch("profile");
     let (mut session, _) = project_session(&dir);
-    session
-        .keymap
-        .override_bind("file.quit", Chord::parse("ctrl+shift+q").unwrap())
-        .unwrap();
-    session
-        .dispatch("keymap.profile.save", &CommandArgs::new(&[("name", "work")]))
-        .unwrap();
-    session
-        .dispatch("keymap.profile.export", &CommandArgs::new(&[("name", "work")]))
-        .unwrap();
-    assert!(matches!(session.host_action, Some(HostAction::SaveProfile { ref name }) if name == "work"));
+    session.keymap.override_bind("file.quit", Chord::parse("ctrl+shift+q").unwrap()).unwrap();
+    session.dispatch("keymap.profile.save", &CommandArgs::new(&[("name", "work")])).unwrap();
+    session.dispatch("keymap.profile.export", &CommandArgs::new(&[("name", "work")])).unwrap();
+    assert!(
+        matches!(session.host_action, Some(HostAction::SaveProfile { ref name }) if name == "work")
+    );
     session.host_action = None;
-    session
-        .dispatch("keymap.profile.import", &CommandArgs::new(&[("name", "work")]))
-        .unwrap();
+    session.dispatch("keymap.profile.import", &CommandArgs::new(&[("name", "work")])).unwrap();
     assert!(matches!(session.host_action, Some(HostAction::OpenProfile { .. })));
     session.host_action = None;
     let exported = dir.join("work-out.seal");
@@ -117,15 +103,10 @@ fn profile_export_then_import_round_trips_and_a_damaged_file_is_rejected() {
     session
         .dispatch(
             "keymap.profile.import",
-            &CommandArgs::new(&[
-                ("path", exported.to_str().unwrap()),
-                ("name", "again"),
-            ]),
+            &CommandArgs::new(&[("path", exported.to_str().unwrap()), ("name", "again")]),
         )
         .unwrap();
-    session
-        .dispatch("keymap.profile.switch", &CommandArgs::new(&[("name", "again")]))
-        .unwrap();
+    session.dispatch("keymap.profile.switch", &CommandArgs::new(&[("name", "again")])).unwrap();
     assert_eq!(
         session.keymap.command_for(&Chord::parse("ctrl+shift+q").unwrap()),
         Some("file.quit"),

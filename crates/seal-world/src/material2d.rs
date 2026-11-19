@@ -101,10 +101,7 @@ pub fn fields(e: &Entity) -> Vec<(String, String)> {
     if m.effect == "particle_anim" {
         out.push(("mat_sheet_cols".into(), m.sheet_cols.max(1).to_string()));
         out.push(("mat_sheet_rows".into(), m.sheet_rows.max(1).to_string()));
-        out.push((
-            "mat_sheet_loop".into(),
-            if m.sheet_loop { "1" } else { "0" }.into(),
-        ));
+        out.push(("mat_sheet_loop".into(), if m.sheet_loop { "1" } else { "0" }.into()));
         out.push(("mat_speed".into(), format_num(m.speed)));
     }
     out
@@ -142,7 +139,9 @@ pub fn check(key: &str, value: &str) -> Option<&'static str> {
         "mat_light" => {
             matches!(v, "lit" | "unlit" | "unshaded" | "light" | "light-only" | "light_only")
         }
-        "mat_sheet_cols" | "mat_sheet_rows" => v.parse::<u32>().is_ok_and(|n| (1..=64).contains(&n)),
+        "mat_sheet_cols" | "mat_sheet_rows" => {
+            v.parse::<u32>().is_ok_and(|n| (1..=64).contains(&n))
+        }
         "mat_sheet_loop" => matches!(v, "0" | "1" | "true" | "false" | "yes" | "no"),
         _ => false,
     };
@@ -194,22 +193,21 @@ pub fn animated(m: &Material2d) -> bool {
     }
 }
 
-fn particle_anim_frame(cols: u32, rows: u32, life_u: f32, r#loop: bool, time: f32, speed: f32) -> u32 {
+fn particle_anim_frame(
+    cols: u32,
+    rows: u32,
+    life_u: f32,
+    _looping: bool,
+    time: f32,
+    speed: f32,
+) -> u32 {
     let total = cols.max(1) * rows.max(1);
     if total <= 1 {
         return 0;
     }
-    let u = if speed > 0.0 {
-        (time * speed).fract()
-    } else {
-        life_u.clamp(0.0, 1.0)
-    };
+    let u = if speed > 0.0 { (time * speed).fract() } else { life_u.clamp(0.0, 1.0) };
     let idx = (u * total as f32).floor() as u32;
-    if r#loop {
-        idx.min(total - 1)
-    } else {
-        idx.min(total - 1)
-    }
+    idx.min(total - 1)
 }
 
 pub fn particle_anim_uv(m: &Material2d, life_u: f32, time: f32) -> (u32, [f32; 4]) {
@@ -685,7 +683,8 @@ pub fn cached_program(path: &str) -> Option<Program> {
     if path.is_empty() {
         return None;
     }
-    static CACHE: OnceLock<Mutex<HashMap<String, (Option<SystemTime>, Program)>>> = OnceLock::new();
+    type ProgramCache = Mutex<HashMap<String, (Option<SystemTime>, Program)>>;
+    static CACHE: OnceLock<ProgramCache> = OnceLock::new();
     let cache = CACHE.get_or_init(|| Mutex::new(HashMap::new()));
     let stamp = std::fs::metadata(path).and_then(|meta| meta.modified()).ok();
     let mut guard = cache.lock().ok()?;
@@ -847,7 +846,7 @@ pub fn shade(pic: &Picture, m: &Material2d, program: Option<&Program>, time: f32
     match m.effect.as_str() {
         "grayscale" | "flash" | "ramp" => {
             let k = if m.effect == "flash" { amount * pulse(m.speed) } else { amount };
-            for px in out.chunks_exact_mut(4) {
+            for px in out.as_chunks_mut::<4>().0 {
                 let [r, g, b] = [px[0], px[1], px[2]].map(|c| c as f32 / 255.0);
                 let l = luma(r, g, b);
                 let target = match m.effect.as_str() {
@@ -943,8 +942,8 @@ pub fn shade(pic: &Picture, m: &Material2d, program: Option<&Program>, time: f32
             for y in 0..h {
                 for x in 0..w {
                     let i = (y * w + x) * 4;
-                    for c in 0..4 {
-                        vars[c] = pic.pixels[i + c] as f32 / 255.0;
+                    for (c, var) in vars.iter_mut().take(4).enumerate() {
+                        *var = pic.pixels[i + c] as f32 / 255.0;
                     }
                     vars[4] = (x as f32 + 0.5) / w as f32;
                     vars[5] = (y as f32 + 0.5) / h as f32;
@@ -963,6 +962,13 @@ pub fn shade(pic: &Picture, m: &Material2d, program: Option<&Program>, time: f32
         _ => {}
     }
     out
+}
+
+/// Read a canvas shader file, or say why it cannot be used.
+pub fn load_program(path: &std::path::Path) -> Result<Program, String> {
+    let text =
+        std::fs::read_to_string(path).map_err(|_| format!("cannot read {}", path.display()))?;
+    Program::parse(&text).map_err(|e| e.to_string())
 }
 
 #[cfg(test)]
@@ -1029,11 +1035,4 @@ mod tests {
             assert_eq!(n, noise(i as f32 * 0.37, i as f32 * 1.3));
         }
     }
-}
-
-/// Read a canvas shader file, or say why it cannot be used.
-pub fn load_program(path: &std::path::Path) -> Result<Program, String> {
-    let text =
-        std::fs::read_to_string(path).map_err(|_| format!("cannot read {}", path.display()))?;
-    Program::parse(&text).map_err(|e| e.to_string())
 }

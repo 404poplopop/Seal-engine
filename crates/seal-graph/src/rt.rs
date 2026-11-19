@@ -216,7 +216,7 @@ impl PartialEq for Value {
             }
             (Value::Str(a), Value::Str(b)) => a == b,
             (Value::Entity(a), Value::Entity(b)) => a == b,
-            (            Value::Vec3(a), Value::Vec3(b)) => {
+            (Value::Vec3(a), Value::Vec3(b)) => {
                 a.x.to_bits() == b.x.to_bits()
                     && a.y.to_bits() == b.y.to_bits()
                     && a.z.to_bits() == b.z.to_bits()
@@ -333,16 +333,8 @@ impl fmt::Display for Value {
             Value::Str(v) => write!(f, "{v:?}"),
             Value::Entity(v) => write!(f, "{}", ops::entity_str(*v)),
             Value::Vec3(v) => write!(f, "{}", ops::vec3_str(*v)),
-            Value::Quat(v) => write!(
-                f,
-                "Q {:.3} {:.3} {:.3} {:.3}",
-                v.x, v.y, v.z, v.w
-            ),
-            Value::Plane(v) => write!(
-                f,
-                "P {:.3} {:.3} {:.3} {:.3}",
-                v.nx, v.ny, v.nz, v.d
-            ),
+            Value::Quat(v) => write!(f, "Q {:.3} {:.3} {:.3} {:.3}", v.x, v.y, v.z, v.w),
+            Value::Plane(v) => write!(f, "P {:.3} {:.3} {:.3} {:.3}", v.nx, v.ny, v.nz, v.d),
             Value::List(_, items) => {
                 f.write_str("[")?;
                 for (i, v) in items.iter().enumerate() {
@@ -593,10 +585,8 @@ pub trait Host {
         if encoded.trim().is_empty() {
             return String::new();
         }
-        let units: Option<Vec<u16>> = encoded
-            .split(',')
-            .map(|part| part.trim().parse::<u16>().ok())
-            .collect();
+        let units: Option<Vec<u16>> =
+            encoded.split(',').map(|part| part.trim().parse::<u16>().ok()).collect();
         units.and_then(|u| String::from_utf16(&u).ok()).unwrap_or_default()
     }
     /// Read JSON text into typed data fields for `type_path`; errors return as text.
@@ -1106,8 +1096,7 @@ pub fn set_collider_shape(
             [point.x, point.y]
         })
         .collect();
-    host.set_collider_shape(entity, shape, size, &points)
-        .map_err(|m| GraphError::at(node, m))
+    host.set_collider_shape(entity, shape, size, &points).map_err(|m| GraphError::at(node, m))
 }
 
 pub fn set_collider_enabled(
@@ -1565,7 +1554,7 @@ impl Timers {
     /// zero or less (or not a number) just stops it.
     pub fn set_event(&mut self, node: u32, event: u32, now: f64, seconds: f64, looping: bool) {
         self.clear_event(event);
-        if !(seconds > 0.0) || !seconds.is_finite() {
+        if seconds.is_nan() || seconds <= 0.0 || seconds.is_infinite() {
             return;
         }
         let gen = self.gens.iter().find(|g| g.0 == event).map(|g| g.1).unwrap_or(0);
@@ -2060,7 +2049,7 @@ pub mod ops {
         let d = v.unsigned_abs().to_string();
         let mut out = String::new();
         for (i, c) in d.chars().enumerate() {
-            if i > 0 && (d.len() - i) % 3 == 0 {
+            if i > 0 && (d.len() - i).is_multiple_of(3) {
                 out.push(',');
             }
             out.push(c);
@@ -2110,7 +2099,7 @@ pub mod ops {
         let digits: String = whole.chars().collect();
         let mut out = String::new();
         for (i, c) in digits.chars().enumerate() {
-            if i > 0 && (digits.len() - i) % 3 == 0 {
+            if i > 0 && (digits.len() - i).is_multiple_of(3) {
                 out.push(',');
             }
             out.push(c);

@@ -104,11 +104,16 @@ pub fn choose_format(format: GpuBlockFormat, support: CompressionSupport) -> wgp
         GpuBlockFormat::Astc4x4 => support.astc,
         GpuBlockFormat::Rgba8 => true,
     };
-    if ok { block } else { wgpu::TextureFormat::Rgba8Unorm }
+    if ok {
+        block
+    } else {
+        wgpu::TextureFormat::Rgba8Unorm
+    }
 }
 
 pub fn stores_blocks(format: GpuBlockFormat, support: CompressionSupport) -> bool {
-    format.is_block_compressed() && choose_format(format, support) != wgpu::TextureFormat::Rgba8Unorm
+    format.is_block_compressed()
+        && choose_format(format, support) != wgpu::TextureFormat::Rgba8Unorm
 }
 
 /// Anisotropic clamp the sampler can ask for. 1 is ordinary linear filtering.
@@ -279,7 +284,11 @@ pub fn upload_cpu_texture(
     UploadedTexture { texture, view, slices: layers as f32, shape }
 }
 
-pub fn upload_white(device: &wgpu::Device, queue: &wgpu::Queue, shape: TexShape) -> UploadedTexture {
+pub fn upload_white(
+    device: &wgpu::Device,
+    queue: &wgpu::Queue,
+    shape: TexShape,
+) -> UploadedTexture {
     let layers = if shape == TexShape::Cube { 6 } else { 1 };
     upload_cpu_texture(
         device,
@@ -295,7 +304,7 @@ pub fn upload_white(device: &wgpu::Device, queue: &wgpu::Queue, shape: TexShape)
             width: 1,
             height: 1,
             layers,
-            rgba: vec![255u8, 255, 255, 255].repeat(layers as usize),
+            rgba: [255u8, 255, 255, 255].repeat(layers as usize),
         },
         CompressionSupport { bc: false, etc2: false, astc: false },
     )

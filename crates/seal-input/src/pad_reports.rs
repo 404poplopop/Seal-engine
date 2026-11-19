@@ -240,12 +240,12 @@ pub fn sony_calibration(family: PadFamily, wire: Wire, report: &[u8]) -> Result<
         };
     }
     let mut accel = [AxisScale { bias: 0, numer: 0, denom: 1 }; 3];
-    for i in 0..3 {
+    for (i, slot) in accel.iter_mut().enumerate() {
         let off = 23 + i * 4;
         let plus = i32::from(i16_at(report, off));
         let minus = i32::from(i16_at(report, off + 2));
         let range = plus - minus;
-        accel[i] = if range == 0 {
+        *slot = if range == 0 {
             AxisScale { bias: 0, numer: ACC_RANGE, denom: I16_MAX }
         } else {
             AxisScale { bias: plus - range / 2, numer: 2 * ACC_RES_PER_G, denom: range }

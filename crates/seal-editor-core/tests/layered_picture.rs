@@ -179,10 +179,10 @@ fn sample(coin_g: u8, coin_b: u8) -> Vec<u8> {
         section: 0,
         id: 10,
         channels: vec![
-            raw_plane(0, &vec![255; 24]),
-            raw_plane(1, &vec![0; 24]),
-            raw_plane(2, &vec![0; 24]),
-            raw_plane(-1, &vec![255; 24]),
+            raw_plane(0, &[255; 24]),
+            raw_plane(1, &[0; 24]),
+            raw_plane(2, &[0; 24]),
+            raw_plane(-1, &[255; 24]),
         ],
     };
     let row_g = [coin_g, coin_g];
@@ -273,7 +273,7 @@ fn sample(coin_g: u8, coin_b: u8) -> Vec<u8> {
     file.u32(section.0.len() as u32);
     file.bytes(&section.0);
     file.u16(0);
-    file.bytes(&vec![0u8; 4 * 6 * 4]);
+    file.bytes(&[0u8; 4 * 6 * 4]);
     file.0
 }
 

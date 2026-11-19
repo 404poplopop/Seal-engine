@@ -159,7 +159,8 @@ pub fn strength_scale(step: u64, entity: Entity, variation: f32) -> f32 {
     if v == 0.0 {
         return 1.0;
     }
-    let mut x = entity.to_bits().wrapping_mul(0x9E37_79B9_7F4A_7C15) ^ step.wrapping_mul(0x6C62_272E_07BB_0142);
+    let mut x = entity.to_bits().wrapping_mul(0x9E37_79B9_7F4A_7C15)
+        ^ step.wrapping_mul(0x6C62_272E_07BB_0142);
     x ^= x >> 30;
     x = x.wrapping_mul(0xBF58_476D_1CE4_E5B9);
     x ^= x >> 27;
@@ -201,7 +202,11 @@ fn span_of(sim: &PhysicsWorld, collider: ColliderHandle) -> Option<Span> {
     let col = sim.colliders.get(collider)?;
     let aabb = col.compute_aabb();
     let up = col.position().rotation * Vector::new(0.0, 1.0);
-    Some(Span { min: [aabb.mins.x, aabb.mins.y], max: [aabb.maxs.x, aabb.maxs.y], up: [up.x, up.y] })
+    Some(Span {
+        min: [aabb.mins.x, aabb.mins.y],
+        max: [aabb.maxs.x, aabb.maxs.y],
+        up: [up.x, up.y],
+    })
 }
 
 fn spans_hit(a: &Span, b: &Span) -> bool {
@@ -329,7 +334,8 @@ pub fn before_step(
                     let flow = Vector::new(effect.flow[0], effect.flow[1]);
                     let drag = (flow - linvel) * (effect.linear_drag * frac * mass);
                     *force.entry(link.entity).or_insert(Vector::ZERO) += buoy + drag;
-                    *torque.entry(link.entity).or_insert(0.0) += -angvel * effect.angular_drag * frac;
+                    *torque.entry(link.entity).or_insert(0.0) +=
+                        -angvel * effect.angular_drag * frac;
                 }
                 "gravity" => {
                     let bits = link.entity.to_bits();
@@ -338,7 +344,8 @@ pub fn before_step(
                     } else {
                         (Some(Vector::new(effect.gravity[0], effect.gravity[1])), None)
                     };
-                    let slot = gravity.entry(link.entity).or_insert((i32::MIN, u64::MAX, None, None));
+                    let slot =
+                        gravity.entry(link.entity).or_insert((i32::MIN, u64::MAX, None, None));
                     if effect.priority > slot.0 || (effect.priority == slot.0 && bits < slot.1) {
                         *slot = (effect.priority, bits, vec, scale);
                     }

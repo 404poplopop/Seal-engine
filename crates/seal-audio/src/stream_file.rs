@@ -17,8 +17,8 @@ pub struct AudioFileReader {
 enum ReaderKind {
     Wav(WavReader),
     Flac(FlacReader),
-    Ogg(OggReader),
-    Mp3(Mp3Reader),
+    Ogg(Box<OggReader>),
+    Mp3(Box<Mp3Reader>),
 }
 
 impl AudioFileReader {
@@ -31,8 +31,8 @@ impl AudioFileReader {
         let inner = match fmt {
             SoundFormat::Wav => ReaderKind::Wav(WavReader::open(path)?),
             SoundFormat::Flac => ReaderKind::Flac(FlacReader::open(path)?),
-            SoundFormat::Ogg => ReaderKind::Ogg(OggReader::open(path)?),
-            SoundFormat::Mp3 => ReaderKind::Mp3(Mp3Reader::open(path)?),
+            SoundFormat::Ogg => ReaderKind::Ogg(Box::new(OggReader::open(path)?)),
+            SoundFormat::Mp3 => ReaderKind::Mp3(Box::new(Mp3Reader::open(path)?)),
         };
         Ok(Self { inner })
     }
@@ -106,8 +106,7 @@ struct FlacReader {
 
 impl FlacReader {
     fn open(path: &Path) -> Result<Self, AudioError> {
-        let reader =
-            claxon::FlacReader::open(path).map_err(|e| bad(format!("FLAC: {e}")))?;
+        let reader = claxon::FlacReader::open(path).map_err(|e| bad(format!("FLAC: {e}")))?;
         let info = reader.streaminfo();
         let channels = info.channels as u16;
         if !(1..=2).contains(&channels) {
@@ -248,14 +247,7 @@ impl OggReader {
         let file = File::open(path).map_err(|e| bad(e.to_string()))?;
         let reader = lewton::inside_ogg::OggStreamReader::new(file)
             .map_err(|e| bad(format!("Vorbis: {e}")))?;
-        Ok(Self {
-            sample_rate,
-            channels,
-            total_frames,
-            reader,
-            frame_pos: 0,
-            pending: Vec::new(),
-        })
+        Ok(Self { sample_rate, channels, total_frames, reader, frame_pos: 0, pending: Vec::new() })
     }
 
     fn sample_rate(&self) -> u32 {
@@ -278,9 +270,7 @@ impl OggReader {
         if frame > self.total_frames {
             return Err(bad("seek past the end"));
         }
-        self.reader
-            .seek_absgp_pg(frame)
-            .map_err(|e| bad(format!("Vorbis: {e}")))?;
+        self.reader.seek_absgp_pg(frame).map_err(|e| bad(format!("Vorbis: {e}")))?;
         self.frame_pos = frame;
         self.pending.clear();
         Ok(())
@@ -299,10 +289,8 @@ impl OggReader {
                 need -= take;
                 continue;
             }
-            let packet = self
-                .reader
-                .read_dec_packet_itl()
-                .map_err(|e| bad(format!("Vorbis: {e}")))?;
+            let packet =
+                self.reader.read_dec_packet_itl().map_err(|e| bad(format!("Vorbis: {e}")))?;
             let Some(packet) = packet else {
                 if need == frames {
                     return Err(bad("truncated"));
@@ -319,13 +307,12 @@ impl OggReader {
 
 fn count_ogg_frames(path: &Path, channels: u16) -> Result<u64, AudioError> {
     let file = File::open(path).map_err(|e| bad(e.to_string()))?;
-    let mut reader = lewton::inside_ogg::OggStreamReader::new(file)
-        .map_err(|e| bad(format!("Vorbis: {e}")))?;
+    let mut reader =
+        lewton::inside_ogg::OggStreamReader::new(file).map_err(|e| bad(format!("Vorbis: {e}")))?;
     let ch = channels as usize;
     let mut frames = 0u64;
-    while let Some(packet) = reader
-        .read_dec_packet_itl()
-        .map_err(|e| bad(format!("Vorbis: {e}")))?
+    while let Some(packet) =
+        reader.read_dec_packet_itl().map_err(|e| bad(format!("Vorbis: {e}")))?
     {
         if ch == 0 {
             return Err(bad("unsupported channel count"));
@@ -359,7 +346,13 @@ impl Mp3Reader {
         if total_frames == 0 {
             return Err(bad("MP3: no audio frames"));
         }
-        Ok(Self { sample_rate: reader.sample_rate(), channels, total_frames, reader, pcm: Vec::new() })
+        Ok(Self {
+            sample_rate: reader.sample_rate(),
+            channels,
+            total_frames,
+            reader,
+            pcm: Vec::new(),
+        })
     }
 
     fn sample_rate(&self) -> u32 {
@@ -391,7 +384,8 @@ impl Mp3Reader {
         self.pcm.resize((READ_FRAMES * ch).max(ch), 0.0);
         while need > 0 {
             let want = need.min(self.pcm.len());
-            let n = self.reader.read(&mut self.pcm[..want]).map_err(|e| bad(format!("MP3: {e}")))?;
+            let n =
+                self.reader.read(&mut self.pcm[..want]).map_err(|e| bad(format!("MP3: {e}")))?;
             if n == 0 {
                 if need == frames * ch {
                     return Err(bad("truncated"));

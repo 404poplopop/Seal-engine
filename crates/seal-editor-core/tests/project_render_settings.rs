@@ -4,8 +4,9 @@ use std::fs;
 use std::path::PathBuf;
 
 use seal_editor_core::{
-    apply_level_to_session, load_platform_overrides, render_quality_from_session, store_platform_overrides,
-    CommandArgs, EditorSession, Layout, PlatformOverrides, PROJECT_DIMENSION_SETTING,
+    apply_level_to_session, load_platform_overrides, render_quality_from_session,
+    store_platform_overrides, CommandArgs, EditorSession, Layout, PlatformOverrides,
+    PROJECT_DIMENSION_SETTING,
 };
 
 fn scratch(tag: &str) -> PathBuf {
@@ -29,7 +30,9 @@ fn export_uses_platform_override_for_display_width() {
     book.set("display.width", "android", "720");
     store_platform_overrides(&project, &book).unwrap();
     let mut session = EditorSession::new(Layout::default());
-    session.dispatch("file.open-project", &CommandArgs::new(&[("path", project.to_str().unwrap())])).unwrap();
+    session
+        .dispatch("file.open-project", &CommandArgs::new(&[("path", project.to_str().unwrap())]))
+        .unwrap();
     assert_eq!(
         seal_editor_core::effective_from_session(&session, "display.width", "android"),
         "720"
@@ -50,7 +53,9 @@ fn opening_old_project_leaves_settings_table_unchanged_on_disk() {
     fs::write(project.join("project.seal"), manifest).unwrap();
     let before = fs::read_to_string(project.join("project.seal")).unwrap();
     let mut session = EditorSession::new(Layout::default());
-    session.dispatch("file.open-project", &CommandArgs::new(&[("path", project.to_str().unwrap())])).unwrap();
+    session
+        .dispatch("file.open-project", &CommandArgs::new(&[("path", project.to_str().unwrap())]))
+        .unwrap();
     let dim = session
         .models
         .settings
@@ -99,5 +104,5 @@ fn quality_lowering_turns_off_runtime_glow_flag() {
     let mut session = EditorSession::new(Layout::default());
     apply_level_to_session(&mut session, "low").unwrap();
     let quality = render_quality_from_session(&session);
-    assert_eq!(quality.glow, false);
+    assert!(!quality.glow);
 }

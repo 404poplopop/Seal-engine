@@ -493,7 +493,7 @@ fn script_sounds_are_queued_for_the_editor() {
     world.project_dir = Some(dir.clone());
     world.play();
     world.step(0.1);
-    let cues: Vec<_> = world.play_sounds.drain(..).collect();
+    let cues: Vec<_> = std::mem::take(&mut world.play_sounds);
     assert_eq!(cues.len(), 1, "{cues:?} {:?}", world.play_log);
     assert_eq!((cues[0].sound.as_str(), cues[0].volume, cues[0].at), ("Audio/Bell", 0.5, None));
     world.play_keys.push(("K".into(), true));

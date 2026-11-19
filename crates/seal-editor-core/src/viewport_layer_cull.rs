@@ -2,14 +2,14 @@
 
 /// Sorting layer index 0..31 is included when its bit is set in `mask`.
 pub fn layer_visible(mask: u32, layer: i32) -> bool {
-    if layer < 0 || layer >= 32 {
+    if !(0..32).contains(&layer) {
         return true;
     }
     mask & (1u32 << layer) != 0
 }
 
 /// Filter draw candidates by sorting layer. `entries` are `(id, layer)` pairs.
-pub fn filter_draw_list<'a>(entries: &'a [(String, i32)], mask: u32) -> Vec<&'a str> {
+pub fn filter_draw_list(entries: &[(String, i32)], mask: u32) -> Vec<&str> {
     entries
         .iter()
         .filter(|(_, layer)| layer_visible(mask, *layer))

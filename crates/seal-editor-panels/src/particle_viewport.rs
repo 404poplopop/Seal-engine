@@ -2,11 +2,13 @@
 
 use std::path::Path;
 
+use seal_editor_core::asset_editor::{
+    collect_draws_depth, mesh_renderer_primitive, Emitter, ParticleDraw,
+};
 use seal_editor_core::light2d::{Blocker, Light};
 use seal_editor_core::particle_lit;
-use seal_ui::{GridMark, ShapeMark};
-use seal_editor_core::asset_editor::{collect_draws_depth, mesh_renderer_primitive, Emitter, ParticleDraw};
 use seal_ui::MeshPrimitive;
+use seal_ui::{GridMark, ShapeMark};
 
 pub struct ParticleLight2d<'a> {
     pub lights: &'a [Light],
@@ -122,7 +124,8 @@ pub fn particle_marks<'m>(
                 marks.push(m);
             }
             ParticleDraw::Mesh { pos, half, angle, mesh, color, lit } => {
-                let rgba = shaded_rgba(pos, across, up, flip_across, flip_up, color.rgba, lit, &lighting);
+                let rgba =
+                    shaded_rgba(pos, across, up, flip_across, flip_up, color.rgba, lit, &lighting);
                 let primitive = match mesh_renderer_primitive(&mesh) {
                     Some("sphere") => MeshPrimitive::Sphere,
                     Some("plane") => MeshPrimitive::Plane,
@@ -213,38 +216,6 @@ pub fn particle_marks<'m>(
     marks
 }
 
-#[cfg(test)]
-mod tests {
-    use seal_editor_core::material2d::Material2d;
-
-    use super::*;
-
-    #[test]
-    fn particle_mark_carries_emitter_material_blend() {
-        let material = Material2d {
-            effect: String::new(),
-            blend: "additive".into(),
-            ..Material2d::default()
-        };
-        let mark = round_mark(
-            [0.0, 0.0, 0.0],
-            0.5,
-            [1.0, 0.5, 0.0, 0.8],
-            0,
-            1,
-            2,
-            1.0,
-            1.0,
-            0.0,
-            false,
-            None,
-            [0.0; 4],
-            Some(material),
-        );
-        assert_eq!(mark.material.as_ref().map(|m| m.blend.as_str()), Some("additive"));
-    }
-}
-
 fn shaded_rgba(
     pos: [f32; 3],
     across: usize,
@@ -266,6 +237,7 @@ fn rgba_bytes(rgba: [f32; 4]) -> [u8; 4] {
     rgba.map(|c| (c.clamp(0.0, 1.0) * 255.0).round() as u8)
 }
 
+#[allow(clippy::too_many_arguments)]
 fn round_mark(
     pos: [f32; 3],
     half: f32,
@@ -312,5 +284,34 @@ fn round_mark(
         mask_mode: 0,
         mask_kind: 0,
         surface: seal_ui::MeshSurface::EMPTY,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use seal_editor_core::material2d::Material2d;
+
+    use super::*;
+
+    #[test]
+    fn particle_mark_carries_emitter_material_blend() {
+        let material =
+            Material2d { effect: String::new(), blend: "additive".into(), ..Material2d::default() };
+        let mark = round_mark(
+            [0.0, 0.0, 0.0],
+            0.5,
+            [1.0, 0.5, 0.0, 0.8],
+            0,
+            1,
+            2,
+            1.0,
+            1.0,
+            0.0,
+            false,
+            None,
+            [0.0; 4],
+            Some(material),
+        );
+        assert_eq!(mark.material.as_ref().map(|m| m.blend.as_str()), Some("additive"));
     }
 }

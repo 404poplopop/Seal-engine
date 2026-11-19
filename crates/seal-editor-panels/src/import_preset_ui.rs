@@ -247,7 +247,8 @@ fn field_edits(
                 ("adpcm", labels.compression_adpcm.clone()),
                 ("vorbis", labels.compression_vorbis.clone()),
             ];
-            let pairs: Vec<(&str, String)> = compression.iter().map(|(id, t)| (*id, t.clone())).collect();
+            let pairs: Vec<(&str, String)> =
+                compression.iter().map(|(id, t)| (*id, t.clone())).collect();
             if let Some(picked) = frame.choice(&labels.compression, &s.compression, &pairs) {
                 if picked != s.compression {
                     return command(
@@ -266,8 +267,10 @@ fn field_edits(
                     &[("path", rel), ("field", "vorbis_quality"), ("value", quality.as_str())],
                 );
             }
-            let load = [("memory", labels.load_memory.clone()), ("stream", labels.load_stream.clone())];
-            let load_pairs: Vec<(&str, String)> = load.iter().map(|(id, t)| (*id, t.clone())).collect();
+            let load =
+                [("memory", labels.load_memory.clone()), ("stream", labels.load_stream.clone())];
+            let load_pairs: Vec<(&str, String)> =
+                load.iter().map(|(id, t)| (*id, t.clone())).collect();
             if let Some(picked) = frame.choice(&labels.load_type, &s.load_type, &load_pairs) {
                 if picked != s.load_type {
                     return command(

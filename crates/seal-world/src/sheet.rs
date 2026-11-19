@@ -227,8 +227,8 @@ fn simplify(points: &[(i32, i32)], epsilon: f32) -> Vec<(i32, i32)> {
         let (ax, ay) = (points[a].0 as f32, points[a].1 as f32);
         let (bx, by) = (points[b].0 as f32, points[b].1 as f32);
         let (mut far, mut far_i) = (0.0f32, a);
-        for i in a + 1..b {
-            let (px, py) = (points[i].0 as f32, points[i].1 as f32);
+        for (i, point) in points.iter().enumerate().take(b).skip(a + 1) {
+            let (px, py) = (point.0 as f32, point.1 as f32);
             let d = point_line(px, py, ax, ay, bx, by);
             if d > far {
                 far = d;

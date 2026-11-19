@@ -81,7 +81,7 @@ pub fn sqrt(x: f32) -> f32 {
     x.sqrt()
 }
 
-const LN2_HI: f64 = 6.931_471_803_691_238_2e-1;
+const LN2_HI: f64 = 6.931_471_803_691_238e-1;
 const LN2_LO: f64 = 1.908_214_929_270_587_7e-10;
 
 /// `y · 2^k` without leaving the exactly-specified operations.

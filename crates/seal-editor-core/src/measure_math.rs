@@ -268,7 +268,7 @@ mod tests {
         let read = segment_readout([0.0, 0.0, 0.0], [3.0, 4.0, 0.0]);
         assert!((read.length - 5.0).abs() < 1e-5);
         assert_eq!(read.delta, [3.0, 4.0, 0.0]);
-        assert!((read.angle_deg - 53.130102).abs() < 0.01);
+        assert!((read.angle_deg - 53.130_1).abs() < 0.01);
         let flat = segment_readout([0.0, 0.0, 0.0], [20.0, 3.5, 0.0]);
         assert!((flat.angle_deg - 9.926).abs() < 0.01);
     }
