@@ -1,0 +1,15 @@
+[package]
+name = "seal-kernel"
+description = "Data-parallel kernels: one IR, a CPU backend that runs in blocks across the job system."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+
+[dependencies]
+seal-jobs = { path = "../seal-jobs" }
+seal-trace = { path = "../seal-trace" }
+
+[dev-dependencies]
+proptest.workspace = true
+naga = { version = "30", features = ["wgsl-in"] }

@@ -1,0 +1,26 @@
+[package]
+name = "seal-run"
+description = "Headless Seal runtime: runs worlds without a window, and the scaling suite."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+authors.workspace = true
+
+[[bin]]
+name = "seal-run"
+path = "src/main.rs"
+
+[dependencies]
+seal-jobs = { path = "../seal-jobs" }
+seal-mem = { path = "../seal-mem" }
+seal-ecs = { path = "../seal-ecs" }
+seal-scene = { path = "../seal-scene" }
+seal-math = { path = "../seal-math" }
+seal-trace = { path = "../seal-trace" }
+seal-graph = { path = "../seal-graph" }
+seal-sealtext = { path = "../seal-sealtext" }
+
+[features]
+# Stream traces to a Tracy viewer with --tracy.
+tracy = ["seal-trace/tracy"]

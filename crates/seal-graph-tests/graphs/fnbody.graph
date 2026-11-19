@@ -1,0 +1,77 @@
+schema_version = 1
+seal_graph = "fnbody"
+vars = []
+nodes = [
+  { id = 1, kind = "event", name = "start" },
+  { id = 2, kind = "sequence", count = 3 },
+  { id = 3, kind = "call_fn", name = "wrap", defaults = { n = 3 } },
+  { id = 4, kind = "to_str", type = "int" },
+  { id = 5, kind = "log" },
+  { id = 6, kind = "call_fn", name = "wrap", defaults = { n = 4 } },
+  { id = 7, kind = "to_str", type = "int" },
+  { id = 8, kind = "log" },
+  { id = 9, kind = "call_fn", name = "bump", defaults = { n = 5 } },
+  { id = 10, kind = "to_str", type = "int" },
+  { id = 11, kind = "log" },
+]
+links = [
+  "1.then -> 2.in",
+  "2.then0 -> 3.in",
+  "3.then -> 5.in",
+  "3.result -> 4.a",
+  "4.out -> 5.message",
+  "2.then1 -> 6.in",
+  "6.then -> 8.in",
+  "6.result -> 7.a",
+  "7.out -> 8.message",
+  "2.then2 -> 9.in",
+  "9.then -> 11.in",
+  "9.result -> 10.a",
+  "10.out -> 11.message",
+]
+functions = [
+  {
+    name = "bump",
+    inputs = [{ name = "n", type = "int" }],
+    outputs = [{ name = "result", type = "int" }],
+    locals = [{ name = "t", type = "int", default = 0 }],
+    nodes = [
+      { id = 100, kind = "entry" },
+      { id = 101, kind = "get", name = "t" },
+      { id = 102, kind = "add", type = "int" },
+      { id = 103, kind = "set", name = "t" },
+      { id = 104, kind = "fn_return" },
+    ],
+    links = [
+      "100.then -> 103.in",
+      "101.out -> 102.a",
+      "100.n -> 102.b",
+      "102.out -> 103.value",
+      "103.then -> 104.in",
+      "103.value -> 104.result",
+    ],
+  },
+  {
+    name = "wrap",
+    inputs = [{ name = "n", type = "int" }],
+    outputs = [{ name = "result", type = "int" }],
+    locals = [{ name = "t", type = "int", default = 0 }],
+    nodes = [
+      { id = 200, kind = "entry" },
+      { id = 201, kind = "set", name = "t", defaults = { value = 7 } },
+      { id = 202, kind = "call_fn", name = "bump" },
+      { id = 203, kind = "get", name = "t" },
+      { id = 204, kind = "add", type = "int" },
+      { id = 205, kind = "fn_return" },
+    ],
+    links = [
+      "200.then -> 201.in",
+      "201.then -> 202.in",
+      "200.n -> 202.n",
+      "202.then -> 205.in",
+      "202.result -> 204.a",
+      "203.out -> 204.b",
+      "204.out -> 205.result",
+    ],
+  },
+]

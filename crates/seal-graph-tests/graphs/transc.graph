@@ -1,0 +1,38 @@
+# Powers, logarithms and inverse trig, compared between interpreter and compiled code.
+schema_version = 1
+seal_graph = "transc"
+vars = [
+  { name = "e", type = "float", default = 0.0 },
+  { name = "l", type = "float", default = 0.0 },
+  { name = "p", type = "float", default = 0.0 },
+  { name = "t", type = "float", default = 0.0 },
+  { name = "s", type = "float", default = 0.0 },
+  { name = "c", type = "float", default = 0.0 },
+  { name = "w", type = "float", default = 0.0 },
+]
+nodes = [
+  { id = 1, kind = "event", name = "calc", params = [{ name = "a", type = "float" }, { name = "b", type = "float" }] },
+  { id = 2, kind = "exp" },
+  { id = 3, kind = "set", name = "e" },
+  { id = 4, kind = "ln" },
+  { id = 5, kind = "set", name = "l" },
+  { id = 6, kind = "pow" },
+  { id = 7, kind = "set", name = "p" },
+  { id = 8, kind = "atan" },
+  { id = 9, kind = "set", name = "t" },
+  { id = 10, kind = "asin" },
+  { id = 11, kind = "set", name = "s" },
+  { id = 12, kind = "acos" },
+  { id = 13, kind = "set", name = "c" },
+  { id = 14, kind = "atan2" },
+  { id = 15, kind = "set", name = "w" },
+]
+links = [
+  "1.then -> 3.in", "1.a -> 2.a", "2.out -> 3.value",
+  "3.then -> 5.in", "1.b -> 4.a", "4.out -> 5.value",
+  "5.then -> 7.in", "1.b -> 6.a", "1.a -> 6.b", "6.out -> 7.value",
+  "7.then -> 9.in", "1.a -> 8.a", "8.out -> 9.value",
+  "9.then -> 11.in", "1.b -> 10.a", "10.out -> 11.value",
+  "11.then -> 13.in", "1.b -> 12.a", "12.out -> 13.value",
+  "13.then -> 15.in", "1.a -> 14.a", "1.b -> 14.b", "14.out -> 15.value",
+]

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Seal Editor Remote</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 1rem; background: #1a1d22; color: #e8eaed; }
+    button { margin-right: 0.5rem; padding: 0.4rem 0.8rem; }
+    input, textarea { width: 100%; box-sizing: border-box; margin: 0.25rem 0 0.75rem; }
+    #props { font-family: monospace; white-space: pre-wrap; background: #0f1114; padding: 0.75rem; border-radius: 4px; min-height: 6rem; }
+    #log { font-size: 0.85rem; color: #9aa0a6; margin-top: 1rem; }
+  </style>
+</head>
+<body>
+  <h1>Editor remote</h1>
+  <p>Play controls, commands, and the current selection (token required).</p>
+  <div>
+    <button id="play" type="button">Play</button>
+    <button id="stop" type="button">Stop</button>
+    <button id="refresh" type="button">Refresh properties</button>
+  </div>
+  <label for="cmd">Command id</label>
+  <input id="cmd" placeholder="viewport.pause" />
+  <label for="args">Arguments (JSON object)</label>
+  <textarea id="args" rows="3">{}</textarea>
+  <button id="run" type="button">Run command</button>
+  <h2>Properties</h2>
+  <div id="props">—</div>
+  <div id="log"></div>
+  <script>
+    const params = new URLSearchParams(location.search);
+    const token = params.get("token") || "";
+    const headers = token ? { "Authorization": "Bearer " + token, "Content-Type": "application/json" } : { "Content-Type": "application/json" };
+    const log = (t) => { document.getElementById("log").textContent = t; };
+    async function api(path, opts) {
+      const url = path + (path.includes("?") ? "&" : "?") + "token=" + encodeURIComponent(token);
+      const res = await fetch(url, opts);
+      if (res.status === 401) throw new Error("wrong token");
+      return res;
+    }
+    async function refreshProps() {
+      try {
+        const res = await api("/api/properties");
+        const data = await res.json();
+        document.getElementById("props").textContent = JSON.stringify(data, null, 2);
+      } catch (e) { log(e.message); }
+    }
+    document.getElementById("refresh").onclick = refreshProps;
+    document.getElementById("play").onclick = async () => {
+      await api("/api/command", { method: "POST", headers, body: JSON.stringify({ id: "viewport.play", args: {} }) });
+      refreshProps();
+    };
+    document.getElementById("stop").onclick = async () => {
+      await api("/api/command", { method: "POST", headers, body: JSON.stringify({ id: "viewport.pause", args: {} }) });
+      refreshProps();
+    };
+    document.getElementById("run").onclick = async () => {
+      const id = document.getElementById("cmd").value.trim();
+      let args = {};
+      try { args = JSON.parse(document.getElementById("args").value || "{}"); } catch (e) { log("bad JSON"); return; }
+      await api("/api/command", { method: "POST", headers, body: JSON.stringify({ id, args }) });
+      refreshProps();
+    };
+    const proto = location.protocol === "https:" ? "wss:" : "ws:";
+    const wsPort = Number(params.get("wsPort") || (Number(location.port || 80) + 1));
+    const ws = new WebSocket(proto + "//" + location.hostname + ":" + wsPort);
+    ws.onmessage = (ev) => { log("event: " + ev.data); refreshProps(); };
+    refreshProps();
+  </script>
+</body>
+</html>

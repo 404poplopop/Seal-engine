@@ -1,0 +1,26 @@
+[package]
+name = "seal-editor"
+description = "Seal editor."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+authors.workspace = true
+
+[[bin]]
+name = "seal-editor"
+path = "src/main.rs"
+
+[features]
+default = ["editor", "play-preview"]
+editor = []
+dev-tools = []
+play-preview = ["seal-editor-core/play-preview"]
+
+[dependencies]
+seal-editor-core = { path = "../seal-editor-core" }
+seal-editor-shell = { path = "../seal-editor-shell" }
+seal-ui = { path = "../seal-ui" }
+seal-log = { path = "../seal-log" }
+seal-audio = { path = "../seal-audio" }
+seal-app = { path = "../seal-app", default-features = false, features = ["audio-out"] }

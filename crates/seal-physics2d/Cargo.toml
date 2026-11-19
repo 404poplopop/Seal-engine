@@ -1,0 +1,13 @@
+[package]
+name = "seal-physics2d"
+description = "2D physics for Seal worlds, built on Rapier."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+authors.workspace = true
+
+[dependencies]
+seal-ecs = { path = "../seal-ecs" }
+seal-trace = { path = "../seal-trace" }
+rapier2d = { version = "0.36", features = ["enhanced-determinism"] }

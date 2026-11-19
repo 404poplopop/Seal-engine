@@ -1,0 +1,12 @@
+seal theme 1
+panel #1A1A2E
+button #4A6FA5
+accent #E94560
+text #EAEAEA
+dim_text #8899AA
+field #16213E
+border #334466
+focus #E94560
+font_size 18
+corner 8
+padding 12

@@ -1,0 +1,4 @@
+action jump = key.space, key.w, key.up, pad.south
+action restart = key.r, pad.start
+action quit = key.escape
+axis move = key.a key.d, key.left key.right, pad.left_x deadzone 0.2

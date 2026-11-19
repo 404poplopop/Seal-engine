@@ -1,0 +1,20 @@
+# Reading numbers out of text.
+schema_version = 1
+seal_graph = "numparse"
+vars = []
+nodes = [
+  { id = 1, kind = "event", name = "read", params = [{ name = "text", type = "str" }] },
+  { id = 2, kind = "parse_int" },
+  { id = 3, kind = "parse_float" },
+  { id = 4, kind = "to_str", type = "int" },
+  { id = 5, kind = "to_str", type = "float" },
+  { id = 6, kind = "const", type = "str", value = "|" },
+  { id = 7, kind = "concat" },
+  { id = 8, kind = "concat" },
+  { id = 9, kind = "log" },
+]
+links = [
+  "1.text -> 2.a", "1.text -> 3.a", "2.out -> 4.a", "3.out -> 5.a",
+  "4.out -> 7.a", "6.out -> 7.b", "7.out -> 8.a", "5.out -> 8.b",
+  "1.then -> 9.in", "8.out -> 9.message",
+]

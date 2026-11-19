@@ -1,0 +1,8 @@
+[book]
+title = "Seal"
+authors = ["404poplopop"]
+language = "en"
+src = "src"
+
+[build]
+build-dir = "book"

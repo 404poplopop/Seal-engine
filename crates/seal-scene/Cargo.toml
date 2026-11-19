@@ -1,0 +1,11 @@
+[package]
+name = "seal-scene"
+description = "Standard scene components: look, body, light, camera and editor info."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+authors.workspace = true
+
+[dependencies]
+seal-ecs = { path = "../seal-ecs" }

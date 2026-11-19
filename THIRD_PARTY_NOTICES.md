@@ -1,0 +1,654 @@
+# Third-party notices
+
+Seal's own code is under `LICENSE.md` (`LicenseRef-Seal-Proprietary`).
+
+The crates used to build the editor shell are under permissive licenses, most often MIT, Apache-2.0, or a choice of those two. Where a crate offers a copyleft alternative beside a permissive one, Seal uses the permissive alternative.
+
+Two exceptions are font files, not code:
+
+- Typefaces in `epaint_default_fonts` are under the SIL Open Font License 1.1 and the Ubuntu Font License, together with MIT OR Apache-2.0 for the crate code. See decision D006.
+
+`option-ext` (MPL-2.0) is not a dependency. The editor computes its own per-user data path so that crate is not pulled in.
+
+Play steps rigid bodies with `rapier3d` 0.36.1, Apache-2.0. Its math and collision crates (`nalgebra`, `parry3d`, and their dependencies) are MIT or Apache-2.0, or a choice of those two.
+
+The window icon is decoded with `png` 0.18, MIT OR Apache-2.0.
+
+Compressed sound files in the editor and exported games decode with:
+
+- `claxon` 0.4, MIT (FLAC).
+- `lewton` 0.10, MIT OR Apache-2.0 (Vorbis in OGG).
+- `nanomp3` 0.2 and `nanomp3-core` 0.2, MIT OR Apache-2.0 (MP3, a pure Rust port of minimp3).
+
+Pictures are decoded with `image` 0.25.10, MIT OR Apache-2.0. Default features are off. The enabled formats are PNG, JPEG, GIF, BMP, TGA, WebP, HDR and EXR. EXR uses `exr` 1.74.3, BSD-3-Clause.
+
+SVG pictures are rasterised with `resvg` 0.45.1 and `usvg` 0.45.1, Apache-2.0 OR MIT, and `tiny-skia` 0.11.4, BSD-3-Clause. Text in an SVG is not drawn.
+
+Block-compressed pictures are decoded with `texture2ddecoder` 0.1.2, MIT OR Apache-2.0. Packed pictures in an exported game use `miniz_oxide` 0.8.9, MIT OR Zlib OR Apache-2.0.
+
+Block texture encoders at export (BCn, ETC2, ASTC) use `intel_tex_2` 0.5.0, MIT OR Apache-2.0 (built from the fork https://github.com/404poplopop/intel-tex-rs-2, which adds the ASTC encoder call that 0.5.0 leaves unimplemented), via the `ispc_rt` 2.0.4, MIT OR Apache-2.0, runtime (prebuilt ISPC object code; not the full ISPC compiler).
+
+`egui_kittest` 0.36.2, MIT OR Apache-2.0, drives the Test Runner panel test. Its default features are off.
+
+The editor remote control server uses `tungstenite` 0.24, MIT OR Apache-2.0, for a local WebSocket on loopback; its HTTP side uses the standard library.
+
+Save encryption uses `chacha20poly1305` 0.10 and `sha2` 0.10, both MIT OR Apache-2.0. System file dialogs use `rfd` 0.15, MIT, with the `xdg-portal` feature on Linux and no toolkit features.
+
+<!-- notices:generated -->
+- `accesskit_atspi_common` 0.18.1 — MIT OR Apache-2.0
+- `accesskit_consumer` 0.35.0 — MIT OR Apache-2.0
+- `accesskit_consumer` 0.36.0 — MIT OR Apache-2.0
+- `accesskit_consumer` 0.38.0 — MIT OR Apache-2.0
+- `accesskit_macos` 0.26.3 — MIT OR Apache-2.0
+- `accesskit_unix` 0.21.1 — MIT OR Apache-2.0
+- `accesskit_windows` 0.32.1 — MIT OR Apache-2.0
+- `accesskit_winit` 0.32.2 — Apache-2.0
+- `accesskit` 0.24.1 — MIT OR Apache-2.0
+- `adler2` 2.0.1 — 0BSD OR MIT OR Apache-2.0
+- `aead` 0.5.2 — MIT OR Apache-2.0
+- `ahash` 0.8.12 — MIT OR Apache-2.0
+- `aho-corasick` 1.1.4 — Unlicense OR MIT
+- `allocator-api2` 0.2.21 — MIT OR Apache-2.0
+- `alsa-sys` 0.4.0 — MIT
+- `alsa` 0.11.0 — Apache-2.0/MIT
+- `android-activity` 0.6.1 — MIT OR Apache-2.0
+- `android-properties` 0.2.2 — MIT
+- `android_system_properties` 0.1.6 — MIT OR Apache-2.0
+- `approx` 0.5.1 — Apache-2.0
+- `arboard` 3.7.0 — MIT OR Apache-2.0
+- `arrayref` 0.3.9 — BSD-2-Clause
+- `arrayvec` 0.7.8 — MIT OR Apache-2.0
+- `as-raw-xcb-connection` 1.0.1 — MIT OR Apache-2.0
+- `ash` 0.38.0+1.3.281 — MIT OR Apache-2.0
+- `ashpd` 0.11.1 — MIT
+- `async-broadcast` 0.7.2 — MIT OR Apache-2.0
+- `async-channel` 2.5.0 — Apache-2.0 OR MIT
+- `async-executor` 1.14.1 — Apache-2.0 OR MIT
+- `async-io` 2.6.0 — Apache-2.0 OR MIT
+- `async-lock` 3.5.0 — Apache-2.0 OR MIT
+- `async-process` 2.5.0 — Apache-2.0 OR MIT
+- `async-recursion` 1.2.0 — MIT OR Apache-2.0
+- `async-signal` 0.2.14 — Apache-2.0 OR MIT
+- `async-task` 4.7.1 — Apache-2.0 OR MIT
+- `async-trait` 0.1.92 — MIT OR Apache-2.0
+- `atk-sys` 0.18.2 — MIT
+- `atk` 0.18.2 — MIT
+- `atomic-waker` 1.1.2 — Apache-2.0 OR MIT
+- `atspi-common` 0.13.0 — Apache-2.0 OR MIT
+- `atspi-proxies` 0.13.0 — Apache-2.0 OR MIT
+- `atspi` 0.29.0 — Apache-2.0 OR MIT
+- `autocfg` 1.5.1 — Apache-2.0 OR MIT
+- `base64` 0.22.1 — MIT OR Apache-2.0
+- `bcdec_rs` 0.2.1 — MIT
+- `bit-set` 0.10.0 — Apache-2.0 OR MIT
+- `bit-set` 0.11.1 — Apache-2.0 OR MIT
+- `bit-vec` 0.10.2 — Apache-2.0 OR MIT
+- `bit-vec` 0.9.1 — Apache-2.0 OR MIT
+- `bit_field` 0.10.4 — MIT OR Apache-2.0
+- `bitflags` 1.3.2 — MIT/Apache-2.0
+- `bitflags` 2.13.2 — MIT OR Apache-2.0
+- `block-buffer` 0.10.4 — MIT OR Apache-2.0
+- `block2` 0.5.1 — MIT
+- `block2` 0.6.2 — MIT
+- `blocking` 1.7.0 — Apache-2.0 OR MIT
+- `borsh-derive` 1.8.1 — Apache-2.0
+- `borsh` 1.8.1 — MIT OR Apache-2.0
+- `bumpalo` 3.20.3 — MIT OR Apache-2.0
+- `bytemuck_derive` 1.12.1 — Zlib OR Apache-2.0 OR MIT
+- `bytemuck` 1.25.2 — Zlib OR Apache-2.0 OR MIT
+- `byteorder-lite` 0.1.0 — Unlicense OR MIT
+- `byteorder` 1.5.0 — Unlicense OR MIT
+- `bytes` 1.12.1 — MIT
+- `cairo-rs` 0.18.5 — MIT
+- `cairo-sys-rs` 0.18.2 — MIT
+- `calloop-wayland-source` 0.3.0 — MIT
+- `calloop-wayland-source` 0.4.1 — MIT
+- `calloop` 0.13.0 — MIT
+- `calloop` 0.14.5 — MIT
+- `cc` 1.11.1 — MIT OR Apache-2.0
+- `cfg-expr` 0.15.8 — MIT OR Apache-2.0
+- `cfg-if` 1.0.5 — MIT OR Apache-2.0
+- `cfg_aliases` 0.2.2 — MIT
+- `cgl` 0.3.2 — MIT / Apache-2.0
+- `chacha20` 0.10.2 — MIT OR Apache-2.0
+- `chacha20` 0.9.1 — Apache-2.0 OR MIT
+- `chacha20poly1305` 0.10.1 — Apache-2.0 OR MIT
+- `cipher` 0.4.4 — MIT OR Apache-2.0
+- `claxon` 0.4.3 — Apache-2.0
+- `clipboard-win` 5.4.3 — BSL-1.0
+- `codespan-reporting` 0.13.1 — Apache-2.0
+- `color_quant` 1.1.0 — MIT
+- `color` 0.3.3 — Apache-2.0 OR MIT
+- `combine` 4.6.9 — MIT
+- `concurrent-queue` 2.5.0 — Apache-2.0 OR MIT
+- `core-foundation-sys` 0.8.7 — MIT OR Apache-2.0
+- `core-foundation` 0.9.4 — MIT OR Apache-2.0
+- `core-graphics-types` 0.1.3 — MIT OR Apache-2.0
+- `core-graphics` 0.23.2 — MIT OR Apache-2.0
+- `core_detect` 1.0.0 — MIT/Apache-2.0
+- `coreaudio-rs` 0.14.2 — MIT/Apache-2.0
+- `cpal` 0.18.2 — Apache-2.0
+- `cpufeatures` 0.2.17 — MIT OR Apache-2.0
+- `cpufeatures` 0.3.1 — MIT OR Apache-2.0
+- `crc32fast` 1.5.5 — MIT OR Apache-2.0
+- `crossbeam-channel` 0.5.17 — MIT OR Apache-2.0
+- `crossbeam-deque` 0.8.8 — MIT OR Apache-2.0
+- `crossbeam-epoch` 0.9.21 — MIT OR Apache-2.0
+- `crossbeam-utils` 0.8.23 — MIT OR Apache-2.0
+- `crunchy` 0.2.4 — MIT
+- `crypto-common` 0.1.7 — MIT OR Apache-2.0
+- `cursor-icon` 1.2.0 — MIT OR Apache-2.0 OR Zlib
+- `dasp_sample` 0.11.0 — MIT OR Apache-2.0
+- `data-encoding` 2.11.1 — MIT
+- `data-url` 0.3.2 — MIT OR Apache-2.0
+- `digest` 0.10.7 — MIT OR Apache-2.0
+- `dispatch2` 0.3.1 — Zlib OR Apache-2.0 OR MIT
+- `dispatch` 0.2.0 — MIT
+- `displaydoc` 0.2.7 — MIT OR Apache-2.0
+- `dlib` 0.5.3 — MIT
+- `document-features` 0.2.12 — MIT OR Apache-2.0
+- `downcast-rs` 1.2.1 — MIT/Apache-2.0
+- `downcast-rs` 2.0.2 — MIT OR Apache-2.0
+- `dpi` 0.1.2 — Apache-2.0 AND MIT
+- `duplicate` 2.0.1 — MIT OR Apache-2.0
+- `ecolor` 0.36.2 — MIT OR Apache-2.0
+- `eframe` 0.36.2 — MIT OR Apache-2.0
+- `egui-wgpu` 0.36.2 — MIT OR Apache-2.0
+- `egui-winit` 0.36.2 — MIT OR Apache-2.0
+- `egui_dock` 0.21.1 — MIT
+- `egui_glow` 0.36.2 — MIT OR Apache-2.0
+- `egui_kittest` 0.36.2 — MIT OR Apache-2.0
+- `egui` 0.36.2 — MIT OR Apache-2.0
+- `either` 1.19.0 — MIT OR Apache-2.0
+- `emath` 0.36.2 — MIT OR Apache-2.0
+- `ena` 0.14.4 — MIT OR Apache-2.0
+- `endi` 1.1.1 — MIT
+- `enumflags2_derive` 0.7.12 — MIT OR Apache-2.0
+- `enumflags2` 0.7.12 — MIT OR Apache-2.0
+- `enumn` 0.1.14 — MIT OR Apache-2.0
+- `epaint_default_fonts` 0.36.2 — (MIT OR Apache-2.0) AND OFL-1.1 AND Ubuntu-font-1.0
+- `epaint` 0.36.2 — MIT OR Apache-2.0
+- `equivalent` 1.0.3 — Apache-2.0 OR MIT
+- `errno` 0.3.14 — MIT OR Apache-2.0
+- `error-code` 3.4.0 — BSL-1.0
+- `euclid` 0.22.14 — MIT OR Apache-2.0
+- `event-listener-strategy` 0.5.4 — Apache-2.0 OR MIT
+- `event-listener` 5.4.2 — Apache-2.0 OR MIT
+- `exr` 1.74.3 — BSD-3-Clause
+- `fastrand` 2.5.0 — Apache-2.0 OR MIT
+- `fax` 0.2.7 — MIT
+- `fdeflate` 0.3.7 — MIT OR Apache-2.0
+- `fearless_simd` 0.4.1 — Apache-2.0 OR MIT
+- `field-offset` 0.3.6 — MIT OR Apache-2.0
+- `find-msvc-tools` 0.1.15 — MIT OR Apache-2.0
+- `flate2` 1.1.11 — MIT OR Apache-2.0
+- `float-cmp` 0.9.0 — MIT
+- `fluent-bundle` 0.16.0 — Apache-2.0 OR MIT
+- `fluent-langneg` 0.13.1 — Apache-2.0 OR MIT
+- `fluent-syntax` 0.12.0 — Apache-2.0 OR MIT
+- `fnv` 1.0.7 — Apache-2.0 / MIT
+- `foldhash` 0.2.0 — Zlib
+- `font-types` 0.12.7 — MIT OR Apache-2.0
+- `foreign-types-macros` 0.2.4 — MIT/Apache-2.0
+- `foreign-types-shared` 0.3.1 — MIT/Apache-2.0
+- `foreign-types` 0.5.0 — MIT/Apache-2.0
+- `form_urlencoded` 1.2.2 — MIT OR Apache-2.0
+- `futures-channel` 0.3.34 — MIT OR Apache-2.0
+- `futures-core` 0.3.34 — MIT OR Apache-2.0
+- `futures-executor` 0.3.34 — MIT OR Apache-2.0
+- `futures-io` 0.3.34 — MIT OR Apache-2.0
+- `futures-lite` 2.6.1 — Apache-2.0 OR MIT
+- `futures-macro` 0.3.34 — MIT OR Apache-2.0
+- `futures-task` 0.3.34 — MIT OR Apache-2.0
+- `futures-util` 0.3.34 — MIT OR Apache-2.0
+- `gdk-pixbuf-sys` 0.18.0 — MIT
+- `gdk-pixbuf` 0.18.5 — MIT
+- `gdk-sys` 0.18.2 — MIT
+- `gdk` 0.18.2 — MIT
+- `generic-array` 0.14.7 — MIT
+- `gethostname` 1.1.0 — Apache-2.0
+- `getrandom` 0.2.17 — MIT OR Apache-2.0
+- `getrandom` 0.3.4 — MIT OR Apache-2.0
+- `getrandom` 0.4.3 — MIT OR Apache-2.0
+- `gif` 0.14.2 — MIT OR Apache-2.0
+- `gilrs-core` 0.6.8 — Apache-2.0/MIT
+- `gilrs` 0.11.2 — Apache-2.0/MIT
+- `gio-sys` 0.18.1 — MIT
+- `gio` 0.18.4 — MIT
+- `gl_generator` 0.14.0 — Apache-2.0
+- `glam` 0.30.10 — MIT OR Apache-2.0
+- `glam` 0.31.1 — MIT OR Apache-2.0
+- `glam` 0.32.1 — MIT OR Apache-2.0
+- `glam` 0.33.12 — MIT OR Apache-2.0
+- `glamx` 0.3.1 — MIT OR Apache-2.0
+- `glib-macros` 0.18.5 — MIT
+- `glib-sys` 0.18.1 — MIT
+- `glib` 0.18.5 — MIT
+- `glifo` 0.2.0 — Apache-2.0 OR MIT
+- `glow` 0.17.0 — MIT OR Apache-2.0 OR Zlib
+- `glutin-winit` 0.5.0 — MIT
+- `glutin_egl_sys` 0.7.1 — Apache-2.0
+- `glutin_glx_sys` 0.6.1 — Apache-2.0
+- `glutin_wgl_sys` 0.6.1 — Apache-2.0
+- `glutin` 0.32.3 — Apache-2.0
+- `gobject-sys` 0.18.0 — MIT
+- `gpu-allocator` 0.28.0 — MIT OR Apache-2.0
+- `gtk-sys` 0.18.2 — MIT
+- `gtk3-macros` 0.18.2 — MIT
+- `gtk` 0.18.2 — MIT
+- `guillotiere` 0.7.0 — MIT/Apache-2.0
+- `half` 2.7.1 — MIT OR Apache-2.0
+- `harfrust` 0.12.0 — MIT
+- `hash32` 0.3.1 — MIT OR Apache-2.0
+- `hashbrown` 0.16.1 — MIT OR Apache-2.0
+- `hashbrown` 0.17.1 — MIT OR Apache-2.0
+- `heapless` 0.8.0 — MIT OR Apache-2.0
+- `heck` 0.4.1 — MIT OR Apache-2.0
+- `heck` 0.5.0 — MIT OR Apache-2.0
+- `hermit-abi` 0.5.3 — MIT OR Apache-2.0
+- `hex` 0.4.3 — MIT OR Apache-2.0
+- `http` 1.5.0 — MIT OR Apache-2.0
+- `httparse` 1.10.1 — MIT OR Apache-2.0
+- `icu_collections` 2.4.0 — Unicode-3.0
+- `icu_locale_core` 2.4.0 — Unicode-3.0
+- `icu_normalizer_data` 2.4.0 — Unicode-3.0
+- `icu_normalizer` 2.4.0 — Unicode-3.0
+- `icu_properties_data` 2.4.0 — Unicode-3.0
+- `icu_properties` 2.4.0 — Unicode-3.0
+- `icu_provider` 2.4.0 — Unicode-3.0
+- `idna_adapter` 1.2.2 — Apache-2.0 OR MIT
+- `idna` 1.1.0 — MIT OR Apache-2.0
+- `image-webp` 0.2.4 — MIT OR Apache-2.0
+- `image` 0.25.10 — MIT OR Apache-2.0
+- `imagesize` 0.13.0 — MIT
+- `indexmap` 2.14.2 — Apache-2.0 OR MIT
+- `inotify-sys` 0.1.8 — ISC
+- `inotify` 0.11.5 — ISC
+- `inout` 0.1.4 — MIT OR Apache-2.0
+- `intel_tex_2` 0.5.0 — MIT/Apache-2.0
+- `intl-memoizer` 0.5.3 — Apache-2.0 OR MIT
+- `intl_pluralrules` 7.0.2 — Apache-2.0/MIT
+- `ispc_rt` 2.0.4 — MIT
+- `itertools` 0.15.0 — MIT OR Apache-2.0
+- `itoa` 1.0.19 — MIT OR Apache-2.0
+- `jni-macros` 0.22.4 — MIT OR Apache-2.0
+- `jni-sys-macros` 0.4.1 — MIT OR Apache-2.0
+- `jni-sys` 0.3.1 — MIT OR Apache-2.0
+- `jni-sys` 0.4.1 — MIT OR Apache-2.0
+- `jni` 0.22.4 — MIT OR Apache-2.0
+- `jobserver` 0.1.35 — MIT OR Apache-2.0
+- `js-sys` 0.3.107 — MIT OR Apache-2.0
+- `keyboard-types` 0.7.0 — MIT OR Apache-2.0
+- `khronos_api` 3.1.0 — Apache-2.0
+- `kittest` 0.4.0 — MIT OR Apache-2.0
+- `kurbo` 0.11.3 — Apache-2.0 OR MIT
+- `kurbo` 0.13.1 — Apache-2.0 OR MIT
+- `lebe` 0.5.3 — BSD-3-Clause
+- `lewton` 0.10.2 — MIT OR Apache-2.0
+- `libc` 0.2.191 — MIT OR Apache-2.0
+- `libloading` 0.8.9 — ISC
+- `libm` 0.2.16 — MIT
+- `libredox` 0.1.25 — MIT
+- `libudev-sys` 0.1.4 — MIT
+- `libxdo-sys` 0.11.0 — MIT
+- `libxdo` 0.6.0 — MIT
+- `linebender_resource_handle` 0.1.1 — Apache-2.0 OR MIT
+- `linux-raw-sys` 0.12.1 — Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT
+- `linux-raw-sys` 0.4.15 — Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT
+- `litemap` 0.8.3 — Unicode-3.0
+- `litrs` 1.0.1 — MIT OR Apache-2.0
+- `lock_api` 0.4.14 — MIT OR Apache-2.0
+- `log` 0.4.35 — MIT OR Apache-2.0
+- `mach2` 0.6.0 — BSD-2-Clause OR MIT OR Apache-2.0
+- `matrixmultiply` 0.3.11 — MIT/Apache-2.0
+- `memchr` 2.8.3 — Unlicense OR MIT
+- `memmap2` 0.9.12 — MIT OR Apache-2.0
+- `memoffset` 0.9.1 — MIT
+- `miniz_oxide` 0.8.9 — MIT OR Zlib OR Apache-2.0
+- `miniz_oxide` 0.9.1 — MIT OR Zlib OR Apache-2.0
+- `mio` 1.2.4 — MIT
+- `moxcms` 0.8.1 — BSD-3-Clause OR Apache-2.0
+- `muda` 0.15.3 — Apache-2.0 OR MIT
+- `multiversion-macros` 0.8.1 — MIT OR Apache-2.0
+- `multiversion` 0.8.1 — MIT OR Apache-2.0
+- `naga-types` 30.0.1 — MIT OR Apache-2.0
+- `naga` 30.0.1 — MIT OR Apache-2.0
+- `nalgebra-macros` 0.3.0 — Apache-2.0
+- `nalgebra` 0.35.0 — Apache-2.0
+- `nanomp3-core` 0.2.0 — MIT OR Apache-2.0
+- `nanomp3` 0.2.0 — MIT OR Apache-2.0
+- `ndk-context` 0.1.1 — MIT OR Apache-2.0
+- `ndk-sys` 0.6.0+11769913 — MIT OR Apache-2.0
+- `ndk` 0.9.0 — MIT OR Apache-2.0
+- `nix` 0.31.3 — MIT
+- `nohash-hasher` 0.2.0 — Apache-2.0 OR MIT
+- `num-bigint` 0.4.8 — MIT OR Apache-2.0
+- `num-complex` 0.4.6 — MIT OR Apache-2.0
+- `num-derive` 0.4.2 — MIT OR Apache-2.0
+- `num-derive` 0.5.1 — MIT OR Apache-2.0
+- `num-integer` 0.1.47 — MIT OR Apache-2.0
+- `num-rational` 0.4.2 — MIT OR Apache-2.0
+- `num-traits` 0.2.19 — MIT OR Apache-2.0
+- `num_cpus` 1.17.0 — MIT OR Apache-2.0
+- `num_enum_derive` 0.7.6 — BSD-3-Clause OR MIT OR Apache-2.0
+- `num_enum` 0.7.6 — BSD-3-Clause OR MIT OR Apache-2.0
+- `objc-sys` 0.3.5 — MIT
+- `objc2-app-kit` 0.2.2 — MIT
+- `objc2-app-kit` 0.3.2 — Zlib OR Apache-2.0 OR MIT
+- `objc2-audio-toolbox` 0.3.2 — Zlib OR Apache-2.0 OR MIT
+- `objc2-avf-audio` 0.3.2 — Zlib OR Apache-2.0 OR MIT
+- `objc2-cloud-kit` 0.2.2 — MIT
+- `objc2-contacts` 0.2.2 — MIT
+- `objc2-core-audio-types` 0.3.2 — Zlib OR Apache-2.0 OR MIT
+- `objc2-core-audio` 0.3.2 — Zlib OR Apache-2.0 OR MIT
+- `objc2-core-data` 0.2.2 — MIT
+- `objc2-core-foundation` 0.3.2 — Zlib OR Apache-2.0 OR MIT
+- `objc2-core-graphics` 0.3.2 — Zlib OR Apache-2.0 OR MIT
+- `objc2-core-image` 0.2.2 — MIT
+- `objc2-core-location` 0.2.2 — MIT
+- `objc2-encode` 4.1.0 — MIT
+- `objc2-foundation` 0.2.2 — MIT
+- `objc2-foundation` 0.3.2 — MIT
+- `objc2-io-kit` 0.3.2 — Zlib OR Apache-2.0 OR MIT
+- `objc2-io-surface` 0.3.2 — Zlib OR Apache-2.0 OR MIT
+- `objc2-link-presentation` 0.2.2 — MIT
+- `objc2-metal` 0.2.2 — MIT
+- `objc2-metal` 0.3.2 — Zlib OR Apache-2.0 OR MIT
+- `objc2-quartz-core` 0.2.2 — MIT
+- `objc2-quartz-core` 0.3.2 — Zlib OR Apache-2.0 OR MIT
+- `objc2-symbols` 0.2.2 — MIT
+- `objc2-ui-kit` 0.2.2 — MIT
+- `objc2-ui-kit` 0.3.2 — Zlib OR Apache-2.0 OR MIT
+- `objc2-uniform-type-identifiers` 0.2.2 — MIT
+- `objc2-user-notifications` 0.2.2 — MIT
+- `objc2` 0.5.3 — MIT
+- `objc2` 0.6.5 — MIT
+- `ogg` 0.8.0 — BSD-3-Clause
+- `once_cell` 1.21.4 — MIT OR Apache-2.0
+- `opaque-debug` 0.3.1 — MIT OR Apache-2.0
+- `orbclient` 0.3.55 — MIT
+- `ordered-float` 5.5.1 — MIT
+- `ordered-stream` 0.2.0 — MIT OR Apache-2.0
+- `pango-sys` 0.18.0 — MIT
+- `pango` 0.18.3 — MIT
+- `parking_lot_core` 0.9.12 — MIT OR Apache-2.0
+- `parking_lot` 0.12.5 — MIT OR Apache-2.0
+- `parking` 2.2.1 — Apache-2.0 OR MIT
+- `parry2d` 0.31.1 — Apache-2.0
+- `parry3d` 0.31.1 — Apache-2.0
+- `paste` 1.0.15 — MIT OR Apache-2.0
+- `peniko` 0.6.1 — Apache-2.0 OR MIT
+- `percent-encoding` 2.3.2 — MIT OR Apache-2.0
+- `phf_generator` 0.13.1 — MIT
+- `phf_macros` 0.13.1 — MIT
+- `phf_shared` 0.13.1 — MIT
+- `phf` 0.13.1 — MIT
+- `pico-args` 0.5.0 — MIT
+- `pin-project-internal` 1.1.13 — Apache-2.0 OR MIT
+- `pin-project-lite` 0.2.17 — Apache-2.0 OR MIT
+- `pin-project` 1.1.13 — Apache-2.0 OR MIT
+- `piper` 0.2.5 — MIT OR Apache-2.0
+- `pkg-config` 0.3.34 — MIT OR Apache-2.0
+- `plain` 0.2.3 — MIT/Apache-2.0
+- `png` 0.17.16 — MIT OR Apache-2.0
+- `png` 0.18.1 — MIT OR Apache-2.0
+- `polling` 3.11.0 — Apache-2.0 OR MIT
+- `pollster` 0.4.0 — Apache-2.0/MIT
+- `poly1305` 0.8.0 — Apache-2.0 OR MIT
+- `polycool` 0.4.0 — MIT OR Apache-2.0
+- `portable-atomic-util` 0.2.8 — Apache-2.0 OR MIT
+- `portable-atomic` 1.15.0 — Apache-2.0 OR MIT
+- `potential_utf` 0.1.6 — Unicode-3.0
+- `ppv-lite86` 0.2.21 — MIT OR Apache-2.0
+- `presser` 0.3.1 — MIT OR Apache-2.0
+- `proc-macro-crate` 1.3.1 — MIT OR Apache-2.0
+- `proc-macro-crate` 2.0.2 — MIT OR Apache-2.0
+- `proc-macro-crate` 3.5.0 — MIT OR Apache-2.0
+- `proc-macro-error-attr` 1.0.4 — MIT OR Apache-2.0
+- `proc-macro-error` 1.0.4 — MIT OR Apache-2.0
+- `proc-macro2-diagnostics` 0.10.1 — MIT/Apache-2.0
+- `proc-macro2` 1.0.107 — MIT OR Apache-2.0
+- `profiling-procmacros` 1.0.18 — MIT OR Apache-2.0
+- `profiling` 1.0.18 — MIT OR Apache-2.0
+- `proptest` 1.12.0 — MIT OR Apache-2.0
+- `pxfm` 0.1.30 — BSD-3-Clause OR Apache-2.0
+- `quick-error` 1.2.3 — MIT/Apache-2.0
+- `quick-error` 2.0.1 — MIT/Apache-2.0
+- `quick-xml` 0.41.0 — MIT
+- `quote` 1.0.47 — MIT OR Apache-2.0
+- `r-efi` 5.3.0 — MIT OR Apache-2.0 OR LGPL-2.1-or-later
+- `r-efi` 6.0.0 — MIT OR Apache-2.0 OR LGPL-2.1-or-later
+- `rand_chacha` 0.3.1 — MIT OR Apache-2.0
+- `rand_chacha` 0.9.0 — MIT OR Apache-2.0
+- `rand_core` 0.10.1 — MIT OR Apache-2.0
+- `rand_core` 0.6.4 — MIT OR Apache-2.0
+- `rand_core` 0.9.5 — MIT OR Apache-2.0
+- `rand_xorshift` 0.5.0 — MIT OR Apache-2.0
+- `rand` 0.10.3 — MIT OR Apache-2.0
+- `rand` 0.8.8 — MIT OR Apache-2.0
+- `rand` 0.9.5 — MIT OR Apache-2.0
+- `range-alloc` 0.1.5 — MIT OR Apache-2.0
+- `rapier2d` 0.36.1 — Apache-2.0
+- `rapier3d` 0.36.1 — Apache-2.0
+- `raw-window-handle` 0.6.2 — MIT OR Apache-2.0 OR Zlib
+- `raw-window-metal` 1.1.0 — MIT OR Apache-2.0
+- `rawpointer` 0.2.1 — MIT/Apache-2.0
+- `read-fonts` 0.41.0 — MIT OR Apache-2.0
+- `redox_syscall` 0.4.1 — MIT
+- `redox_syscall` 0.5.18 — MIT
+- `redox_syscall` 0.9.5 — MIT
+- `regex-automata` 0.4.14 — MIT OR Apache-2.0
+- `regex-syntax` 0.8.11 — MIT OR Apache-2.0
+- `regex` 1.12.4 — MIT OR Apache-2.0
+- `renderdoc-sys` 1.1.0 — MIT OR Apache-2.0
+- `resvg` 0.45.1 — Apache-2.0 OR MIT
+- `rfd` 0.15.4 — MIT
+- `rgb` 0.8.53 — MIT
+- `ring` 0.17.14 — Apache-2.0 AND ISC
+- `robust` 1.2.0 — MIT OR Apache-2.0
+- `ron` 0.10.1 — MIT OR Apache-2.0
+- `roxmltree` 0.20.0 — MIT OR Apache-2.0
+- `rstar` 0.13.1 — MIT OR Apache-2.0
+- `rustc-hash` 1.1.0 — Apache-2.0/MIT
+- `rustc-hash` 2.1.3 — Apache-2.0 OR MIT
+- `rustc_version` 0.4.1 — MIT OR Apache-2.0
+- `rustix` 0.38.44 — Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT
+- `rustix` 1.1.6 — Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT
+- `rustls-pki-types` 1.16.0 — MIT OR Apache-2.0
+- `rustls-webpki` 0.103.17 — ISC
+- `rustls` 0.23.46 — Apache-2.0 OR ISC OR MIT
+- `rustversion` 1.0.23 — MIT OR Apache-2.0
+- `rusty-fork` 0.3.1 — MIT/Apache-2.0
+- `safe_arch` 1.2.0 — Zlib OR Apache-2.0 OR MIT
+- `same-file` 1.0.6 — Unlicense/MIT
+- `scoped-tls` 1.0.1 — MIT/Apache-2.0
+- `scopeguard` 1.2.0 — MIT OR Apache-2.0
+- `self_cell` 1.3.0 — Apache-2.0 OR GPL-2.0-only
+- `semver` 1.0.28 — MIT OR Apache-2.0
+- `serde_core` 1.0.229 — MIT OR Apache-2.0
+- `serde_derive` 1.0.229 — MIT OR Apache-2.0
+- `serde_json` 1.0.154 — MIT OR Apache-2.0
+- `serde_repr` 0.1.21 — MIT OR Apache-2.0
+- `serde_spanned` 0.6.9 — MIT OR Apache-2.0
+- `serde_spanned` 1.1.3 — MIT OR Apache-2.0
+- `serde` 1.0.229 — MIT OR Apache-2.0
+- `sha1` 0.10.7 — MIT OR Apache-2.0
+- `sha2` 0.10.9 — MIT OR Apache-2.0
+- `shlex` 2.0.1 — MIT OR Apache-2.0
+- `signal-hook-registry` 1.4.8 — MIT OR Apache-2.0
+- `simba` 0.10.2 — Apache-2.0
+- `simd-adler32` 0.3.10 — MIT
+- `simd_cesu8` 1.2.0 — Apache-2.0 OR MIT
+- `simdutf8` 0.1.5 — MIT OR Apache-2.0
+- `simplecss` 0.2.2 — Apache-2.0 OR MIT
+- `siphasher` 1.0.4 — MIT OR Apache-2.0
+- `skrifa` 0.44.0 — MIT OR Apache-2.0
+- `slab` 0.4.12 — MIT
+- `slotmap` 1.1.1 — Zlib
+- `smallvec` 1.16.5 — MIT OR Apache-2.0
+- `smithay-client-toolkit` 0.19.2 — MIT
+- `smithay-client-toolkit` 0.20.0 — MIT
+- `smithay-clipboard` 0.7.3 — MIT
+- `smol_str` 0.2.2 — MIT OR Apache-2.0
+- `socket2` 0.6.5 — MIT OR Apache-2.0
+- `spade` 2.15.1 — MIT OR Apache-2.0
+- `spirv` 0.4.0+sdk-1.4.341.0 — Apache-2.0
+- `stable_deref_trait` 1.2.1 — MIT OR Apache-2.0
+- `static_assertions` 1.1.0 — MIT OR Apache-2.0
+- `strict-num` 0.1.1 — MIT
+- `subtle` 2.6.1 — BSD-3-Clause
+- `svgtypes` 0.15.3 — Apache-2.0 OR MIT
+- `syn` 1.0.109 — MIT OR Apache-2.0
+- `syn` 2.0.119 — MIT OR Apache-2.0
+- `syn` 3.0.10 — MIT OR Apache-2.0
+- `synstructure` 0.14.0 — MIT
+- `system-deps` 6.2.2 — MIT OR Apache-2.0
+- `target-features` 0.1.6 — MIT OR Apache-2.0
+- `target-lexicon` 0.12.16 — Apache-2.0 WITH LLVM-exception
+- `tempfile` 3.27.0 — MIT OR Apache-2.0
+- `texture2ddecoder` 0.1.2 — MIT OR Apache-2.0
+- `thiserror-impl` 1.0.69 — MIT OR Apache-2.0
+- `thiserror-impl` 2.0.21 — MIT OR Apache-2.0
+- `thiserror` 1.0.69 — MIT OR Apache-2.0
+- `thiserror` 2.0.21 — MIT OR Apache-2.0
+- `tiff` 0.11.3 — MIT
+- `tiny-skia-path` 0.11.4 — BSD-3-Clause
+- `tiny-skia` 0.11.4 — BSD-3-Clause
+- `tinystr` 0.8.5 — Unicode-3.0
+- `tinyvec` 1.13.3 — Zlib OR Apache-2.0 OR MIT
+- `tokio` 1.54.1 — MIT
+- `toml_datetime` 0.6.3 — MIT OR Apache-2.0
+- `toml_datetime` 1.1.3+spec-1.1.0 — MIT OR Apache-2.0
+- `toml_edit` 0.19.15 — MIT OR Apache-2.0
+- `toml_edit` 0.20.2 — MIT OR Apache-2.0
+- `toml_edit` 0.25.19+spec-1.1.0 — MIT OR Apache-2.0
+- `toml_parser` 1.1.5+spec-1.1.0 — MIT OR Apache-2.0
+- `toml` 0.8.2 — MIT OR Apache-2.0
+- `toml` 1.2.1+spec-1.1.0 — MIT OR Apache-2.0
+- `tracing-attributes` 0.1.31 — MIT
+- `tracing-core` 0.1.36 — MIT
+- `tracing` 0.1.44 — MIT
+- `tungstenite` 0.24.0 — MIT OR Apache-2.0
+- `type-map` 0.5.1 — MIT/Apache-2.0
+- `typenum` 1.20.1 — MIT OR Apache-2.0
+- `uds_windows` 1.2.1 — MIT
+- `unarray` 0.1.4 — MIT OR Apache-2.0
+- `unic-langid-impl` 0.9.6 — MIT OR Apache-2.0
+- `unic-langid` 0.9.6 — MIT OR Apache-2.0
+- `unicode-general-category` 1.1.0 — Apache-2.0
+- `unicode-ident` 1.0.27 — (MIT OR Apache-2.0) AND Unicode-3.0
+- `unicode-segmentation` 1.13.3 — MIT OR Apache-2.0
+- `unicode-width` 0.2.3 — MIT OR Apache-2.0
+- `universal-hash` 0.5.1 — MIT OR Apache-2.0
+- `untrusted` 0.9.0 — ISC
+- `url` 2.5.8 — MIT OR Apache-2.0
+- `urlencoding` 2.1.3 — MIT
+- `usvg` 0.45.1 — Apache-2.0 OR MIT
+- `utf-8` 0.7.6 — MIT OR Apache-2.0
+- `utf8_iter` 1.1.0 — Apache-2.0 OR MIT
+- `utf_types` 1.0.0 — Apache-2.0 OR MIT
+- `uuid` 1.29.2 — Apache-2.0 OR MIT
+- `vec_map` 0.8.2 — MIT/Apache-2.0
+- `vello_common` 0.1.0 — Apache-2.0 OR MIT
+- `vello_cpu` 0.1.0 — Apache-2.0 OR MIT
+- `version-compare` 0.2.1 — MIT
+- `version_check` 0.9.5 — MIT/Apache-2.0
+- `wait-timeout` 0.2.1 — MIT/Apache-2.0
+- `walkdir` 2.5.0 — Unlicense/MIT
+- `wasi` 0.11.1+wasi-snapshot-preview1 — Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT
+- `wasip2` 1.0.4+wasi-0.2.12 — Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT
+- `wasm-bindgen-futures` 0.4.80 — MIT OR Apache-2.0
+- `wasm-bindgen-macro-support` 0.2.130 — MIT OR Apache-2.0
+- `wasm-bindgen-macro` 0.2.130 — MIT OR Apache-2.0
+- `wasm-bindgen-shared` 0.2.130 — MIT OR Apache-2.0
+- `wasm-bindgen` 0.2.130 — MIT OR Apache-2.0
+- `wayland-backend` 0.3.17 — MIT
+- `wayland-client` 0.31.15 — MIT
+- `wayland-csd-frame` 0.3.0 — MIT
+- `wayland-cursor` 0.31.14 — MIT
+- `wayland-protocols-experimental` 20250721.0.1 — MIT
+- `wayland-protocols-misc` 0.3.12 — MIT
+- `wayland-protocols-plasma` 0.3.12 — MIT
+- `wayland-protocols-wlr` 0.3.12 — MIT
+- `wayland-protocols` 0.32.13 — MIT
+- `wayland-scanner` 0.31.11 — MIT
+- `wayland-sys` 0.31.11 — MIT
+- `web-sys` 0.3.107 — MIT OR Apache-2.0
+- `web-time` 1.1.0 — MIT OR Apache-2.0
+- `webpki-roots` 1.0.12 — CDLA-Permissive-2.0
+- `weezl` 0.1.12 — MIT OR Apache-2.0
+- `wgpu-core-deps-apple` 30.0.2 — MIT OR Apache-2.0
+- `wgpu-core-deps-windows-linux-android` 30.0.1 — MIT OR Apache-2.0
+- `wgpu-core` 30.0.1 — MIT OR Apache-2.0
+- `wgpu-hal` 30.0.1 — MIT OR Apache-2.0
+- `wgpu-naga-bridge` 30.0.1 — MIT OR Apache-2.0
+- `wgpu-types` 30.0.1 — MIT OR Apache-2.0
+- `wgpu` 30.0.1 — MIT OR Apache-2.0
+- `wide` 1.7.1 — Zlib OR Apache-2.0 OR MIT
+- `winapi-i686-pc-windows-gnu` 0.4.0 — MIT/Apache-2.0
+- `winapi-util` 0.1.11 — Unlicense OR MIT
+- `winapi-x86_64-pc-windows-gnu` 0.4.0 — MIT/Apache-2.0
+- `winapi` 0.3.9 — MIT/Apache-2.0
+- `windows-collections` 0.3.2 — MIT OR Apache-2.0
+- `windows-core` 0.62.2 — MIT OR Apache-2.0
+- `windows-future` 0.3.2 — MIT OR Apache-2.0
+- `windows-implement` 0.60.2 — MIT OR Apache-2.0
+- `windows-interface` 0.59.3 — MIT OR Apache-2.0
+- `windows-link` 0.2.1 — MIT OR Apache-2.0
+- `windows-numerics` 0.3.1 — MIT OR Apache-2.0
+- `windows-result` 0.4.1 — MIT OR Apache-2.0
+- `windows-strings` 0.5.1 — MIT OR Apache-2.0
+- `windows-sys` 0.52.0 — MIT OR Apache-2.0
+- `windows-sys` 0.59.0 — MIT OR Apache-2.0
+- `windows-sys` 0.61.2 — MIT OR Apache-2.0
+- `windows-targets` 0.52.6 — MIT OR Apache-2.0
+- `windows-threading` 0.2.1 — MIT OR Apache-2.0
+- `windows_aarch64_gnullvm` 0.52.6 — MIT OR Apache-2.0
+- `windows_aarch64_msvc` 0.52.6 — MIT OR Apache-2.0
+- `windows_i686_gnu` 0.52.6 — MIT OR Apache-2.0
+- `windows_i686_gnullvm` 0.52.6 — MIT OR Apache-2.0
+- `windows_i686_msvc` 0.52.6 — MIT OR Apache-2.0
+- `windows_x86_64_gnu` 0.52.6 — MIT OR Apache-2.0
+- `windows_x86_64_gnullvm` 0.52.6 — MIT OR Apache-2.0
+- `windows_x86_64_msvc` 0.52.6 — MIT OR Apache-2.0
+- `windows` 0.62.2 — MIT OR Apache-2.0
+- `winit` 0.30.13 — Apache-2.0
+- `winnow` 0.5.40 — MIT
+- `winnow` 1.0.5 — MIT
+- `wit-bindgen` 0.57.1 — Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT
+- `writeable` 0.6.4 — Unicode-3.0
+- `x11-dl` 2.21.0 — MIT
+- `x11` 2.21.0 — MIT
+- `x11rb-protocol` 0.13.2 — MIT OR Apache-2.0
+- `x11rb` 0.13.2 — MIT OR Apache-2.0
+- `xcursor` 0.3.11 — MIT
+- `xkbcommon-dl` 0.4.2 — MIT
+- `xkeysym` 0.2.1 — MIT OR Apache-2.0 OR Zlib
+- `xml-rs` 0.8.29 — MIT
+- `xmlwriter` 0.1.0 — MIT
+- `yoke-derive` 0.8.4 — Unicode-3.0
+- `yoke` 0.8.4 — Unicode-3.0
+- `zbus-lockstep-macros` 0.5.2 — MIT
+- `zbus-lockstep` 0.5.2 — MIT
+- `zbus_macros` 5.19.0 — MIT
+- `zbus_names` 4.3.5 — MIT
+- `zbus_xml` 5.2.1 — MIT
+- `zbus` 5.19.0 — MIT
+- `zcheapstr` 1.2.0 — MIT
+- `zerocopy-derive` 0.8.63 — BSD-2-Clause OR Apache-2.0 OR MIT
+- `zerocopy` 0.8.63 — BSD-2-Clause OR Apache-2.0 OR MIT
+- `zerofrom-derive` 0.1.8 — Unicode-3.0
+- `zerofrom` 0.1.8 — Unicode-3.0
+- `zeroize` 1.9.2 — Apache-2.0 OR MIT
+- `zerotrie` 0.2.5 — Unicode-3.0
+- `zerovec-derive` 0.11.7 — Unicode-3.0
+- `zerovec` 0.11.9 — Unicode-3.0
+- `zlib-rs` 0.6.8 — Zlib
+- `zmij` 1.0.23 — MIT
+- `zune-core` 0.5.3 — MIT OR Apache-2.0 OR Zlib
+- `zune-inflate` 0.2.54 — MIT OR Apache-2.0 OR Zlib
+- `zune-jpeg` 0.5.15 — MIT OR Apache-2.0 OR Zlib
+- `zvariant_derive` 5.15.1 — MIT
+- `zvariant_utils` 4.2.0 — MIT
+- `zvariant` 5.15.1 — MIT
+<!-- notices:end -->

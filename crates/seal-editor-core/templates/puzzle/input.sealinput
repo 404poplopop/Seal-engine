@@ -1,0 +1,8 @@
+# Puzzle bindings. Focus on the screens uses the arrow keys, Enter, the d-pad and the south button.
+action ui_up = key.arrowup, pad.dpad_up
+action ui_down = key.arrowdown, pad.dpad_down
+action ui_left = key.arrowleft, pad.dpad_left
+action ui_right = key.arrowright, pad.dpad_right
+action ui_confirm = key.enter, key.space, pad.south
+action ui_back = key.escape, pad.east
+action pause = key.p, pad.start

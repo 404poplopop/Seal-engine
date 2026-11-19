@@ -1,0 +1,16 @@
+[package]
+name = "seal-capi"
+description = "Stable C interface to the Seal runtime (include/seal.h)."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+authors.workspace = true
+
+[lib]
+crate-type = ["rlib", "staticlib", "cdylib"]
+
+[dependencies]
+seal-ecs = { path = "../seal-ecs" }
+seal-scene = { path = "../seal-scene" }
+seal-sealtext = { path = "../seal-sealtext" }

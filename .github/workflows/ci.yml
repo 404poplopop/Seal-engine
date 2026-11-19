@@ -1,0 +1,116 @@
+name: ci
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 4 * * *"
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
+      - name: Linux UI libraries
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pkg-config libxkbcommon-dev libwayland-dev libgtk-3-dev libx11-dev libxcb1-dev libgl1-mesa-dev
+      - name: Format
+        run: cargo fmt --all --check
+      - name: Clippy
+        run: cargo clippy --workspace --all-targets -- -D warnings
+      - name: Test
+        run: cargo test --workspace
+      - name: JUnit report
+        if: always() && runner.os == 'Linux'
+        run: |
+          cargo test --workspace -- --nocapture > test-output.txt 2>&1 || true
+          python3 tools/cargo_junit.py test-output.txt test-report.xml
+      - name: Upload test report
+        if: always() && runner.os == 'Linux'
+        uses: actions/upload-artifact@v4
+        with:
+          name: cargo-junit
+          path: test-report.xml
+      - name: English catalog
+        run: cargo test -p seal-editor-core english_catalog -- --nocapture
+      - name: Dependency direction
+        run: cargo test -p seal-testkit the_workspace_graph_matches_the_shell_rules -- --nocapture
+      - name: Doc tests
+        run: cargo test --workspace --doc
+      - name: Third-party notices
+        run: python3 tools/generate_notices.py --check
+      - name: Headless editor check
+        run: cargo run -p seal-editor -- --self-check
+      - name: Dependency licenses
+        uses: EmbarkStudios/cargo-deny-action@v2
+  # SEAL_JOURNAL_FAULT_RUNS (200 manual, 1000 schedule) stress-tests randomized journal kill points.
+  # Regular `cargo test` skips the loop when the variable is unset.
+  journal-fault-soak:
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Randomized journal kill points
+        env:
+          SEAL_JOURNAL_FAULT_RUNS: ${{ github.event_name == 'schedule' && '1000' || '200' }}
+        run: cargo test -p seal-editor-core randomized_journal_kill_points -- --nocapture
+  coverage:
+    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: llvm-tools-preview
+      - uses: Swatinem/rust-cache@v2
+      - name: Linux UI libraries
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pkg-config libxkbcommon-dev libwayland-dev libgtk-3-dev libx11-dev libxcb1-dev libgl1-mesa-dev
+      - name: Install cargo-llvm-cov
+        run: cargo install cargo-llvm-cov --locked
+      - name: Coverage summary
+        run: python3 tools/coverage.py --require --html target/coverage --lcov target/coverage/lcov.info --text coverage.txt
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: target/coverage
+      - name: Comment on the pull request
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const summary = fs.readFileSync('coverage.txt', 'utf8').slice(0, 6000);
+            const body = '## Coverage\n\n```\n' + summary + '\n```';
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body
+            });
+  book:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Build the manual
+        run: |
+          cargo install mdbook --locked
+          mdbook build docs/book

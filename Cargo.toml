@@ -1,0 +1,66 @@
+[patch.crates-io]
+# ASTC encoder finished in our fork (upstream 0.5.0 leaves it unimplemented); Cargo fetches it on build.
+intel_tex_2 = { git = "https://github.com/404poplopop/intel-tex-rs-2", rev = "58089d927ee564afdfa57cf8beb0094118b7e602" }
+
+[workspace]
+resolver = "2"
+members = [
+    "crates/seal-log",
+    "crates/seal-sealtext",
+    "crates/seal-world",
+    "crates/seal-math",
+    "crates/seal-jobs",
+    "crates/seal-mem",
+    "crates/seal-trace",
+    "crates/seal-ecs",
+    "crates/seal-scene",
+    "crates/seal-render",
+    "crates/seal-render2d",
+    "crates/seal-input",
+    "crates/seal-audio",
+    "examples/seal-web-audio",
+    "crates/seal-physics2d",
+    "crates/seal-render-wgpu",
+    "crates/seal-app",
+    "crates/seal-sample-2d",
+    "crates/seal-graph",
+    "crates/seal-graph-tests",
+    "crates/seal-kernel",
+    "crates/seal-predict",
+    "crates/seal-migrate",
+    "crates/seal-run",
+    "crates/seal-agent",
+    "crates/seal-capi",
+    "crates/seal-i18n",
+    "crates/seal-testkit",
+    "crates/seal-editor-core",
+    "crates/seal-ui",
+    "crates/seal-editor-panels",
+    "crates/seal-editor-shell",
+    "crates/seal-editor",
+]
+
+[workspace.package]
+version = "0.2.0"
+edition = "2021"
+license = "LicenseRef-Seal-Proprietary"
+publish = false
+authors = ["404poplopop"]
+
+[workspace.dependencies]
+proptest = "1"
+serde_json = "1"
+regex = "1"
+tungstenite = "0.24"
+ron = "0.10"
+fluent-bundle = "0.16"
+unic-langid = "0.9"
+egui = { version = "=0.36.2", default-features = false, features = ["default_fonts"] }
+egui_dock = { version = "=0.21.1", features = ["serde"] }
+eframe = { version = "=0.36.2", default-features = false, features = ["accesskit", "default_fonts", "glow", "wayland", "x11"] }
+egui_kittest = { version = "=0.36.2", default-features = false }
+winit = { version = "=0.30.13", default-features = false }
+
+# Keep debug builds responsive: optimize dependencies (egui, renderer) even in dev.
+[profile.dev.package."*"]
+opt-level = 2

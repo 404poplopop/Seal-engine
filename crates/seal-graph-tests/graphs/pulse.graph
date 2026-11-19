@@ -1,0 +1,23 @@
+# A per-entity counter that wraps at a limit: a closed-form timer the
+# proof pass can run on a timing wheel instead of per tick.
+schema_version = 1
+seal_graph = "pulse"
+nodes = [
+  { id = 1, kind = "event", name = "tick", params = [] },
+  { id = 2, kind = "self" },
+  { id = 3, kind = "world_get", component = "agent", field = "t", type = "int" },
+  { id = 4, kind = "add", type = "int", defaults = { b = 3 } },
+  { id = 5, kind = "compare", type = "int", op = "ge", defaults = { b = 20 } },
+  { id = 6, kind = "select", type = "int", defaults = { a = 0 } },
+  { id = 7, kind = "world_set", component = "agent", field = "t", type = "int" },
+]
+links = [
+  "1.then -> 7.in",
+  "2.out -> 3.entity",
+  "2.out -> 7.entity",
+  "3.out -> 4.a",
+  "4.out -> 5.a",
+  "5.out -> 6.cond",
+  "4.out -> 6.b",
+  "6.out -> 7.value",
+]

@@ -1,0 +1,19 @@
+[package]
+name = "seal-sample-2d"
+description = "Seal Hop: a small 2D platformer that exercises the whole 2D engine."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+authors.workspace = true
+
+[[bin]]
+name = "seal-hop"
+path = "src/main.rs"
+
+[dependencies]
+seal-app = { path = "../seal-app" }
+
+[dev-dependencies]
+seal-editor-core = { path = "../seal-editor-core" }
+png = "0.18"

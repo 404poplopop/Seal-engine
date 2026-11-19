@@ -1,0 +1,24 @@
+# Text length and case nodes, compared between interpreter and compiled code.
+schema_version = 1
+seal_graph = "strops"
+vars = [
+  { name = "n", type = "int", default = 0 },
+  { name = "lo", type = "str", default = "" },
+]
+nodes = [
+  { id = 1, kind = "event", name = "say", params = [{ name = "s", type = "str" }] },
+  { id = 2, kind = "str_upper" },
+  { id = 3, kind = "log" },
+  { id = 4, kind = "str_len" },
+  { id = 5, kind = "set", name = "n" },
+  { id = 6, kind = "to_str", type = "int" },
+  { id = 7, kind = "log" },
+  { id = 8, kind = "str_lower" },
+  { id = 9, kind = "set", name = "lo" },
+]
+links = [
+  "1.then -> 3.in", "1.s -> 2.a", "2.out -> 3.message",
+  "3.then -> 5.in", "1.s -> 4.a", "4.out -> 5.value",
+  "5.then -> 7.in", "4.out -> 6.a", "6.out -> 7.message",
+  "7.then -> 9.in", "1.s -> 8.a", "8.out -> 9.value",
+]

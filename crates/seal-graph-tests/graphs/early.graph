@@ -1,0 +1,26 @@
+# A loop that ends early through `stop`, compared between interpreter and compiled code.
+schema_version = 1
+seal_graph = "early"
+vars = [
+  { name = "hits", type = "int", default = 0 },
+  { name = "last", type = "int", default = -1 },
+]
+nodes = [
+  { id = 1, kind = "event", name = "run", params = [{ name = "n", type = "int" }] },
+  { id = 2, kind = "set", name = "hits", defaults = { value = 0 } },
+  { id = 3, kind = "for", defaults = { first = 0, last = 1000000 } },
+  { id = 4, kind = "get", name = "hits" },
+  { id = 5, kind = "compare", op = "ge", type = "int" },
+  { id = 6, kind = "add", type = "int", defaults = { b = 1 } },
+  { id = 7, kind = "get", name = "hits" },
+  { id = 8, kind = "set", name = "hits" },
+  { id = 9, kind = "set", name = "last" },
+  { id = 10, kind = "log", defaults = { message = "done" } },
+]
+links = [
+  "1.then -> 2.in", "2.then -> 3.in",
+  "4.out -> 5.a", "1.n -> 5.b", "5.out -> 3.stop",
+  "3.body -> 8.in", "7.out -> 6.a", "6.out -> 8.value",
+  "8.then -> 9.in", "3.index -> 9.value",
+  "3.done -> 10.in",
+]

@@ -1,0 +1,17 @@
+[package]
+name = "seal-editor-panels"
+description = "Built-in editor panels. Milestone 1 registers them and draws a placeholder body."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+authors.workspace = true
+
+[dependencies]
+egui = { workspace = true }
+seal-editor-core = { path = "../seal-editor-core" }
+seal-log = { path = "../seal-log" }
+seal-ui = { path = "../seal-ui" }
+
+[dev-dependencies]
+egui_kittest = { workspace = true }

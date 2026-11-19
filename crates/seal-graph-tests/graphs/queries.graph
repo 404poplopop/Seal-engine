@@ -1,0 +1,51 @@
+# Physics queries on a known layout, compared between interpreter and compiled code.
+schema_version = 1
+seal_graph = "queries"
+vars = [
+  { name = "ents", type = "list<entity>", default = [] },
+  { name = "dist", type = "float", default = 0.0 },
+  { name = "cast", type = "float", default = 0.0 },
+  { name = "inside", type = "list<entity>", default = [] },
+  { name = "boxed", type = "list<entity>", default = [] },
+  { name = "circled", type = "list<entity>", default = [] },
+  { name = "bumped", type = "bool", default = false },
+]
+nodes = [
+  { id = 1, kind = "event", name = "ask" },
+  { id = 2, kind = "const", type = "vec3", value = [-2.0, 0.0, 0.0] },
+  { id = 3, kind = "const", type = "vec3", value = [1.0, 0.0, 0.0] },
+  { id = 4, kind = "const", type = "float", value = 10.0 },
+  { id = 5, kind = "const", type = "int", value = 0 },
+  { id = 6, kind = "raycast_all" },
+  { id = 7, kind = "set", name = "ents" },
+  { id = 8, kind = "const", type = "int", value = 0 },
+  { id = 9, kind = "list_get", type = "float" },
+  { id = 10, kind = "set", name = "dist" },
+  { id = 11, kind = "const", type = "str", value = "circle" },
+  { id = 12, kind = "const", type = "vec2", value = [0.5, 0.5] },
+  { id = 13, kind = "shape_cast" },
+  { id = 14, kind = "set", name = "cast" },
+  { id = 15, kind = "const", type = "vec3", value = [0.0, 0.0, 0.0] },
+  { id = 16, kind = "point_query" },
+  { id = 17, kind = "set", name = "inside" },
+  { id = 18, kind = "const", type = "vec2", value = [4.5, 4.0] },
+  { id = 19, kind = "overlap_box" },
+  { id = 20, kind = "set", name = "boxed" },
+  { id = 21, kind = "const", type = "vec3", value = [3.0, 0.0, 0.0] },
+  { id = 22, kind = "const", type = "float", value = 0.6 },
+  { id = 23, kind = "overlap_circle" },
+  { id = 24, kind = "set", name = "circled" },
+  { id = 25, kind = "list_get", type = "entity" },
+  { id = 26, kind = "const", type = "vec3", value = [1.2, 0.0, 0.0] },
+  { id = 27, kind = "test_move" },
+  { id = 28, kind = "set", name = "bumped" },
+]
+links = [
+  "1.then -> 7.in", "2.out -> 6.from", "3.out -> 6.direction", "4.out -> 6.max_distance", "5.out -> 6.mask", "6.entities -> 7.value",
+  "7.then -> 10.in", "6.distances -> 9.list", "8.out -> 9.index", "9.out -> 10.value",
+  "10.then -> 14.in", "11.out -> 13.shape", "12.out -> 13.size", "2.out -> 13.from", "3.out -> 13.direction", "4.out -> 13.max_distance", "5.out -> 13.mask", "13.distance -> 14.value",
+  "14.then -> 17.in", "15.out -> 16.point", "5.out -> 16.mask", "16.out -> 17.value",
+  "17.then -> 20.in", "15.out -> 19.center", "18.out -> 19.size", "5.out -> 19.mask", "19.out -> 20.value",
+  "20.then -> 24.in", "21.out -> 23.center", "22.out -> 23.radius", "5.out -> 23.mask", "23.out -> 24.value",
+  "24.then -> 28.in", "6.entities -> 25.list", "8.out -> 25.index", "25.out -> 27.entity", "26.out -> 27.delta", "5.out -> 27.mask", "27.hit -> 28.value",
+]

@@ -1,0 +1,16 @@
+[package]
+name = "seal-migrate"
+description = "Imports visual scripts copied from the classic actor framework's editor into Seal graphs, with a coverage report."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+authors.workspace = true
+
+[dependencies]
+seal-graph = { path = "../seal-graph" }
+seal-sealtext = { path = "../seal-sealtext" }
+
+[[bin]]
+name = "seal-migrate"
+path = "src/main.rs"

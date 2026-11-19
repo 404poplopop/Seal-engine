@@ -1,0 +1,67 @@
+# Idle, run and hop. One transition per step, by priority.
+schema_version = 1
+seal_graph = "states"
+vars = [
+  { name = "go", type = "bool", default = false },
+]
+nodes = [
+  { id = 1, kind = "event", name = "on_enter_idle" },
+  { id = 2, kind = "log", defaults = { message = "enter idle" } },
+  { id = 3, kind = "event", name = "on_update_idle" },
+  { id = 4, kind = "log", defaults = { message = "update idle" } },
+  { id = 5, kind = "event", name = "on_exit_idle" },
+  { id = 6, kind = "log", defaults = { message = "exit idle" } },
+  { id = 7, kind = "event", name = "on_enter_run" },
+  { id = 8, kind = "log", defaults = { message = "enter run" } },
+  { id = 9, kind = "event", name = "on_update_run" },
+  { id = 10, kind = "log", defaults = { message = "update run" } },
+  { id = 11, kind = "event", name = "on_exit_run" },
+  { id = 12, kind = "log", defaults = { message = "exit run" } },
+  { id = 13, kind = "event", name = "on_enter_hop" },
+  { id = 14, kind = "log", defaults = { message = "enter hop" } },
+  { id = 15, kind = "event", name = "on_update_hop" },
+  { id = 16, kind = "log", defaults = { message = "update hop" } },
+  { id = 17, kind = "event", name = "on_exit_hop" },
+  { id = 18, kind = "log", defaults = { message = "exit hop" } },
+  { id = 19, kind = "event", name = "move" },
+  { id = 20, kind = "set", name = "go", defaults = { value = true } },
+  { id = 21, kind = "event", name = "do_bounce" },
+  { id = 22, kind = "trigger", defaults = { event = "bounce" } },
+  { id = 23, kind = "event", name = "force_hop" },
+  { id = 24, kind = "set_state", defaults = { state = "hop" } },
+  { id = 25, kind = "event", name = "force_nope" },
+  { id = 26, kind = "set_state", defaults = { state = "nope" } },
+  { id = 27, kind = "event", name = "read" },
+  { id = 28, kind = "get_state" },
+  { id = 29, kind = "log" },
+]
+links = [
+  "1.then -> 2.in",
+  "3.then -> 4.in",
+  "5.then -> 6.in",
+  "7.then -> 8.in",
+  "9.then -> 10.in",
+  "11.then -> 12.in",
+  "13.then -> 14.in",
+  "15.then -> 16.in",
+  "17.then -> 18.in",
+  "19.then -> 20.in",
+  "21.then -> 22.in",
+  "23.then -> 24.in",
+  "25.then -> 26.in",
+  "28.out -> 29.message",
+  "27.then -> 29.in",
+]
+machine = {
+  initial = "idle"
+  states = [
+    { name = "idle", x = 0.0, y = 0.0 },
+    { name = "run", x = 200.0, y = 0.0 },
+    { name = "hop", x = 400.0, y = 0.0 },
+  ]
+  transitions = [
+    { from = "idle", to = "run", priority = 5, cond = "flag", var = "go" },
+    { from = "idle", to = "hop", priority = 1, cond = "after", seconds = 1.0 },
+    { from = "run", to = "run", priority = 0, cond = "event", event = "bounce" },
+  ]
+}

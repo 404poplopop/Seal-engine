@@ -1,0 +1,12 @@
+# Vectors as fixed three-decimal text.
+schema_version = 1
+seal_graph = "vectext"
+vars = []
+nodes = [
+  { id = 1, kind = "event", name = "show", params = [{ name = "v", type = "vec3" }, { name = "w", type = "vec2" }] },
+  { id = 2, kind = "vec_text", type = "vec3" },
+  { id = 3, kind = "vec_text", type = "vec2" },
+  { id = 4, kind = "log" },
+  { id = 5, kind = "log" },
+]
+links = ["1.v -> 2.a", "1.w -> 3.a", "1.then -> 4.in", "4.then -> 5.in", "2.out -> 4.message", "3.out -> 5.message"]

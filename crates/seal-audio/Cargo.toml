@@ -1,0 +1,42 @@
+[package]
+name = "seal-audio"
+description = "Deterministic audio mixer: sounds, voices, buses and file loading."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+authors.workspace = true
+
+[features]
+# Browser output. wasm32 always builds that module; the feature names the same path.
+web = []
+
+[dependencies]
+seal-math = { path = "../seal-math" }
+claxon = "0.4"
+lewton = "0.10"
+nanomp3 = { version = "0.2", default-features = false, features = ["std"] }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+js-sys = "0.3"
+wasm-bindgen = "0.2"
+web-sys = { version = "0.3", features = [
+    "AudioBuffer",
+    "AudioContext",
+    "AudioContextOptions",
+    "AudioContextState",
+    "AudioDestinationNode",
+    "AudioNode",
+    "AudioProcessingEvent",
+    "AudioWorklet",
+    "AudioWorkletNode",
+    "BaseAudioContext",
+    "Blob",
+    "BlobPropertyBag",
+    "EventTarget",
+    "MessagePort",
+    "ScriptProcessorNode",
+    "Url",
+    "Window",
+    "Worklet",
+] }

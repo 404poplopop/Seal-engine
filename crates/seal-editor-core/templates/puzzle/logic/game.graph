@@ -1,0 +1,7 @@
+schema_version = 1
+seal_graph = "puzzle"
+vars = []
+nodes = [
+  { id = 1, kind = "event", name = "start" },
+]
+links = []

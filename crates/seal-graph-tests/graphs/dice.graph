@@ -1,0 +1,35 @@
+# Seeded random numbers: the same rolls every run, interpreted or compiled.
+schema_version = 1
+seal_graph = "dice"
+vars = [
+  { name = "die", type = "int" },
+  { name = "odd", type = "int" },
+  { name = "f", type = "float" },
+  { name = "rolls", type = "int" },
+]
+nodes = [
+  { id = 1, kind = "event", name = "roll" },
+  { id = 2, kind = "const", type = "int", value = 1 },
+  { id = 3, kind = "const", type = "int", value = 6 },
+  { id = 4, kind = "random_int" },
+  { id = 5, kind = "set", name = "die" },
+  { id = 6, kind = "const", type = "float", value = 2.0 },
+  { id = 7, kind = "const", type = "float", value = 3.0 },
+  { id = 8, kind = "random_float" },
+  { id = 9, kind = "set", name = "f" },
+  { id = 10, kind = "random_int" },
+  { id = 11, kind = "set", name = "odd" },
+  { id = 12, kind = "get", name = "rolls" },
+  { id = 13, kind = "const", type = "int", value = 1 },
+  { id = 14, kind = "add", type = "int" },
+  { id = 15, kind = "set", name = "rolls" },
+  { id = 16, kind = "to_str", type = "int" },
+  { id = 17, kind = "log" },
+]
+links = [
+  "1.then -> 5.in", "2.out -> 4.a", "3.out -> 4.b", "4.out -> 5.value",
+  "5.then -> 9.in", "6.out -> 8.a", "7.out -> 8.b", "8.out -> 9.value",
+  "9.then -> 11.in", "3.out -> 10.a", "2.out -> 10.b", "10.out -> 11.value",
+  "11.then -> 15.in", "12.out -> 14.a", "13.out -> 14.b", "14.out -> 15.value",
+  "15.then -> 17.in", "4.out -> 16.a", "16.out -> 17.message",
+]

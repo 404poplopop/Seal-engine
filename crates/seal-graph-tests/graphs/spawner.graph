@@ -1,0 +1,40 @@
+# Spawning from a prefab, writing to the new entity, despawning, checking validity.
+schema_version = 1
+seal_graph = "spawner"
+vars = [
+  { name = "last", type = "entity" },
+  { name = "made", type = "int", default = 0 },
+]
+nodes = [
+  { id = 1, kind = "event", name = "make" },
+  { id = 2, kind = "spawn", prefab = "coin" },
+  { id = 3, kind = "set", name = "last" },
+  { id = 4, kind = "world_get", component = "coin", field = "value", type = "int" },
+  { id = 5, kind = "add", type = "int" },
+  { id = 6, kind = "world_set", component = "coin", field = "value", type = "int" },
+  { id = 7, kind = "get", name = "made" },
+  { id = 8, kind = "add", type = "int", defaults = { b = 1 } },
+  { id = 9, kind = "set", name = "made" },
+  { id = 10, kind = "world_get", component = "coin", field = "value", type = "int" },
+  { id = 11, kind = "to_str", type = "int" },
+  { id = 12, kind = "log" },
+  { id = 20, kind = "event", name = "kill" },
+  { id = 21, kind = "get", name = "last" },
+  { id = 22, kind = "despawn" },
+  { id = 30, kind = "event", name = "check" },
+  { id = 31, kind = "get", name = "last" },
+  { id = 32, kind = "is_valid" },
+  { id = 33, kind = "to_str", type = "bool" },
+  { id = 34, kind = "log" },
+  { id = 40, kind = "event", name = "bad" },
+  { id = 41, kind = "spawn", prefab = "nope" },
+]
+links = [
+  "1.then -> 2.in", "2.then -> 3.in", "2.entity -> 3.value",
+  "3.then -> 6.in", "3.value -> 6.entity", "3.value -> 4.entity", "4.out -> 5.a", "7.out -> 5.b", "5.out -> 6.value",
+  "6.then -> 9.in", "7.out -> 8.a", "8.out -> 9.value",
+  "9.then -> 12.in", "3.value -> 10.entity", "10.out -> 11.a", "11.out -> 12.message",
+  "20.then -> 22.in", "21.out -> 22.entity",
+  "40.then -> 41.in",
+  "30.then -> 34.in", "31.out -> 32.entity", "32.out -> 33.a", "33.out -> 34.message",
+]

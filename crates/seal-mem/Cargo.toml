@@ -1,0 +1,11 @@
+[package]
+name = "seal-mem"
+description = "Memory tags with live budgets, a tracking allocator, and per-frame arenas."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+authors.workspace = true
+
+[dependencies]
+bumpalo = { version = "3", features = ["collections"] }

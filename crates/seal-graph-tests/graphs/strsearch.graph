@@ -1,0 +1,20 @@
+# Text search nodes, compared between interpreter and compiled code.
+schema_version = 1
+seal_graph = "strsearch"
+nodes = [
+  { id = 1, kind = "event", name = "find", params = [{ name = "s", type = "str" }, { name = "t", type = "str" }] },
+  { id = 2, kind = "str_contains" },
+  { id = 3, kind = "to_str", type = "bool" },
+  { id = 4, kind = "log" },
+  { id = 5, kind = "str_starts" },
+  { id = 6, kind = "to_str", type = "bool" },
+  { id = 7, kind = "log" },
+  { id = 8, kind = "str_ends" },
+  { id = 9, kind = "to_str", type = "bool" },
+  { id = 10, kind = "log" },
+]
+links = [
+  "1.then -> 4.in", "1.s -> 2.a", "1.t -> 2.b", "2.out -> 3.a", "3.out -> 4.message",
+  "4.then -> 7.in", "1.s -> 5.a", "1.t -> 5.b", "5.out -> 6.a", "6.out -> 7.message",
+  "7.then -> 10.in", "1.s -> 8.a", "1.t -> 8.b", "8.out -> 9.a", "9.out -> 10.message",
+]

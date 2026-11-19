@@ -1,0 +1,22 @@
+seal ui 1
+theme ui/puzzle.sealtheme
+panel Screen
+  anchor 0 0 1 1
+  color #000000AA
+  panel Card
+    anchor 0.5 0.5 0.5 0.5
+    offset -160 -100 160 100
+    vbox Menu
+      anchor 0 0 1 1
+      padding 16
+      label Title
+        text Level Complete
+        align center
+        font_size 26
+      label Stats
+        text Moves: 0
+        align center
+      button NextLevel
+        text Next Level
+      button LevelSelectWin
+        text Level Select

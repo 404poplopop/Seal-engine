@@ -1,0 +1,32 @@
+# Event timers: set, replace, loop, catch up, clear (also from inside the timer).
+schema_version = 1
+seal_graph = "timers"
+vars = [
+  { name = "pings", type = "int", default = 0 },
+  { name = "limit", type = "int", default = 1000000 },
+]
+nodes = [
+  { id = 1, kind = "event", name = "arm", params = [{ name = "secs", type = "float" }, { name = "looping", type = "bool" }, { name = "limit", type = "int" }] },
+  { id = 2, kind = "set", name = "limit" },
+  { id = 3, kind = "set_timer", name = "ping" },
+  { id = 4, kind = "event", name = "disarm" },
+  { id = 5, kind = "clear_timer", name = "ping" },
+  { id = 6, kind = "event", name = "ping" },
+  { id = 7, kind = "get", name = "pings" },
+  { id = 8, kind = "add", type = "int", defaults = { b = 1 } },
+  { id = 9, kind = "set", name = "pings" },
+  { id = 10, kind = "to_str", type = "int" },
+  { id = 11, kind = "log" },
+  { id = 12, kind = "get", name = "limit" },
+  { id = 13, kind = "compare", type = "int", op = "ge" },
+  { id = 14, kind = "branch" },
+  { id = 15, kind = "clear_timer", name = "ping" },
+]
+links = [
+  "1.then -> 2.in", "1.limit -> 2.value", "2.then -> 3.in", "1.secs -> 3.seconds", "1.looping -> 3.looping",
+  "4.then -> 5.in",
+  "6.then -> 9.in", "7.out -> 8.a", "8.out -> 9.value",
+  "9.then -> 11.in", "9.value -> 10.a", "10.out -> 11.message",
+  "11.then -> 14.in", "9.value -> 13.a", "12.out -> 13.b", "13.out -> 14.cond",
+  "14.true -> 15.in",
+]

@@ -1,0 +1,17 @@
+# Which entity each local player controls.
+schema_version = 1
+seal_graph = "players"
+vars = []
+nodes = [
+  { id = 1, kind = "event", name = "who", params = [{ name = "index", type = "int" }] },
+  { id = 2, kind = "player" },
+  { id = 3, kind = "is_valid" },
+  { id = 4, kind = "to_str", type = "bool" },
+  { id = 5, kind = "to_str", type = "entity" },
+  { id = 6, kind = "concat" },
+  { id = 7, kind = "log" },
+]
+links = [
+  "1.index -> 2.index", "2.out -> 3.entity", "3.out -> 4.a", "2.out -> 5.a",
+  "4.out -> 6.a", "5.out -> 6.b", "1.then -> 7.in", "6.out -> 7.message",
+]

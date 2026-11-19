@@ -1,0 +1,48 @@
+name: nightly
+on:
+  schedule:
+    - cron: "0 3 * * *"
+  workflow_dispatch:
+jobs:
+  property-tests:
+    runs-on: ubuntu-latest
+    env:
+      PROPTEST_CASES: 8192
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Linux UI libraries
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pkg-config libxkbcommon-dev libwayland-dev libgtk-3-dev libx11-dev libxcb1-dev libgl1-mesa-dev
+      - name: Property tests
+        run: cargo test --workspace property_
+  fuzz:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@nightly
+      - uses: Swatinem/rust-cache@v2
+      - name: Install cargo-fuzz
+        run: cargo install cargo-fuzz --locked
+      - name: Fuzz SealText
+        run: cargo fuzz run sealtext -- -max_total_time=600
+      - name: Fuzz keymap
+        run: cargo fuzz run keymap -- -max_total_time=600
+      - name: Fuzz layout
+        run: cargo fuzz run layout -- -max_total_time=600
+      - name: Fuzz journal
+        run: cargo fuzz run journal -- -max_total_time=600
+  soak:
+    # Hosted runners stop at 6 hours. SEAL_SOAK_HOURS=8 is the full budget on a machine that allows it.
+    timeout-minutes: 360
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Eight-hour budget, capped at the runner limit
+        env:
+          SEAL_SOAK_HOURS: "6"
+        run: cargo test -p seal-editor-core --test command_soak -- --nocapture

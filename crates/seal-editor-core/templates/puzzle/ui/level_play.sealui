@@ -1,0 +1,53 @@
+seal ui 1
+theme ui/puzzle.sealtheme
+panel Screen
+  anchor 0 0 1 1
+  color #16213EFF
+  label LevelLabel
+    anchor 0.34 0.03 0.66 0.09
+    text Level 1
+    align center
+  label MovesLabel
+    anchor 0.04 0.03 0.32 0.09
+    text Moves: 0
+  button PauseBtn
+    anchor 0.82 0.03 0.97 0.09
+    text Pause
+  grid Board
+    anchor 0.5 0.48 0.5 0.48
+    offset -180 -180 180 180
+    columns 3
+    spacing 8
+    button Cell1
+      size 100 100
+      text Off
+    button Cell2
+      size 100 100
+      text Off
+    button Cell3
+      size 100 100
+      text Off
+    button Cell4
+      size 100 100
+      text Off
+    button Cell5
+      size 100 100
+      text Off
+    button Cell6
+      size 100 100
+      text Off
+    button Cell7
+      size 100 100
+      text Off
+    button Cell8
+      size 100 100
+      text Off
+    button Cell9
+      size 100 100
+      text Off
+  hbox Tools
+    anchor 0.12 0.88 0.88 0.96
+    button UndoBtn
+      text Undo Move
+    button RestartBtn
+      text Restart

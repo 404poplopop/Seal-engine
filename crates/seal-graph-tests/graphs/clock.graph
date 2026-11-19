@@ -1,0 +1,29 @@
+# Reading game time and the length of the last frame.
+schema_version = 1
+seal_graph = "clock"
+vars = [
+  { name = "t", type = "float" },
+  { name = "d", type = "float" },
+  { name = "same", type = "bool" },
+]
+nodes = [
+  { id = 1, kind = "event", name = "tick" },
+  { id = 2, kind = "game_time" },
+  { id = 3, kind = "set", name = "t" },
+  { id = 4, kind = "frame_dt" },
+  { id = 5, kind = "set", name = "d" },
+  { id = 6, kind = "compare", type = "float", op = "eq" },
+  { id = 7, kind = "set", name = "same" },
+  { id = 10, kind = "event", name = "show" },
+  { id = 11, kind = "game_time" },
+  { id = 12, kind = "frame_dt" },
+  { id = 13, kind = "to_str", type = "float" },
+  { id = 14, kind = "to_str", type = "float" },
+  { id = 15, kind = "concat" },
+  { id = 16, kind = "log" },
+]
+links = [
+  "1.then -> 3.in", "2.out -> 3.value", "3.then -> 5.in", "4.out -> 5.value",
+  "5.then -> 7.in", "1.dt -> 6.a", "4.out -> 6.b", "6.out -> 7.value",
+  "10.then -> 16.in", "11.out -> 13.a", "12.out -> 14.a", "13.out -> 15.a", "14.out -> 15.b", "15.out -> 16.message",
+]

@@ -1,0 +1,22 @@
+[package]
+name = "seal-render"
+description = "Render graph, the render hardware interface and a software device."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+authors.workspace = true
+
+[dependencies]
+seal-trace = { path = "../seal-trace" }
+image = { version = "0.25", default-features = false, features = ["png", "jpeg", "gif", "bmp", "tga", "webp", "hdr", "exr"] }
+resvg = { version = "0.45.1", default-features = false }
+miniz_oxide = "=0.8.9"
+texture2ddecoder = "0.1.2"
+
+[dev-dependencies]
+bcdec_rs = "0.2.0"
+
+[target.'cfg(not(all(windows, target_env = "gnu")))'.dependencies]
+intel_tex_2 = "0.5.0"
+half = "2.4.1"

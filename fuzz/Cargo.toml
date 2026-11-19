@@ -1,0 +1,41 @@
+[package]
+name = "seal-fuzz"
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+seal-sealtext = { path = "../crates/seal-sealtext" }
+seal-editor-core = { path = "../crates/seal-editor-core" }
+
+[[bin]]
+name = "sealtext"
+path = "fuzz_targets/sealtext.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "keymap"
+path = "fuzz_targets/keymap.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "layout"
+path = "fuzz_targets/layout.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "journal"
+path = "fuzz_targets/journal.rs"
+test = false
+doc = false
+bench = false

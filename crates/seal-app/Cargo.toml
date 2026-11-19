@@ -1,0 +1,25 @@
+[package]
+name = "seal-app"
+description = "Runs a Seal 2D game: fixed-step loop, input, physics, sprites and sound, headless or in a window."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+authors.workspace = true
+
+[features]
+default = ["window", "audio-out"]
+window = ["dep:winit", "dep:seal-render-wgpu"]
+audio-out = ["dep:cpal"]
+
+[dependencies]
+seal-ecs = { path = "../seal-ecs" }
+seal-render = { path = "../seal-render" }
+seal-render2d = { path = "../seal-render2d" }
+seal-input = { path = "../seal-input" }
+seal-audio = { path = "../seal-audio" }
+seal-physics2d = { path = "../seal-physics2d" }
+seal-trace = { path = "../seal-trace" }
+seal-render-wgpu = { path = "../seal-render-wgpu", optional = true }
+winit = { workspace = true, optional = true, features = ["rwh_06", "x11"] }
+cpal = { version = "0.18", optional = true }

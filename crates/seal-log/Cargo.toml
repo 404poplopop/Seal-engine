@@ -1,0 +1,10 @@
+[package]
+name = "seal-log"
+description = "Logging facade for Seal. Editor builds keep a full record. Ship builds stay cheap."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+authors.workspace = true
+
+[dependencies]

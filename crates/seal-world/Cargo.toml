@@ -1,0 +1,34 @@
+[package]
+name = "seal-world"
+description = "Scene world: entities, transforms, and the play step."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+authors.workspace = true
+
+[features]
+play-preview = ["dep:rapier3d"]
+
+[dependencies]
+rustls = { version = "0.23", default-features = false, features = ["ring", "std", "tls12", "logging"] }
+webpki-roots = "1"
+seal-sealtext = { path = "../seal-sealtext" }
+seal-ecs = { path = "../seal-ecs" }
+seal-scene = { path = "../seal-scene" }
+seal-physics2d = { path = "../seal-physics2d" }
+seal-graph = { path = "../seal-graph" }
+seal-input = { path = "../seal-input" }
+serde_json.workspace = true
+skrifa = "0.44"
+png = "0.18"
+rapier3d = { version = "=0.36.1", optional = true }
+
+[target.'cfg(any(windows, target_os = "macos"))'.dependencies]
+rfd = { version = "0.15", default-features = false }
+
+[target.'cfg(not(any(windows, target_os = "macos")))'.dependencies]
+rfd = { version = "0.15", default-features = false, features = ["xdg-portal", "tokio"] }
+
+[dev-dependencies]
+seal-testkit = { path = "../seal-testkit" }

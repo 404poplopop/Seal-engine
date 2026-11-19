@@ -1,0 +1,20 @@
+[package]
+name = "seal-render-wgpu"
+description = "GPU device for the Seal render graph (Vulkan, Direct3D 12, Metal through wgpu)."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+authors.workspace = true
+
+[dependencies]
+seal-render = { path = "../seal-render" }
+seal-kernel = { path = "../seal-kernel" }
+seal-jobs = { path = "../seal-jobs" }
+wgpu = { version = "30", default-features = false, features = ["std", "wgsl", "vulkan", "dx12", "metal"] }
+pollster = "0.4"
+bytemuck = { version = "1", features = ["derive"] }
+image = { version = "0.25", default-features = false, features = ["png", "jpeg", "gif", "bmp", "tga", "webp", "hdr"] }
+
+[dev-dependencies]
+naga = { version = "30", features = ["wgsl-in"] }

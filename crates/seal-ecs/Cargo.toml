@@ -1,0 +1,16 @@
+[package]
+name = "seal-ecs"
+description = "Seal's entity-component core: generational ids, archetype tables, queries and change ticks."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+authors.workspace = true
+
+[dependencies]
+seal-jobs = { path = "../seal-jobs" }
+seal-sealtext = { path = "../seal-sealtext" }
+seal-trace = { path = "../seal-trace" }
+
+[dev-dependencies]
+proptest.workspace = true

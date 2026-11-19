@@ -1,0 +1,18 @@
+[package]
+name = "seal-trace"
+description = "Always-on, low-overhead trace channels: zones, counters and frame marks, exported as Chrome trace JSON or to Tracy."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+authors.workspace = true
+
+[features]
+# Also send every zone, counter and frame mark to a running Tracy viewer.
+tracy = ["dep:tracy-client"]
+
+[dependencies]
+tracy-client = { version = "0.19", optional = true }
+
+[dev-dependencies]
+serde_json.workspace = true

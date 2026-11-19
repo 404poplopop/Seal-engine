@@ -1,0 +1,21 @@
+[package]
+name = "seal-ui"
+description = "Editor UI traits. This is the only crate that names the window toolkit."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+authors.workspace = true
+
+[dependencies]
+seal-editor-core = { path = "../seal-editor-core" }
+accesskit = "0.24.1"
+egui.workspace = true
+egui_dock.workspace = true
+eframe.workspace = true
+egui-wgpu = { version = "=0.36.2", default-features = false }
+wgpu = { version = "30", default-features = false, features = ["std", "wgsl"] }
+png = "0.18"
+
+[dev-dependencies]
+naga = { version = "30", features = ["wgsl-in"] }

@@ -1,0 +1,18 @@
+[package]
+name = "seal-graph-tests"
+description = "Graphs compiled to Rust at build time, checked against the interpreter."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+authors.workspace = true
+
+[dependencies]
+seal-graph = { path = "../seal-graph" }
+
+[build-dependencies]
+seal-graph = { path = "../seal-graph" }
+
+[dev-dependencies]
+seal-predict = { path = "../seal-predict" }
+proptest.workspace = true

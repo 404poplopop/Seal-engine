@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Web audio output</title>
+</head>
+<body>
+  <p id="status">Starting.</p>
+  <button id="tone" type="button">Play tone</button>
+  <button id="file" type="button">Play file</button>
+  <script type="module">
+    import init, { Demo } from "./pkg/seal_web_audio.js";
+
+    const status = document.getElementById("status");
+    try {
+      await init();
+      const demo = new Demo(48000, 512);
+      status.textContent = demo.status();
+      const frame = () => {
+        demo.pump();
+        requestAnimationFrame(frame);
+      };
+      requestAnimationFrame(frame);
+      if (location.search.includes("selftest")) {
+        // Automated check: play the tone and report what the browser actually consumed.
+        demo.resume();
+        demo.play_tone();
+        setTimeout(() => { status.textContent = "selftest " + demo.report(); }, 1500);
+      }
+      document.getElementById("tone").addEventListener("click", () => {
+        demo.resume();
+        demo.play_tone();
+        demo.pump();
+      });
+      document.getElementById("file").addEventListener("click", async () => {
+        demo.resume();
+        const response = await fetch("tone.wav");
+        const bytes = new Uint8Array(await response.arrayBuffer());
+        demo.play_file(bytes);
+        demo.pump();
+      });
+    } catch (error) {
+      status.textContent = String(error);
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,38 @@
+# Trig, rounding and vector nodes, compared between interpreter and compiled code.
+schema_version = 1
+seal_graph = "mathops"
+vars = [
+  { name = "s", type = "float", default = 0.0 },
+  { name = "c", type = "float", default = 0.0 },
+  { name = "f", type = "int", default = 0 },
+  { name = "r", type = "int", default = 0 },
+  { name = "u", type = "int", default = 0 },
+  { name = "d", type = "float", default = 0.0 },
+  { name = "n", type = "vec2", default = [0.0, 0.0] },
+]
+nodes = [
+  { id = 1, kind = "event", name = "calc", params = [{ name = "a", type = "float" }, { name = "v", type = "vec2" }, { name = "w", type = "vec2" }] },
+  { id = 2, kind = "sin" },
+  { id = 3, kind = "set", name = "s" },
+  { id = 4, kind = "cos" },
+  { id = 5, kind = "set", name = "c" },
+  { id = 6, kind = "floor" },
+  { id = 7, kind = "set", name = "f" },
+  { id = 8, kind = "round" },
+  { id = 9, kind = "set", name = "r" },
+  { id = 10, kind = "ceil" },
+  { id = 11, kind = "set", name = "u" },
+  { id = 12, kind = "dot" },
+  { id = 13, kind = "set", name = "d" },
+  { id = 14, kind = "normalize" },
+  { id = 15, kind = "set", name = "n" },
+]
+links = [
+  "1.then -> 3.in", "1.a -> 2.a", "2.out -> 3.value",
+  "3.then -> 5.in", "1.a -> 4.a", "4.out -> 5.value",
+  "5.then -> 7.in", "1.a -> 6.a", "6.out -> 7.value",
+  "7.then -> 9.in", "1.a -> 8.a", "8.out -> 9.value",
+  "9.then -> 11.in", "1.a -> 10.a", "10.out -> 11.value",
+  "11.then -> 13.in", "1.v -> 12.a", "1.w -> 12.b", "12.out -> 13.value",
+  "13.then -> 15.in", "1.v -> 14.v", "14.out -> 15.value",
+]

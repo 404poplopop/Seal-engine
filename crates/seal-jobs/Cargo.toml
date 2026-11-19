@@ -1,0 +1,12 @@
+[package]
+name = "seal-jobs"
+description = "Work-stealing job system with priorities, scoped jobs and fixed-order results."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+authors.workspace = true
+
+[dependencies]
+crossbeam-deque = "0.8"
+seal-trace = { path = "../seal-trace" }

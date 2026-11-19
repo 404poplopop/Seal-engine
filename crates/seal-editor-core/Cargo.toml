@@ -1,0 +1,35 @@
+[package]
+name = "seal-editor-core"
+description = "Headless editor model: layout, panels, messages, and crash-safe persistence."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+authors.workspace = true
+
+[dev-dependencies]
+miniz_oxide = "=0.8.9"
+png = "0.18"
+seal-testkit = { path = "../seal-testkit" }
+proptest.workspace = true
+epaint_default_fonts = "0.36"
+tungstenite.workspace = true
+
+[dependencies]
+miniz_oxide = "=0.8.9"
+png = "0.18"
+seal-sealtext = { path = "../seal-sealtext" }
+seal-log = { path = "../seal-log" }
+seal-i18n = { path = "../seal-i18n" }
+seal-world = { path = "../seal-world" }
+seal-render = { path = "../seal-render" }
+seal-graph = { path = "../seal-graph" }
+seal-audio = { path = "../seal-audio" }
+serde_json.workspace = true
+regex.workspace = true
+tungstenite.workspace = true
+
+[features]
+default = ["mock-world"]
+mock-world = []
+play-preview = ["seal-world/play-preview"]

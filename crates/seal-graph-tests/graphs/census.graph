@@ -1,0 +1,34 @@
+# Finding every entity made from a prefab, including prefabs based on it.
+schema_version = 1
+seal_graph = "census"
+nodes = [
+  { id = 1, kind = "event", name = "boss" },
+  { id = 2, kind = "spawn", prefab = "boss" },
+  { id = 10, kind = "event", name = "coin" },
+  { id = 11, kind = "spawn", prefab = "coin" },
+  { id = 20, kind = "event", name = "kill" },
+  { id = 21, kind = "find_all", prefab = "enemy" },
+  { id = 23, kind = "list_get", type = "entity" },
+  { id = 24, kind = "const", type = "int", value = 0 },
+  { id = 22, kind = "despawn" },
+  { id = 25, kind = "event", name = "first" },
+  { id = 26, kind = "find_first", prefab = "enemy" },
+  { id = 27, kind = "despawn" },
+  { id = 30, kind = "event", name = "count" },
+  { id = 31, kind = "find_all", prefab = "enemy" },
+  { id = 32, kind = "find_all", prefab = "coin" },
+  { id = 33, kind = "list_len", type = "entity" },
+  { id = 34, kind = "list_len", type = "entity" },
+  { id = 35, kind = "to_str", type = "int" },
+  { id = 36, kind = "to_str", type = "int" },
+  { id = 37, kind = "concat" },
+  { id = 38, kind = "log" },
+]
+links = [
+  "1.then -> 2.in",
+  "10.then -> 11.in",
+  "20.then -> 22.in", "21.out -> 23.list", "24.out -> 23.index", "23.out -> 22.entity",
+  "25.then -> 27.in", "26.out -> 27.entity",
+  "30.then -> 38.in", "31.out -> 33.list", "32.out -> 34.list",
+  "33.out -> 35.a", "34.out -> 36.a", "35.out -> 37.a", "36.out -> 37.b", "37.out -> 38.message",
+]

@@ -1,0 +1,31 @@
+[package]
+name = "seal-editor-shell"
+description = "Editor window, docking workspace, and autosave."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+authors.workspace = true
+
+[dependencies]
+seal-editor-core = { path = "../seal-editor-core" }
+seal-editor-panels = { path = "../seal-editor-panels" }
+seal-ui = { path = "../seal-ui" }
+seal-log = { path = "../seal-log" }
+eframe.workspace = true
+egui.workspace = true
+egui-wgpu = { version = "=0.36.2", default-features = false }
+egui-winit = { version = "=0.36.2", default-features = false, features = ["clipboard", "wayland", "x11"] }
+wgpu = { version = "30", default-features = false, features = ["std", "wgsl", "vulkan", "dx12", "metal"] }
+winit = { workspace = true, features = ["rwh_06", "x11", "wayland"] }
+
+[target.'cfg(not(any(windows, target_os = "macos")))'.dependencies]
+rfd = { version = "0.15", default-features = false, features = ["xdg-portal", "tokio"] }
+
+# Gamepads: XInput on Windows, IOKit on macOS. Linux would need libudev.
+[target.'cfg(any(windows, target_os = "macos"))'.dependencies]
+gilrs = "0.11"
+rfd = { version = "0.15", default-features = false }
+
+[target.'cfg(target_os = "macos")'.dependencies]
+muda = "0.15.3"
